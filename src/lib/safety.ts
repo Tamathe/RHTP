@@ -19,6 +19,7 @@ export interface SafetyScreeningResult {
 const RED_FLAG_PATTERNS = [
   /sudden(?:ly)?\s+(?:lost|loss|lose).{0,24}vision/i,
   /sudden(?:ly)?\s+vision\s+loss/i,
+  /sudden(?:ly)?\s+vision\s+changes?/i,
   /loss\s+of\s+vision/i,
   /new\s+(?:flashes|floaters)/i,
   /flashes?\s+and\s+floaters?/i,
