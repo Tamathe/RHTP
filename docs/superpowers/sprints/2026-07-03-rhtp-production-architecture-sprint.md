@@ -29,9 +29,9 @@ Phase 5 - P0 implementation verified
 
 ## Phase 5 - P0 Implementation
 **Status:** done
-**Implemented:** voice-first Sandy simulation, patient-facing provenance, protocol events, safety red-flag escalation, navigator queue default hub, and voice-to-queue golden path.
-**Automated proof:** `npm test` passed with 27 files and 88 tests. `npm run build` passed.
-**Browser proof:** `http://127.0.0.1:5173/` opens on Sandy voice companion. Voice outreach plus `I need a ride` creates a navigator queue row for Ruth Ann Caldwell with transportation barrier, source facts, protocol trail, and suggested action. `I have sudden vision changes` creates an urgent red-flag queue row with protocol trail and urgent clinical guidance. Browser console errors: none captured.
+**Implemented:** voice-first Sandy simulation, patient-facing provenance, protocol events, safety red-flag escalation with routine-coaching lock, navigator queue default hub, and voice-to-queue golden path.
+**Automated proof:** `npm test` passed with 27 files and 90 tests. `npm run build` passed.
+**Browser proof:** `http://127.0.0.1:5173/` opens on Sandy voice companion. Voice outreach plus `I need a ride` creates a navigator queue row for Ruth Ann Caldwell with transportation barrier, source facts, protocol trail, and suggested action. `I have sudden vision changes` creates an urgent red-flag queue row, disables routine voice controls, shows paused-coaching copy, and keeps the urgent clinical guidance action visible. `Already completed` sends the claim to navigator/source-record reconciliation without telling the patient the gap is closed. Browser console errors: none captured.
 
 ## Next Action
 Choose the P1 backend foundation path: persistent schema, protocol event API, navigator queue API, and audit/event logging.
