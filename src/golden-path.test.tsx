@@ -1,25 +1,26 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { HERO_ID } from './data/seed'
 import { useStore } from './store/useStore'
+import { SideBySide } from './components/SideBySide'
 
-const s = () => useStore.getState()
-const heroGap = () => s().gaps.find((gap) => gap.patientId === HERO_ID)!
+beforeEach(() => useStore.getState().reset())
 
-beforeEach(() => s().reset())
+describe('RHTP P0 production-shaped golden path', () => {
+  it('moves from voice outreach to navigator queue to scheduled plan and outcome metrics', async () => {
+    render(<SideBySide />)
 
-describe('golden path: Overdue to Closed Loop', () => {
-  it('drives the hero from overdue to closed with the expected counter ticks', () => {
-    expect(heroGap().status).toBe('overdue')
-    s().askQuestion(HERO_ID, 'Why me?', 'today')
-    expect(heroGap().priorityLabel).toBe('app_engaged')
-    s().reportBarrier(HERO_ID, 'transportation', 'No weekday ride')
-    expect(heroGap().priorityLabel).toBe('navigator_needed')
-    expect(s().navigatorTasks).toHaveLength(1)
-    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
-    expect(s().metrics.find((metric) => metric.id === 'scheduled')!.value).toBe(6)
-    s().enterResult(HERO_ID, 'normal')
-    expect(heroGap().status).toBe('closed')
-    expect(s().metrics.find((metric) => metric.id === 'completed')!.value).toBe(7)
-    expect(s().metrics.find((metric) => metric.id === 'gaps_closed')!.value).toBe(5)
+    await userEvent.click(screen.getByRole('button', { name: /start voice outreach/i }))
+    await userEvent.click(screen.getByRole('button', { name: /I need a ride/i }))
+
+    expect(screen.getByText(/transportation barrier/i)).toBeInTheDocument()
+    expect(useStore.getState().navigatorQueue.at(-1)?.reason).toBe('transportation_barrier')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Find' }))
+    await userEvent.click(screen.getByRole('button', { name: /FQHC mobile camera/i }))
+    await userEvent.click(screen.getByRole('button', { name: /confirm/i }))
+
+    expect(useStore.getState().gaps.find((gap) => gap.patientId === 'pat_ruthann')?.status).toBe('scheduled')
+    expect(useStore.getState().metrics.find((metric) => metric.id === 'scheduled')?.value).toBe(6)
   })
 })

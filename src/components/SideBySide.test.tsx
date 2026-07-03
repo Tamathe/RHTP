@@ -7,12 +7,24 @@ import { SideBySide } from './SideBySide'
 beforeEach(() => useStore.getState().reset())
 
 describe('SideBySide integration', () => {
-  it('a barrier reported on the phone appears in the hub protocol trail', async () => {
+  it('a voice-reported barrier appears in the navigator queue', async () => {
     render(<SideBySide />)
-    await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
-    await userEvent.click(screen.getByRole('button', { name: /need a ride/i }))
-    expect(screen.getByText(/Protocol trail/i)).toBeInTheDocument()
-    expect(screen.getByText(/Derived from the protocol\/source trail above/i)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /start voice outreach/i }))
+    await userEvent.click(screen.getByRole('button', { name: /I need a ride/i }))
+
+    expect(screen.getByText(/Transportation barrier/i)).toBeInTheDocument()
+    expect(screen.getByText(/Help resolve the barrier/i)).toBeInTheDocument()
+  })
+
+  it('a voice red flag appears as urgent navigator work', async () => {
+    render(<SideBySide />)
+
+    await userEvent.click(screen.getByRole('button', { name: /start voice outreach/i }))
+    await userEvent.click(screen.getByRole('button', { name: /sudden vision changes/i }))
+
+    expect(screen.getByText(/red flag symptom/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/urgent/i).length).toBeGreaterThan(0)
   })
 
   it('Reset demo returns the hero gap to overdue', async () => {
