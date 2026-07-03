@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { isAutonomousActionAllowed, screenPatientMessage } from './safety'
 
 describe('screenPatientMessage', () => {
+  it('detects patient wording like "I have sudden vision loss"', () => {
+    const result = screenPatientMessage('I have sudden vision loss')
+
+    expect(result.category).toBe('red_flag')
+    expect(result.queueReason).toBe('red_flag_symptom')
+  })
+
+  it('detects loss of vision phrasing as a red flag', () => {
+    expect(screenPatientMessage('There is a sudden loss of vision in one eye').category).toBe('red_flag')
+  })
+
   it('detects sudden vision loss as a red flag', () => {
     const result = screenPatientMessage('I suddenly lost vision in my left eye')
 
