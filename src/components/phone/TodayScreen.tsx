@@ -3,6 +3,8 @@ import { HERO_ID } from '../../data/seed'
 import { PATIENT_CHIPS } from '../../lib/ai-script'
 import { AssistantBox } from './AssistantBox'
 import { SmartCard } from './SmartCard'
+import { ProvenanceStrip } from './ProvenanceStrip'
+import { SafetyBoundaryCard } from './SafetyBoundaryCard'
 
 export function TodayScreen({ onNext }: { onNext: () => void }) {
   return (
@@ -23,6 +25,8 @@ export function TodayScreen({ onNext }: { onNext: () => void }) {
         You have diabetes, no retinal screening on record in the last 19 months, and a low-cost
         screening is available nearby.
       </SmartCard>
+      <ProvenanceStrip patientId={HERO_ID} labels={['Diabetes diagnosis', 'Retinal screening gap']} />
+      <SafetyBoundaryCard />
       <button
         onClick={onNext}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-3 font-bold text-white hover:bg-teal-800"

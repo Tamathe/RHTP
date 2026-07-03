@@ -2,6 +2,7 @@ import { HERO_ID } from '../../data/seed'
 import { WHY_CHIPS } from '../../lib/ai-script'
 import { AssistantBox } from './AssistantBox'
 import { SmartCard } from './SmartCard'
+import { ProvenanceStrip } from './ProvenanceStrip'
 
 export function WhyItMattersScreen() {
   return (
@@ -15,6 +16,10 @@ export function WhyItMattersScreen() {
         Your last A1C was 8.4, and it has been 19 months since your last screening. That combination
         is why a screening is recommended now. This does not diagnose eye disease.
       </SmartCard>
+      <ProvenanceStrip
+        patientId={HERO_ID}
+        labels={['Diabetes diagnosis', 'Recent A1C', 'Retinal screening gap']}
+      />
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
         If you have sudden vision changes, flashes, or floaters, contact a clinician right away.
       </div>
