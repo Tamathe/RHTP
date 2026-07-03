@@ -9,7 +9,7 @@ describe('HubShell', () => {
   it('opens on the navigator queue view', () => {
     render(<HubShell />)
 
-    expect(screen.getByText(/Navigator queue/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('button')[0]).toHaveTextContent(/Navigator queue/i)
     expect(screen.getByText(/No open navigator work/i)).toBeInTheDocument()
   })
 })

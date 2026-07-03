@@ -7,11 +7,12 @@ import { SideBySide } from './SideBySide'
 beforeEach(() => useStore.getState().reset())
 
 describe('SideBySide integration', () => {
-  it('a barrier reported on the phone appears as navigator-needed on the hub', async () => {
+  it('a barrier reported on the phone appears in the hub protocol trail', async () => {
     render(<SideBySide />)
     await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
     await userEvent.click(screen.getByRole('button', { name: /need a ride/i }))
-    expect(screen.getByText(/navigator needed/i)).toBeInTheDocument()
+    expect(screen.getByText(/Protocol trail/i)).toBeInTheDocument()
+    expect(screen.getByText(/Derived from the protocol\/source trail above/i)).toBeInTheDocument()
   })
 
   it('Reset demo returns the hero gap to overdue', async () => {

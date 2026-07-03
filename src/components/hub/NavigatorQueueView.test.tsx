@@ -7,7 +7,7 @@ import { NavigatorQueueView } from './NavigatorQueueView'
 beforeEach(() => useStore.getState().reset())
 
 describe('NavigatorQueueView', () => {
-  it('renders actionable queue items with source context and suggested action', () => {
+  it('renders actionable queue items with protocol context, source facts, and anchored actions', () => {
     useStore.getState().startAutonomousOutreach(HERO_ID)
     useStore.getState().recordPatientVoiceReply(HERO_ID, 'I need a ride')
 
@@ -15,8 +15,16 @@ describe('NavigatorQueueView', () => {
 
     expect(screen.getByText(/Ruth Ann Caldwell/i)).toBeInTheDocument()
     expect(screen.getByText(/transportation barrier/i)).toBeInTheDocument()
-    expect(screen.getByText(/Help resolve the barrier/i)).toBeInTheDocument()
-    expect(screen.getByText(/source facts/i)).toBeInTheDocument()
+    expect(screen.getByText(/Protocol trail/i)).toBeInTheDocument()
+    expect(screen.getByText(/Barrier reported by voice/i)).toBeInTheDocument()
+    expect(screen.getByText(/Type: barrier reported/i)).toBeInTheDocument()
+    expect(screen.getByText(/Status: barrier collected/i)).toBeInTheDocument()
+    expect(screen.getByText(/Actor: patient/i)).toBeInTheDocument()
+    expect(screen.getByText(/Derived from the protocol\/source trail above/i)).toBeInTheDocument()
+    expect(screen.getByText(/Patient said: I need a ride/i)).toBeInTheDocument()
+    expect(screen.getByText(/Help resolve the barrier and confirm the screening plan\./i)).toBeInTheDocument()
+    expect(screen.getByText(/Source facts/i)).toBeInTheDocument()
+    expect(screen.getByText(/Diabetes diagnosis/i)).toBeInTheDocument()
   })
 
   it('shows an empty queue state when no human work is needed', () => {

@@ -1,5 +1,12 @@
 import { useMemo } from 'react'
-import { AlertTriangle, CheckCircle2, ClipboardList, Database, ShieldCheck } from 'lucide-react'
+import {
+  AlertTriangle,
+  Activity,
+  CheckCircle2,
+  ClipboardList,
+  Database,
+  ShieldCheck,
+} from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import type { NavigatorQueuePriority, NavigatorQueueReason, ProtocolEvent, SourceFact } from '../../types'
 
@@ -27,6 +34,8 @@ const eventById = (events: ProtocolEvent[], id: string): ProtocolEvent | undefin
 
 const sourceFactById = (facts: SourceFact[], id: string): SourceFact | undefined =>
   facts.find((fact) => fact.id === id)
+
+const humanize = (value: string) => value.replaceAll('_', ' ')
 
 export function NavigatorQueueView() {
   const navigatorQueue = useStore((state) => state.navigatorQueue)
@@ -94,14 +103,37 @@ export function NavigatorQueueView() {
               )}
               {reasonLabel[item.reason]}
             </div>
-            <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-teal-700">
-              Navigator needed
+
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+              <div className="mb-2 flex items-center gap-2 font-semibold text-slate-900">
+                <Activity className="size-4 text-teal-700" />
+                Protocol trail
+              </div>
+              {sourceEvents.length > 0 ? (
+                <div className="space-y-2">
+                  {sourceEvents.map((event) => (
+                    <div key={event.id} className="rounded-md border border-slate-200 bg-white p-2">
+                      <div className="font-semibold text-slate-900">{event.label}</div>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-slate-600">
+                        <span>Type: {humanize(event.type)}</span>
+                        <span>Status: {humanize(event.status)}</span>
+                        <span>Actor: {humanize(event.actor)}</span>
+                        <span>Created: {event.createdAt}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-500">No protocol events are linked to this queue item yet.</p>
+              )}
             </div>
 
-            <p className="mt-2 text-sm text-slate-700">{item.summary}</p>
-
-            <div className="mt-3 rounded-lg bg-teal-50 p-3 text-sm font-semibold text-teal-900">
-              {item.suggestedAction}
+            <div className="mt-3 rounded-lg border border-teal-100 bg-teal-50 p-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-teal-800">
+                Derived from the protocol/source trail above
+              </div>
+              <p className="mt-2 text-sm text-slate-700">{item.summary}</p>
+              <p className="mt-2 text-sm font-semibold text-teal-900">{item.suggestedAction}</p>
             </div>
 
             <div className="mt-3 rounded-lg border border-teal-100 bg-white p-3 text-xs text-slate-700">
