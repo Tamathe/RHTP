@@ -27,8 +27,10 @@ export function VoiceCompanionScreen() {
         </div>
         <h2 className="mt-2 text-2xl font-bold">Start with voice</h2>
         <p className="mt-2 text-sm text-teal-50">
-          Sandy can explain the eye screening gap, help choose a site, collect barriers, and call
-          in a navigator when the protocol says a human should help.
+          This voice flow stays inside the visible source facts and safety limits below. Sandy
+          can explain the eye screening gap, use the visible site availability fact to help pick a
+          site, collect barriers, and call in a navigator when the protocol says a human should
+          help.
         </p>
         <button
           onClick={() => startAutonomousOutreach(HERO_ID)}
@@ -75,7 +77,10 @@ export function VoiceCompanionScreen() {
         ))}
       </div>
 
-      <ProvenanceStrip patientId={HERO_ID} labels={['Diabetes diagnosis', 'Retinal screening gap']} />
+      <ProvenanceStrip
+        patientId={HERO_ID}
+        labels={['Diabetes diagnosis', 'Retinal screening gap', 'Screening site availability']}
+      />
       <SafetyBoundaryCard />
     </div>
   )

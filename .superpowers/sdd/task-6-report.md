@@ -41,3 +41,12 @@ Outcome: 24 files passed, 83 tests passed.
 
 ## Notes
 - The new red-flag phrase coverage is intentionally aligned to the task brief’s voice chip wording.
+## Fix
+- Clarified the VoiceCompanionScreen hero copy so Sandy's capabilities are explicitly framed by the visible source facts and safety boundary.
+- Added the `Screening site availability` provenance label so the site-selection wording is backed by visible data.
+- Added a focused `PhoneApp` test that starts on Voice and confirms Today, Why, Find, Plan, and Result remain reachable from the new default.
+
+## Verification
+- Focused tests: `npm test -- src/components/phone/VoiceCompanionScreen.test.tsx src/components/phone/PhoneApp.test.tsx src/components/SideBySide.test.tsx`
+- Full suite: `npm test`
+- Result: 25 files passed, 84 tests passed.
