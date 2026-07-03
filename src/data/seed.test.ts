@@ -35,3 +35,30 @@ describe('seed integrity', () => {
     for (const site of seed.sites) expect(typeof site.distanceMiles).toBe('number')
   })
 })
+
+describe('production-shaped seed rails', () => {
+  it('gives the hero patient consent and trusted source facts', () => {
+    expect(seed.consents.find((consent) => consent.patientId === HERO_ID)?.status).toBe('active')
+    expect(seed.sourceFacts.filter((fact) => fact.patientId === HERO_ID)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceKind: 'hie', label: 'Diabetes diagnosis' }),
+        expect.objectContaining({ sourceKind: 'claims', label: 'Retinal screening gap' }),
+        expect.objectContaining({ sourceKind: 'site_feed', label: 'Screening site availability' }),
+      ]),
+    )
+  })
+
+  it('starts the hero protocol with imported gap and consent events', () => {
+    expect(seed.protocolEvents.filter((event) => event.patientId === HERO_ID)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'care_gap_imported', status: 'identified' }),
+        expect.objectContaining({ type: 'patient_consented', status: 'patient_contactable' }),
+      ]),
+    )
+  })
+
+  it('starts without navigator queue noise for the hero patient', () => {
+    expect(seed.navigatorQueue.filter((item) => item.patientId === HERO_ID)).toHaveLength(0)
+    expect(seed.redFlagEvents).toHaveLength(0)
+  })
+})

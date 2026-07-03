@@ -4,14 +4,20 @@ import type {
   GapStatus,
   HubMetric,
   NavigatorTask,
+  NavigatorQueueItem,
   Patient,
+  PatientConsent,
   PriorityLabel,
+  ProtocolEvent,
+  RedFlagEvent,
   Referral,
   ScreeningGap,
   ScreeningResult,
   ScreeningSite,
+  SourceFact,
   TimelineEntry,
   OutreachEvent,
+  VoiceTurn,
 } from '../types'
 
 export const HERO_ID = 'pat_ruthann'
@@ -28,6 +34,12 @@ export interface SeedState {
   outreach: OutreachEvent[]
   timeline: TimelineEntry[]
   metrics: HubMetric[]
+  sourceFacts: SourceFact[]
+  consents: PatientConsent[]
+  protocolEvents: ProtocolEvent[]
+  voiceTurns: VoiceTurn[]
+  redFlagEvents: RedFlagEvent[]
+  navigatorQueue: NavigatorQueueItem[]
 }
 
 const counties = ['Perry', 'Leslie', 'Knott', 'Letcher', 'Breathitt', 'Harlan']
@@ -103,6 +115,84 @@ const heroGap: ScreeningGap = {
   priorityLabel: 'likely_barrier',
   lastScreeningDate: '2024-12-10',
 }
+
+const HERO_SOURCE_FACTS: SourceFact[] = [
+  {
+    id: 'fact_ruth_diabetes_hie',
+    patientId: HERO_ID,
+    label: 'Diabetes diagnosis',
+    value: 'Type 2 diabetes on imported problem evidence',
+    sourceKind: 'hie',
+    sourceName: 'Kentucky HIE pilot feed',
+    retrievedAt: '2026-07-01',
+    effectiveDate: '2024-11-18',
+    confidence: 'confirmed',
+  },
+  {
+    id: 'fact_ruth_a1c_hie',
+    patientId: HERO_ID,
+    label: 'Recent A1C',
+    value: '8.4 on 2026-05-12',
+    sourceKind: 'hie',
+    sourceName: 'Kentucky HIE pilot feed',
+    retrievedAt: '2026-07-01',
+    effectiveDate: '2026-05-12',
+    confidence: 'confirmed',
+  },
+  {
+    id: 'fact_ruth_gap_claims',
+    patientId: HERO_ID,
+    label: 'Retinal screening gap',
+    value: 'No retinal screening claim found in the last 12 months',
+    sourceKind: 'claims',
+    sourceName: 'Claims gap file',
+    retrievedAt: '2026-07-01',
+    effectiveDate: '2026-06-30',
+    confidence: 'probable',
+  },
+  {
+    id: 'fact_ruth_site_feed',
+    patientId: HERO_ID,
+    label: 'Screening site availability',
+    value: 'FQHC mobile camera has Saturday appointments and ride support',
+    sourceKind: 'site_feed',
+    sourceName: 'RHTP screening site feed',
+    retrievedAt: '2026-07-01',
+    effectiveDate: '2026-07-06',
+    confidence: 'confirmed',
+  },
+]
+
+const HERO_CONSENT: PatientConsent = {
+  id: 'consent_ruth_patient_owned',
+  patientId: HERO_ID,
+  status: 'active',
+  scope: 'Use diabetes screening gap, site, barrier, and outreach data for the retinopathy care plan',
+  updatedAt: '2026-07-01',
+}
+
+const HERO_PROTOCOL_EVENTS: ProtocolEvent[] = [
+  {
+    id: 'proto_ruth_gap_imported',
+    patientId: HERO_ID,
+    type: 'care_gap_imported',
+    label: 'Retinopathy gap imported from trusted sources',
+    status: 'identified',
+    createdAt: '2026-07-01T08:00:00',
+    actor: 'system',
+    sourceFactIds: ['fact_ruth_diabetes_hie', 'fact_ruth_gap_claims'],
+  },
+  {
+    id: 'proto_ruth_patient_consented',
+    patientId: HERO_ID,
+    type: 'patient_consented',
+    label: 'Patient consent active for Sandy outreach',
+    status: 'patient_contactable',
+    createdAt: '2026-07-01T08:05:00',
+    actor: 'system',
+    sourceFactIds: ['fact_ruth_diabetes_hie', 'fact_ruth_gap_claims', 'fact_ruth_site_feed'],
+  },
+]
 
 const sites: ScreeningSite[] = [
   {
@@ -222,4 +312,10 @@ export const seed: SeedState = {
   outreach: [],
   timeline: [{ id: 'tl_hero_0', patientId: HERO_ID, label: 'Gap identified', seq: 0 }],
   metrics,
+  sourceFacts: HERO_SOURCE_FACTS,
+  consents: [HERO_CONSENT],
+  protocolEvents: HERO_PROTOCOL_EVENTS,
+  voiceTurns: [],
+  redFlagEvents: [],
+  navigatorQueue: [],
 }
