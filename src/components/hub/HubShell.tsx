@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Activity, BarChart3, Inbox, ListChecks, Map } from 'lucide-react'
+import { Activity, BarChart3, ClipboardList, Inbox, ListChecks, Map } from 'lucide-react'
 import { ExpansionMapView } from './ExpansionMapView'
 import { GapListView } from './GapListView'
+import { NavigatorQueueView } from './NavigatorQueueView'
 import { PatientTimelineView } from './PatientTimelineView'
 import { ProgramOutcomesView } from './ProgramOutcomesView'
 import { ReferralQueueView } from './ReferralQueueView'
 
-export type HubView = 'gaps' | 'timeline' | 'referrals' | 'outcomes' | 'expansion'
+export type HubView = 'queue' | 'gaps' | 'timeline' | 'referrals' | 'outcomes' | 'expansion'
 
 const NAV: { view: HubView; label: string; Icon: LucideIcon }[] = [
+  { view: 'queue', label: 'Navigator queue', Icon: ClipboardList },
   { view: 'gaps', label: 'Gap list', Icon: ListChecks },
   { view: 'timeline', label: 'Patient timeline', Icon: Activity },
   { view: 'referrals', label: 'Referral queue', Icon: Inbox },
@@ -18,7 +20,7 @@ const NAV: { view: HubView; label: string; Icon: LucideIcon }[] = [
 ]
 
 export function HubShell() {
-  const [view, setView] = useState<HubView>('gaps')
+  const [view, setView] = useState<HubView>('queue')
 
   return (
     <div className="mx-auto flex max-w-6xl gap-6 p-6">
@@ -36,6 +38,7 @@ export function HubShell() {
         ))}
       </aside>
       <main className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+        {view === 'queue' && <NavigatorQueueView />}
         {view === 'gaps' && <GapListView />}
         {view === 'timeline' && <PatientTimelineView />}
         {view === 'referrals' && <ReferralQueueView />}
