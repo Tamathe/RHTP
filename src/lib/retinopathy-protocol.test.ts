@@ -48,6 +48,9 @@ describe('nextProtocolStatus', () => {
       'abnormal_referral_needed',
     )
     expect(nextProtocolStatus('navigator_review', 'appointment_confirmed')).toBe('scheduled')
+    expect(nextProtocolStatus('navigator_review', 'navigator_reviewed')).toBe(
+      'closed_by_reconciliation',
+    )
   })
 })
 

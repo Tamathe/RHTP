@@ -51,6 +51,7 @@ const REVIEW_EXIT_STATES = new Set<ProtocolStatus>([
   'normal_closed',
   'abnormal_referral_needed',
   'repeat_needed',
+  'closed_by_reconciliation',
 ])
 
 function shouldTransition(current: ProtocolStatus, next: ProtocolStatus): boolean {
