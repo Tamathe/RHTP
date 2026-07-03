@@ -27,6 +27,20 @@ describe('nextProtocolStatus', () => {
   it('keeps the current state for unsupported event combinations', () => {
     expect(nextProtocolStatus('normal_closed', 'question_answered')).toBe('normal_closed')
   })
+
+  it('keeps late-stage non-terminal states from regressing on earlier events', () => {
+    expect(nextProtocolStatus('scheduled', 'patient_consented')).toBe('scheduled')
+    expect(nextProtocolStatus('abnormal_referral_needed', 'barrier_reported')).toBe('abnormal_referral_needed')
+  })
+
+  it('keeps completed from moving backwards', () => {
+    expect(nextProtocolStatus('completed', 'patient_consented')).toBe('completed')
+  })
+
+  it('keeps terminal and review states immutable on earlier events', () => {
+    expect(nextProtocolStatus('navigator_review', 'patient_consented')).toBe('navigator_review')
+    expect(nextProtocolStatus('closed_by_reconciliation', 'sandy_explained_gap')).toBe('closed_by_reconciliation')
+  })
 })
 
 describe('navigator queue helpers', () => {

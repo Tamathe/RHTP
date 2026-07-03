@@ -28,20 +28,41 @@ const RESULT_TRANSITIONS: Record<ResultOutcome, ProtocolStatus> = {
   ungradable: 'repeat_needed',
 }
 
+const PROTOCOL_STATE_ORDER: Record<ProtocolStatus, number> = {
+  identified: 0,
+  patient_contactable: 1,
+  explained: 2,
+  barrier_collected: 3,
+  site_matched: 4,
+  scheduled: 5,
+  completed: 6,
+  normal_closed: 7,
+  abnormal_referral_needed: 8,
+  repeat_needed: 9,
+  navigator_review: 10,
+  closed_by_reconciliation: 11,
+}
+
+function shouldTransition(current: ProtocolStatus, next: ProtocolStatus): boolean {
+  return PROTOCOL_STATE_ORDER[next] >= PROTOCOL_STATE_ORDER[current]
+}
+
 export function nextProtocolStatus(
   current: ProtocolStatus,
   eventType: ProtocolEventType,
   outcome?: ResultOutcome,
 ): ProtocolStatus {
   if (eventType === 'result_imported') {
-    return outcome ? RESULT_TRANSITIONS[outcome] : current
+    if (!outcome) {
+      return current
+    }
+
+    const next = RESULT_TRANSITIONS[outcome]
+    return shouldTransition(current, next) ? next : current
   }
 
-  if (current === 'normal_closed' || current === 'closed_by_reconciliation') {
-    return current
-  }
-
-  return EVENT_TRANSITIONS[eventType] ?? current
+  const next = EVENT_TRANSITIONS[eventType] ?? current
+  return shouldTransition(current, next) ? next : current
 }
 
 export function queueReasonForBarrier(type: BarrierType): NavigatorQueueReason {
