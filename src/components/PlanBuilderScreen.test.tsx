@@ -1,0 +1,31 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { HERO_ID } from '../data/seed'
+import { useStore } from '../store/useStore'
+import { PlanBuilderScreen } from './phone/PlanBuilderScreen'
+
+const heroGap = () => useStore.getState().gaps.find((gap) => gap.patientId === HERO_ID)!
+
+beforeEach(() => useStore.getState().reset())
+
+describe('PlanBuilderScreen', () => {
+  it('reporting a ride barrier creates a navigator task and flags navigator_needed', async () => {
+    render(<PlanBuilderScreen onDone={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /need a ride/i }))
+    expect(useStore.getState().navigatorTasks).toHaveLength(1)
+    expect(heroGap().priorityLabel).toBe('navigator_needed')
+  })
+
+  it('confirming a time schedules the screening', async () => {
+    render(<PlanBuilderScreen onDone={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /confirm saturday/i }))
+    expect(heroGap().status).toBe('scheduled')
+  })
+
+  it('already completed closes the gap', async () => {
+    render(<PlanBuilderScreen onDone={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /already completed/i }))
+    expect(heroGap().status).toBe('closed')
+  })
+})

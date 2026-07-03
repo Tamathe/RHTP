@@ -1,0 +1,88 @@
+import { beforeEach, describe, expect, it } from 'vitest'
+import { HERO_ID } from '../data/seed'
+import { useStore } from './useStore'
+
+const s = () => useStore.getState()
+const heroGap = () => s().gaps.find((gap) => gap.patientId === HERO_ID)!
+
+beforeEach(() => s().reset())
+
+describe('store reset', () => {
+  it('restores the hero gap to overdue and clears created records', () => {
+    s().reportBarrier(HERO_ID, 'transportation', 'no ride')
+    expect(s().navigatorTasks.length).toBe(1)
+    s().reset()
+    expect(heroGap().status).toBe('overdue')
+    expect(s().navigatorTasks.length).toBe(0)
+    expect(s().barriers.length).toBe(0)
+  })
+
+  it('restores counters to baseline', () => {
+    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+    s().reset()
+    expect(s().metrics.find((metric) => metric.id === 'scheduled')!.value).toBe(5)
+  })
+})
+
+describe('askQuestion', () => {
+  it('engages the gap, sets app_engaged, records outreach and timeline', () => {
+    s().askQuestion(HERO_ID, 'Why me?', 'today')
+    expect(heroGap().status).toBe('engaged')
+    expect(heroGap().priorityLabel).toBe('app_engaged')
+    expect(s().outreach.some((event) => event.detail === 'Why me?')).toBe(true)
+    expect(s().timeline.some((entry) => entry.label === 'Questions asked')).toBe(true)
+  })
+})
+
+describe('reportBarrier', () => {
+  it('creates a barrier plus navigator task and flags navigator_needed', () => {
+    s().reportBarrier(HERO_ID, 'transportation', 'No weekday ride')
+    expect(s().barriers).toHaveLength(1)
+    expect(s().navigatorTasks).toHaveLength(1)
+    expect(heroGap().priorityLabel).toBe('navigator_needed')
+    expect(heroGap().status).toBe('engaged')
+    expect(s().timeline.filter((entry) => entry.label.includes('Navigator task created'))).toHaveLength(1)
+  })
+})
+
+describe('scheduleScreening', () => {
+  it('sets scheduled, adds a care-plan task, ticks the scheduled counter', () => {
+    s().reportBarrier(HERO_ID, 'transportation', 'No ride')
+    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+    expect(heroGap().status).toBe('scheduled')
+    expect(s().carePlanTasks).toHaveLength(1)
+    expect(s().metrics.find((metric) => metric.id === 'scheduled')!.value).toBe(6)
+  })
+})
+
+describe('reportAlreadyCompleted', () => {
+  it('closes the gap and ticks gaps_closed', () => {
+    s().reportAlreadyCompleted(HERO_ID)
+    expect(heroGap().status).toBe('closed')
+    expect(s().metrics.find((metric) => metric.id === 'gaps_closed')!.value).toBe(5)
+  })
+})
+
+describe('enterResult', () => {
+  it('normal result closes the gap and ticks completed plus gaps_closed', () => {
+    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+    s().enterResult(HERO_ID, 'normal')
+    expect(heroGap().status).toBe('closed')
+    expect(s().metrics.find((metric) => metric.id === 'completed')!.value).toBe(7)
+    expect(s().metrics.find((metric) => metric.id === 'gaps_closed')!.value).toBe(5)
+  })
+
+  it('abnormal result routes to referral and adds a queue row', () => {
+    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+    const before = s().referrals.length
+    s().enterResult(HERO_ID, 'abnormal')
+    expect(heroGap().status).toBe('referral')
+    expect(s().referrals.length).toBe(before + 1)
+  })
+
+  it('ungradable result routes to repeat', () => {
+    s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+    s().enterResult(HERO_ID, 'ungradable')
+    expect(heroGap().status).toBe('repeat')
+  })
+})

@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest'
+import { HERO_ID, seed } from './seed'
+
+describe('seed integrity', () => {
+  it('has exactly 13 patients including the hero', () => {
+    expect(seed.patients).toHaveLength(13)
+    expect(seed.patients.some((patient) => patient.id === HERO_ID)).toBe(true)
+  })
+
+  it('starts the hero gap as overdue', () => {
+    const heroGap = seed.gaps.find((gap) => gap.patientId === HERO_ID)!
+    expect(heroGap.status).toBe('overdue')
+  })
+
+  it('gives every patient exactly one gap with a valid status', () => {
+    const valid = ['overdue', 'engaged', 'scheduled', 'completed', 'closed', 'referral', 'repeat']
+    expect(seed.gaps).toHaveLength(13)
+    for (const gap of seed.gaps) expect(valid).toContain(gap.status)
+  })
+
+  it('matches the documented counter baselines', () => {
+    const val = (id: string) => seed.metrics.find((metric) => metric.id === id)!.value
+    expect(val('contacted')).toBe(9)
+    expect(val('scheduled')).toBe(5)
+    expect(val('completed')).toBe(6)
+    expect(val('gaps_closed')).toBe(4)
+    expect(val('referrals')).toBe(1)
+    seed.metrics
+      .filter((metric) => metric.denominator !== null)
+      .forEach((metric) => expect(metric.denominator).toBe(13))
+  })
+
+  it('keeps distance only on sites, never on patients', () => {
+    for (const patient of seed.patients) expect(patient).not.toHaveProperty('distanceMiles')
+    for (const site of seed.sites) expect(typeof site.distanceMiles).toBe('number')
+  })
+})
