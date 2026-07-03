@@ -23,9 +23,16 @@ describe('PlanBuilderScreen', () => {
     expect(heroGap().status).toBe('scheduled')
   })
 
-  it('already completed closes the gap', async () => {
+  it('already completed sends reconciliation work to the navigator queue', async () => {
     render(<PlanBuilderScreen onDone={() => {}} />)
     await userEvent.click(screen.getByRole('button', { name: /already completed/i }))
-    expect(heroGap().status).toBe('closed')
+    expect(heroGap().status).toBe('overdue')
+    expect(useStore.getState().navigatorQueue).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'already_completed_needs_reconciliation',
+        status: 'open',
+      }),
+    ])
   })
 })

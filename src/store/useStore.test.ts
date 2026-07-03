@@ -56,10 +56,27 @@ describe('scheduleScreening', () => {
 })
 
 describe('reportAlreadyCompleted', () => {
-  it('closes the gap and ticks gaps_closed', () => {
+  it('queues reconciliation instead of closing the gap immediately', () => {
     s().reportAlreadyCompleted(HERO_ID)
-    expect(heroGap().status).toBe('closed')
-    expect(s().metrics.find((metric) => metric.id === 'gaps_closed')!.value).toBe(5)
+    expect(heroGap().status).toBe('overdue')
+    expect(s().metrics.find((metric) => metric.id === 'gaps_closed')!.value).toBe(4)
+    expect(s().navigatorQueue).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'already_completed_needs_reconciliation',
+        priority: 'routine',
+        status: 'open',
+      }),
+    ])
+    expect(s().protocolEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientId: HERO_ID,
+          type: 'already_completed_claimed',
+          status: 'navigator_review',
+        }),
+      ]),
+    )
   })
 })
 
@@ -84,5 +101,74 @@ describe('enterResult', () => {
     s().scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
     s().enterResult(HERO_ID, 'ungradable')
     expect(heroGap().status).toBe('repeat')
+  })
+})
+
+describe('production-shaped outreach actions', () => {
+  it('starts Sandy outreach with a voice turn and protocol event', () => {
+    s().startAutonomousOutreach(HERO_ID)
+
+    expect(s().voiceTurns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientId: HERO_ID,
+          speaker: 'sandy',
+          safety: 'normal',
+        }),
+      ]),
+    )
+    expect(s().protocolEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientId: HERO_ID,
+          type: 'sandy_explained_gap',
+          status: 'explained',
+        }),
+      ]),
+    )
+  })
+
+  it('turns a voice transportation barrier into protocol state and navigator queue work', () => {
+    s().startAutonomousOutreach(HERO_ID)
+    s().recordPatientVoiceReply(HERO_ID, 'I need a ride')
+
+    expect(s().barriers).toEqual([
+      expect.objectContaining({ patientId: HERO_ID, type: 'transportation' }),
+    ])
+    expect(s().navigatorQueue).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'transportation_barrier',
+        priority: 'routine',
+        status: 'open',
+      }),
+    ])
+    expect(s().protocolEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'barrier_reported', status: 'barrier_collected' }),
+      ]),
+    )
+  })
+
+  it('escalates red flag voice replies without continuing normal coaching', () => {
+    s().startAutonomousOutreach(HERO_ID)
+    s().recordPatientVoiceReply(HERO_ID, 'I suddenly lost vision in one eye')
+
+    expect(s().redFlagEvents).toEqual([
+      expect.objectContaining({ patientId: HERO_ID, status: 'open' }),
+    ])
+    expect(s().navigatorQueue).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'red_flag_symptom',
+        priority: 'urgent',
+      }),
+    ])
+    expect(s().voiceTurns.at(-1)).toEqual(
+      expect.objectContaining({
+        speaker: 'sandy',
+        safety: 'red_flag',
+      }),
+    )
   })
 })

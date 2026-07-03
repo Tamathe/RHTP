@@ -1,8 +1,19 @@
 import { create } from 'zustand'
 import { seed, type SeedState } from '../data/seed'
 import { incrementMetric } from '../lib/metrics'
+import {
+  nextProtocolStatus,
+  priorityForQueueReason,
+  queueReasonForBarrier,
+} from '../lib/retinopathy-protocol'
+import { screenPatientMessage } from '../lib/safety'
 import { outcomeToStatus, transition } from '../lib/screening-gap'
-import type { BarrierType, ResultOutcome } from '../types'
+import type {
+  BarrierType,
+  NavigatorQueueReason,
+  ProtocolEventType,
+  ResultOutcome,
+} from '../types'
 
 interface StoreState extends SeedState {
   askQuestion: (patientId: string, input: string, surface: string) => void
@@ -10,6 +21,9 @@ interface StoreState extends SeedState {
   reportAlreadyCompleted: (patientId: string) => void
   scheduleScreening: (patientId: string, siteId: string, when: string) => void
   enterResult: (patientId: string, outcome: ResultOutcome) => void
+  startAutonomousOutreach: (patientId: string) => void
+  recordPatientVoiceReply: (patientId: string, text: string) => void
+  completeNavigatorQueueItem: (itemId: string) => void
   reset: () => void
 }
 
@@ -19,11 +33,72 @@ let counter = 0
 
 const nextId = (prefix: string): string => `${prefix}_${++counter}`
 
+const now = (): string => '2026-07-03T09:00:00'
+
+const latestProtocolStatus = (state: SeedState, patientId: string) =>
+  [...state.protocolEvents].reverse().find((event) => event.patientId === patientId)?.status ??
+  'identified'
+
+const heroSourceFactIds = (state: SeedState, patientId: string) =>
+  state.sourceFacts.filter((fact) => fact.patientId === patientId).map((fact) => fact.id)
+
+const protocolEvent = (
+  state: SeedState,
+  patientId: string,
+  type: ProtocolEventType,
+  label: string,
+  actor: 'sandy' | 'patient' | 'navigator' | 'system',
+  outcome?: ResultOutcome,
+) => ({
+  id: nextId('proto'),
+  patientId,
+  type,
+  label,
+  status: nextProtocolStatus(latestProtocolStatus(state, patientId), type, outcome),
+  createdAt: now(),
+  actor,
+  sourceFactIds: heroSourceFactIds(state, patientId),
+})
+
+const queueItem = (
+  patientId: string,
+  reason: NavigatorQueueReason,
+  summary: string,
+  suggestedAction: string,
+  sourceEventIds: string[],
+) => ({
+  id: nextId('queue'),
+  patientId,
+  reason,
+  priority: priorityForQueueReason(reason),
+  summary,
+  suggestedAction,
+  status: 'open' as const,
+  createdAt: now(),
+  sourceEventIds,
+})
+
+const barrierFromReply = (text: string): BarrierType | null => {
+  if (/ride|transport/i.test(text)) return 'transportation'
+  if (/cost|pay|insurance/i.test(text)) return 'cost'
+  if (/after work|saturday|evening|weekend/i.test(text)) return 'after_hours'
+  if (/already|done|completed/i.test(text)) return 'already_completed'
+  if (/not ready|scared|afraid/i.test(text)) return 'not_ready'
+  return null
+}
+
 export const useStore = create<StoreState>((set) => ({
   ...clone(),
 
   askQuestion: (patientId, input, surface) =>
     set((state) => {
+      const event = protocolEvent(
+        state,
+        patientId,
+        'question_answered',
+        'Question answered by Sandy',
+        'sandy',
+      )
       const gaps = state.gaps.map((gap) =>
         gap.patientId === patientId
           ? {
@@ -49,11 +124,20 @@ export const useStore = create<StoreState>((set) => ({
           ...state.timeline,
           { id: nextId('tl'), patientId, label: 'Questions asked', seq },
         ],
+        protocolEvents: [...state.protocolEvents, event],
       }
     }),
 
   reportBarrier: (patientId, type, detail) =>
     set((state) => {
+      const event = protocolEvent(
+        state,
+        patientId,
+        'barrier_reported',
+        'Barrier reported by patient',
+        'patient',
+      )
+      const reason = queueReasonForBarrier(type)
       const gaps = state.gaps.map((gap) =>
         gap.patientId === patientId
           ? {
@@ -80,32 +164,70 @@ export const useStore = create<StoreState>((set) => ({
             note: detail,
           },
         ],
+        navigatorQueue: [
+          ...state.navigatorQueue,
+          queueItem(
+            patientId,
+            reason,
+            `Patient reported ${type.replace(/_/g, ' ')} barrier: ${detail}`,
+            'Help resolve the barrier and confirm the screening plan.',
+            [event.id],
+          ),
+        ],
         timeline: [
           ...state.timeline,
           { id: nextId('tl'), patientId, label: 'Barrier reported', seq },
           { id: nextId('tl'), patientId, label: 'Navigator task created', seq: seq + 1 },
         ],
+        protocolEvents: [...state.protocolEvents, event],
       }
     }),
 
   reportAlreadyCompleted: (patientId) =>
     set((state) => {
-      const gaps = state.gaps.map((gap) =>
-        gap.patientId === patientId ? transition(gap, 'closed') : gap,
+      const event = protocolEvent(
+        state,
+        patientId,
+        'already_completed_claimed',
+        'Patient reported screening already completed',
+        'patient',
       )
       const seq = state.timeline.length
       return {
-        gaps,
-        metrics: incrementMetric(state.metrics, 'gaps_closed'),
+        navigatorQueue: [
+          ...state.navigatorQueue,
+          queueItem(
+            patientId,
+            'already_completed_needs_reconciliation',
+            'Patient says screening already happened and needs reconciliation.',
+            'Review provenance and reconcile the reported completion.',
+            [event.id],
+          ),
+        ],
         timeline: [
           ...state.timeline,
           { id: nextId('tl'), patientId, label: 'Reported already completed', seq },
         ],
+        protocolEvents: [...state.protocolEvents, event],
       }
     }),
 
   scheduleScreening: (patientId, siteId, when) =>
     set((state) => {
+      const siteMatchedEvent = protocolEvent(
+        state,
+        patientId,
+        'site_matched',
+        'Screening site matched for the patient',
+        'sandy',
+      )
+      const appointmentEvent = protocolEvent(
+        { ...state, protocolEvents: [...state.protocolEvents, siteMatchedEvent] },
+        patientId,
+        'appointment_confirmed',
+        'Screening appointment confirmed',
+        'patient',
+      )
       const gaps = state.gaps.map((gap) => {
         if (gap.patientId !== patientId) return gap
         const engaged = gap.status === 'overdue' ? transition(gap, 'engaged') : gap
@@ -124,6 +246,7 @@ export const useStore = create<StoreState>((set) => ({
           { id: nextId('tl'), patientId, label: 'Site recommended', seq },
           { id: nextId('tl'), patientId, label: 'Screening scheduled', seq: seq + 1 },
         ],
+        protocolEvents: [...state.protocolEvents, siteMatchedEvent, appointmentEvent],
       }
     }),
 
@@ -167,6 +290,36 @@ export const useStore = create<StoreState>((set) => ({
               ]
             : state.referrals
       const seq = state.timeline.length
+      const resultEvent = protocolEvent(
+        state,
+        patientId,
+        'result_imported',
+        'Screening result imported',
+        'system',
+        outcome,
+      )
+      const resultQueue =
+        outcome === 'abnormal'
+          ? [
+              queueItem(
+                patientId,
+                'abnormal_result_referral',
+                'Abnormal retinal screening result needs referral follow-up.',
+                'Schedule or confirm retina specialist referral.',
+                [resultEvent.id],
+              ),
+            ]
+          : outcome === 'ungradable'
+            ? [
+                queueItem(
+                  patientId,
+                  'ungradable_repeat_needed',
+                  'Image was ungradable and needs repeat screening.',
+                  'Help the patient schedule repeat imaging.',
+                  [resultEvent.id],
+                ),
+              ]
+            : []
       return {
         gaps,
         metrics,
@@ -181,9 +334,163 @@ export const useStore = create<StoreState>((set) => ({
             capturedAt: '2026-07-01',
           },
         ],
+        protocolEvents: [...state.protocolEvents, resultEvent],
+        navigatorQueue: [...state.navigatorQueue, ...resultQueue],
         timeline: [...state.timeline, { id: nextId('tl'), patientId, label: 'Screening result', seq }],
       }
     }),
+
+  startAutonomousOutreach: (patientId) =>
+    set((state) => {
+      const event = protocolEvent(
+        state,
+        patientId,
+        'sandy_explained_gap',
+        'Sandy explained the retinal screening gap',
+        'sandy',
+      )
+
+      return {
+        protocolEvents: [...state.protocolEvents, event],
+        voiceTurns: [
+          ...state.voiceTurns,
+          {
+            id: nextId('voice'),
+            patientId,
+            speaker: 'sandy' as const,
+            text:
+              'I am Sandy. I can help with your diabetes eye screening plan, explain why it matters, find a screening site, and bring in a navigator when needed.',
+            createdAt: now(),
+            mode: 'voice' as const,
+            safety: 'normal' as const,
+          },
+        ],
+      }
+    }),
+
+  recordPatientVoiceReply: (patientId, text) =>
+    set((state) => {
+      const screened = screenPatientMessage(text)
+      const patientTurn = {
+        id: nextId('voice'),
+        patientId,
+        speaker: 'patient' as const,
+        text,
+        createdAt: now(),
+        mode: 'voice' as const,
+        safety: screened.category === 'red_flag' ? ('red_flag' as const) : ('normal' as const),
+      }
+
+      if (screened.category === 'red_flag') {
+        const event = protocolEvent(
+          state,
+          patientId,
+          'red_flag_reported',
+          'Possible vision red flag reported',
+          'patient',
+        )
+
+        return {
+          protocolEvents: [...state.protocolEvents, event],
+          voiceTurns: [
+            ...state.voiceTurns,
+            patientTurn,
+            {
+              id: nextId('voice'),
+              patientId,
+              speaker: 'sandy' as const,
+              text: screened.patientCopy,
+              createdAt: now(),
+              mode: 'voice' as const,
+              safety: 'red_flag' as const,
+            },
+          ],
+          redFlagEvents: [
+            ...state.redFlagEvents,
+            {
+              id: nextId('red'),
+              patientId,
+              symptom: text,
+              action: 'Navigator urgent review',
+              createdAt: now(),
+              status: 'open' as const,
+            },
+          ],
+          navigatorQueue: [
+            ...state.navigatorQueue,
+            queueItem(
+              patientId,
+              'red_flag_symptom',
+              screened.navigatorSummary,
+              'Call the patient and route to urgent clinical guidance.',
+              [event.id],
+            ),
+          ],
+        }
+      }
+
+      const barrier = barrierFromReply(text)
+      if (barrier) {
+        const event = protocolEvent(
+          state,
+          patientId,
+          'barrier_reported',
+          'Barrier reported by voice',
+          'patient',
+        )
+        const reason = queueReasonForBarrier(barrier)
+
+        return {
+          protocolEvents: [...state.protocolEvents, event],
+          voiceTurns: [...state.voiceTurns, patientTurn],
+          barriers: [
+            ...state.barriers,
+            { id: nextId('bar'), patientId, type: barrier, detail: text, reportedVia: 'voice' },
+          ],
+          navigatorQueue: [
+            ...state.navigatorQueue,
+            queueItem(
+              patientId,
+              reason,
+              `Patient said: ${text}`,
+              'Help resolve the barrier and confirm the screening plan.',
+              [event.id],
+            ),
+          ],
+        }
+      }
+
+      const event = protocolEvent(
+        state,
+        patientId,
+        'question_answered',
+        'Question answered by Sandy',
+        'sandy',
+      )
+      return {
+        protocolEvents: [...state.protocolEvents, event],
+        voiceTurns: [
+          ...state.voiceTurns,
+          patientTurn,
+          {
+            id: nextId('voice'),
+            patientId,
+            speaker: 'sandy' as const,
+            text: screened.patientCopy,
+            createdAt: now(),
+            mode: 'voice' as const,
+            safety: screened.category === 'off_protocol' ? ('fallback' as const) : ('normal' as const),
+          },
+        ],
+      }
+    }),
+
+  completeNavigatorQueueItem: (itemId) =>
+    set((state) => ({
+      navigatorQueue: state.navigatorQueue.map((item) =>
+        item.id === itemId ? { ...item, status: 'done' as const } : item,
+      ),
+    })),
 
   reset: () => {
     counter = 0
