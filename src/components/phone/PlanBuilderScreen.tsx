@@ -52,7 +52,9 @@ export function PlanBuilderScreen({ onDone }: { onDone: () => void }) {
           <button
             onClick={() => {
               reportAlreadyCompleted(HERO_ID)
-              setFlash("Thanks - we've marked this screening complete.")
+              setFlash(
+                'Thanks - your navigator will confirm this screening with source records before the gap is closed.',
+              )
             }}
             className="col-span-2 rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-400"
           >

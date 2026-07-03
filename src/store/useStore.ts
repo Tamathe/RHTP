@@ -35,9 +35,15 @@ const nextId = (prefix: string): string => `${prefix}_${++counter}`
 
 const now = (): string => '2026-07-03T09:00:00'
 
+const RED_FLAG_LOCK_COPY =
+  'A navigator already needs to review this urgent vision concern. Sandy cannot continue routine coaching until a human has helped.'
+
 const latestProtocolStatus = (state: SeedState, patientId: string) =>
   [...state.protocolEvents].reverse().find((event) => event.patientId === patientId)?.status ??
   'identified'
+
+const hasOpenRedFlag = (state: SeedState, patientId: string): boolean =>
+  state.redFlagEvents.some((event) => event.patientId === patientId && event.status === 'open')
 
 const heroSourceFactIds = (state: SeedState, patientId: string) =>
   state.sourceFacts.filter((fact) => fact.patientId === patientId).map((fact) => fact.id)
@@ -342,6 +348,23 @@ export const useStore = create<StoreState>((set) => ({
 
   startAutonomousOutreach: (patientId) =>
     set((state) => {
+      if (hasOpenRedFlag(state, patientId)) {
+        return {
+          voiceTurns: [
+            ...state.voiceTurns,
+            {
+              id: nextId('voice'),
+              patientId,
+              speaker: 'sandy' as const,
+              text: RED_FLAG_LOCK_COPY,
+              createdAt: now(),
+              mode: 'voice' as const,
+              safety: 'red_flag' as const,
+            },
+          ],
+        }
+      }
+
       const event = protocolEvent(
         state,
         patientId,
@@ -371,6 +394,7 @@ export const useStore = create<StoreState>((set) => ({
   recordPatientVoiceReply: (patientId, text) =>
     set((state) => {
       const screened = screenPatientMessage(text)
+      const redFlagLocked = hasOpenRedFlag(state, patientId)
       const patientTurn = {
         id: nextId('voice'),
         patientId,
@@ -378,7 +402,28 @@ export const useStore = create<StoreState>((set) => ({
         text,
         createdAt: now(),
         mode: 'voice' as const,
-        safety: screened.category === 'red_flag' ? ('red_flag' as const) : ('normal' as const),
+        safety:
+          screened.category === 'red_flag' || redFlagLocked
+            ? ('red_flag' as const)
+            : ('normal' as const),
+      }
+
+      if (redFlagLocked) {
+        return {
+          voiceTurns: [
+            ...state.voiceTurns,
+            patientTurn,
+            {
+              id: nextId('voice'),
+              patientId,
+              speaker: 'sandy' as const,
+              text: RED_FLAG_LOCK_COPY,
+              createdAt: now(),
+              mode: 'voice' as const,
+              safety: 'red_flag' as const,
+            },
+          ],
+        }
       }
 
       if (screened.category === 'red_flag') {

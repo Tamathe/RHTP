@@ -171,4 +171,27 @@ describe('production-shaped outreach actions', () => {
       }),
     )
   })
+
+  it('keeps Sandy locked on urgent guidance after an open red flag', () => {
+    s().startAutonomousOutreach(HERO_ID)
+    s().recordPatientVoiceReply(HERO_ID, 'I suddenly lost vision in one eye')
+    const questionEventsBefore = s().protocolEvents.filter(
+      (event) => event.type === 'question_answered',
+    ).length
+    const queueCountBefore = s().navigatorQueue.length
+
+    s().recordPatientVoiceReply(HERO_ID, 'Why do I need this?')
+
+    expect(s().protocolEvents.filter((event) => event.type === 'question_answered')).toHaveLength(
+      questionEventsBefore,
+    )
+    expect(s().navigatorQueue).toHaveLength(queueCountBefore)
+    expect(s().voiceTurns.at(-1)).toEqual(
+      expect.objectContaining({
+        speaker: 'sandy',
+        safety: 'red_flag',
+        text: expect.stringMatching(/navigator already needs to review/i),
+      }),
+    )
+  })
 })

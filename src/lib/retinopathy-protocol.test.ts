@@ -41,6 +41,14 @@ describe('nextProtocolStatus', () => {
     expect(nextProtocolStatus('navigator_review', 'patient_consented')).toBe('navigator_review')
     expect(nextProtocolStatus('closed_by_reconciliation', 'sandy_explained_gap')).toBe('closed_by_reconciliation')
   })
+
+  it('allows navigator review to move into documented result or scheduling branches', () => {
+    expect(nextProtocolStatus('navigator_review', 'result_imported', 'normal')).toBe('normal_closed')
+    expect(nextProtocolStatus('navigator_review', 'result_imported', 'abnormal')).toBe(
+      'abnormal_referral_needed',
+    )
+    expect(nextProtocolStatus('navigator_review', 'appointment_confirmed')).toBe('scheduled')
+  })
 })
 
 describe('navigator queue helpers', () => {

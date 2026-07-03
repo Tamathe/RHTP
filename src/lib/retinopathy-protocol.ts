@@ -43,7 +43,19 @@ const PROTOCOL_STATE_ORDER: Record<ProtocolStatus, number> = {
   closed_by_reconciliation: 11,
 }
 
+const TERMINAL_STATES = new Set<ProtocolStatus>(['normal_closed', 'closed_by_reconciliation'])
+
+const REVIEW_EXIT_STATES = new Set<ProtocolStatus>([
+  'site_matched',
+  'scheduled',
+  'normal_closed',
+  'abnormal_referral_needed',
+  'repeat_needed',
+])
+
 function shouldTransition(current: ProtocolStatus, next: ProtocolStatus): boolean {
+  if (TERMINAL_STATES.has(current)) return false
+  if (current === 'navigator_review') return REVIEW_EXIT_STATES.has(next)
   return PROTOCOL_STATE_ORDER[next] >= PROTOCOL_STATE_ORDER[current]
 }
 

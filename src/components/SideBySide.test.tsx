@@ -24,7 +24,14 @@ describe('SideBySide integration', () => {
     await userEvent.click(screen.getByRole('button', { name: /sudden vision changes/i }))
 
     expect(screen.getByText(/red flag symptom/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/urgent/i).length).toBeGreaterThan(0)
+    expect(useStore.getState().navigatorQueue).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reason: 'red_flag_symptom',
+          priority: 'urgent',
+        }),
+      ]),
+    )
   })
 
   it('Reset demo returns the hero gap to overdue', async () => {

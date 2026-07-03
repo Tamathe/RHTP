@@ -13,10 +13,14 @@ const CHIPS = [
 
 export function VoiceCompanionScreen() {
   const voiceTurns = useStore((state) => state.voiceTurns)
+  const redFlagEvents = useStore((state) => state.redFlagEvents)
   const startAutonomousOutreach = useStore((state) => state.startAutonomousOutreach)
   const recordPatientVoiceReply = useStore((state) => state.recordPatientVoiceReply)
   const turns = voiceTurns.filter((turn) => turn.patientId === HERO_ID)
   const latestTurn = turns.at(-1)
+  const hasOpenRedFlag = redFlagEvents.some(
+    (event) => event.patientId === HERO_ID && event.status === 'open',
+  )
 
   return (
     <div className="space-y-4">
@@ -33,8 +37,11 @@ export function VoiceCompanionScreen() {
           help.
         </p>
         <button
+          disabled={hasOpenRedFlag}
           onClick={() => startAutonomousOutreach(HERO_ID)}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-teal-800"
+          className={`mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-teal-800 ${
+            hasOpenRedFlag ? 'cursor-not-allowed opacity-60' : ''
+          }`}
         >
           <Mic className="size-4" />
           Start voice outreach
@@ -58,10 +65,10 @@ export function VoiceCompanionScreen() {
         ))}
       </div>
 
-      {latestTurn?.safety === 'red_flag' && (
+      {(latestTurn?.safety === 'red_flag' || hasOpenRedFlag) && (
         <section className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
           That could be urgent. Sandy cannot diagnose this, so a navigator should help you get
-          human guidance now.
+          human guidance now. Routine voice coaching is paused until that review happens.
         </section>
       )}
 
@@ -69,8 +76,11 @@ export function VoiceCompanionScreen() {
         {CHIPS.map((chip) => (
           <button
             key={chip}
+            disabled={hasOpenRedFlag}
             onClick={() => recordPatientVoiceReply(HERO_ID, chip)}
-            className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700"
+            className={`rounded-lg border border-stone-200 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 ${
+              hasOpenRedFlag ? 'cursor-not-allowed opacity-60' : ''
+            }`}
           >
             {chip}
           </button>

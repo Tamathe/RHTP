@@ -26,6 +26,8 @@ describe('PlanBuilderScreen', () => {
   it('already completed sends reconciliation work to the navigator queue', async () => {
     render(<PlanBuilderScreen onDone={() => {}} />)
     await userEvent.click(screen.getByRole('button', { name: /already completed/i }))
+    expect(screen.getByText(/navigator.*confirm/i)).toBeInTheDocument()
+    expect(screen.queryByText(/marked this screening complete/i)).not.toBeInTheDocument()
     expect(heroGap().status).toBe('overdue')
     expect(useStore.getState().navigatorQueue).toEqual([
       expect.objectContaining({

@@ -35,6 +35,9 @@ describe('VoiceCompanionScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: /sudden vision changes/i }))
 
     expect(screen.getAllByText(/could be urgent/i).length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByRole('button', { name: /start voice outreach/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Why do I need this/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /I need a ride/i })).toBeDisabled()
     expect(useStore.getState().navigatorQueue.at(-1)).toEqual(
       expect.objectContaining({ reason: 'red_flag_symptom', priority: 'urgent' }),
     )
