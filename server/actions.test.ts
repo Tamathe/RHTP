@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { HERO_ID } from '../src/data/seed'
 import {
   completeNavigatorTask,
+  ingestClaimsFacts,
   invokeSandyTool,
   recordIdentityCorroboration,
   recordModelBackstopHealth,
@@ -353,5 +354,89 @@ describe('backend protocol actions', () => {
         patientId: HERO_ID,
       }),
     )
+  })
+
+  it('holds claims facts when identity cannot be corroborated', () => {
+    const state = createInitialBackendState()
+    const result = ingestClaimsFacts(state, {
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_wrong_patient',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Marla Baker',
+      externalDateOfBirth: '1968-10-03',
+      patientConfirmed: false,
+      sourceName: 'Kentucky Medicaid MCO Patient Access',
+      facts: [
+        {
+          label: 'Retinal screening gap',
+          value: 'No retinal screening claim found in the last 12 months',
+          effectiveDate: '2026-06-30',
+          fhirRef: 'CoverageEligibilityResponse/ext_wrong_patient_gap',
+        },
+      ],
+    })
+
+    expect(result.identityDecision).toBe('navigator_review')
+    expect(result.acceptedSourceFacts).toEqual([])
+    expect(result.state.data.sourceFacts).toHaveLength(state.data.sourceFacts.length)
+    expect(result.state.data.patientIdentities).toHaveLength(state.data.patientIdentities.length)
+    expect(result.state.data.protocolEvents).toHaveLength(state.data.protocolEvents.length)
+    expect(result.state.data.navigatorQueue.at(-1)).toEqual(
+      expect.objectContaining({ reason: 'identity_match_review', priority: 'soon' }),
+    )
+  })
+
+  it('lands corroborated claims facts as unconfirmed and non-outreach-driving', () => {
+    const state = createInitialBackendState()
+    const result = ingestClaimsFacts(state, {
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_ruth_pre_confirmation',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Ruth A. Caldwell',
+      externalDateOfBirth: '1974-03-14',
+      patientConfirmed: false,
+      sourceName: 'Kentucky Medicaid MCO Patient Access',
+      facts: [
+        {
+          label: 'Retinal screening gap',
+          value: 'No retinal screening claim found in the last 12 months',
+          effectiveDate: '2026-06-30',
+          fhirRef: 'CoverageEligibilityResponse/ext_ruth_gap',
+        },
+      ],
+    })
+
+    expect(result.identityDecision).toBe('auto_link')
+    expect(result.autonomousOutreachAllowed).toBe(false)
+    expect(result.state.data.patientIdentities.at(-1)).toEqual(
+      expect.objectContaining({
+        patientId: HERO_ID,
+        externalSystem: 'kentucky_mco',
+        externalId: 'ext_ruth_pre_confirmation',
+        confirmedByPatient: false,
+      }),
+    )
+    expect(result.acceptedSourceFacts).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        label: 'Retinal screening gap',
+        sourceKind: 'claims',
+        confidence: 'confirmed',
+        patientConfirmed: false,
+        navigatorOverridden: false,
+        fhirRef: 'CoverageEligibilityResponse/ext_ruth_gap',
+      }),
+    ])
+    expect(result.state.data.protocolEvents).toHaveLength(state.data.protocolEvents.length)
   })
 })

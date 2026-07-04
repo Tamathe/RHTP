@@ -7,6 +7,8 @@ import type { BackendState, StateStore } from './types'
 interface ContextResponseBody {
   navigatorQueue: { id: string; reason: string }[]
   voiceTurns: { speaker: string }[]
+  sourceFacts?: { id: string; patientConfirmed: boolean; fhirRef?: string }[]
+  patientIdentities?: { id: string; confirmedByPatient: boolean }[]
   voiceSessions?: { id: string }[]
   transcriptSegments?: { text: string; speaker: string }[]
   toolCalls?: { toolName: string; decision: string }[]
@@ -362,6 +364,93 @@ describe('handleApiRequest', () => {
     expect(queue.body).toEqual(expect.arrayContaining([expect.objectContaining({ reason: 'identity_match_review' })]))
     expect(audit.body).toEqual(
       expect.arrayContaining([expect.objectContaining({ action: 'identity_corroboration_checked' })]),
+    )
+  })
+
+  it('holds claims ingest facts when identity review is required', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', '/api/ingest/claims', {
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_wrong_patient',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Marla Baker',
+      externalDateOfBirth: '1968-10-03',
+      patientConfirmed: false,
+      sourceName: 'Kentucky Medicaid MCO Patient Access',
+      facts: [
+        {
+          label: 'Retinal screening gap',
+          value: 'No retinal screening claim found in the last 12 months',
+          effectiveDate: '2026-06-30',
+          fhirRef: 'CoverageEligibilityResponse/ext_wrong_patient_gap',
+        },
+      ],
+    })
+    const queue = await handleApiRequest(store, 'GET', '/api/navigator/queue')
+
+    expect(response.status).toBe(202)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: false,
+        identityDecision: 'navigator_review',
+        acceptedSourceFactIds: [],
+        autonomousOutreachAllowed: false,
+      }),
+    )
+    expect(queue.body).toEqual(expect.arrayContaining([expect.objectContaining({ reason: 'identity_match_review' })]))
+  })
+
+  it('lands corroborated claims ingest facts as unconfirmed patient context', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', '/api/ingest/claims', {
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_ruth_pre_confirmation',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Ruth A. Caldwell',
+      externalDateOfBirth: '1974-03-14',
+      patientConfirmed: false,
+      sourceName: 'Kentucky Medicaid MCO Patient Access',
+      facts: [
+        {
+          label: 'Retinal screening gap',
+          value: 'No retinal screening claim found in the last 12 months',
+          effectiveDate: '2026-06-30',
+          fhirRef: 'CoverageEligibilityResponse/ext_ruth_gap',
+        },
+      ],
+    })
+    const context = await handleApiRequest(store, 'GET', `/api/patients/${HERO_ID}/context`)
+    const contextBody = context.body as ContextResponseBody
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: true,
+        identityDecision: 'auto_link',
+        acceptedSourceFactIds: expect.arrayContaining([expect.stringMatching(/^fact_/)]),
+        autonomousOutreachAllowed: false,
+      }),
+    )
+    expect(contextBody.patientIdentities).toEqual(
+      expect.arrayContaining([expect.objectContaining({ confirmedByPatient: false })]),
+    )
+    expect(contextBody.sourceFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientConfirmed: false,
+          fhirRef: 'CoverageEligibilityResponse/ext_ruth_gap',
+        }),
+      ]),
     )
   })
 

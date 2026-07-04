@@ -19,6 +19,7 @@ import type {
   CarePlanTask,
   NavigatorQueueReason,
   OpsAlert,
+  PatientIdentity,
   ProtocolActor,
   ProtocolEvent,
   ProtocolEventType,
@@ -26,6 +27,7 @@ import type {
   RuleGapTicket,
   ResultOutcome,
   SpeechActLabel,
+  SourceFact,
   ToolCallDecision,
   ToolCallRecord,
   ToolRefusalReason,
@@ -108,6 +110,27 @@ export interface RecordIdentityCorroborationInput {
 export interface RecordIdentityCorroborationResult {
   state: BackendState
   corroboration: IdentityCorroborationResult
+}
+
+export interface ClaimsFactInput {
+  label: string
+  value: string
+  effectiveDate: string
+  fhirRef?: string
+}
+
+export interface IngestClaimsFactsInput extends RecordIdentityCorroborationInput {
+  sourceName: string
+  retrievedAt?: string
+  facts: ClaimsFactInput[]
+}
+
+export interface IngestClaimsFactsResult {
+  state: BackendState
+  identityDecision: IdentityCorroborationResult['decision']
+  autonomousOutreachAllowed: boolean
+  acceptedSourceFacts: SourceFact[]
+  patientIdentity?: PatientIdentity
 }
 
 type ParsedSandyToolInput =
@@ -434,6 +457,90 @@ export function recordIdentityCorroboration(
   })
 
   return { state: audited, corroboration }
+}
+
+function patientIdentityFromCorroboration(
+  input: IngestClaimsFactsInput,
+  corroboration: IdentityCorroborationResult,
+): PatientIdentity {
+  return {
+    id: nextId('identity'),
+    patientId: input.patientId,
+    externalSystem: input.externalSystem,
+    externalId: input.externalRecordId,
+    matchMethod: input.matchMethod,
+    matchConfidence: input.matchConfidence,
+    proofingStatus: 'proofed_delegated',
+    confirmedByPatient: corroboration.patientConfirmed,
+    createdAt: now(),
+    updatedAt: now(),
+  }
+}
+
+function sourceFactFromClaim(input: IngestClaimsFactsInput, fact: ClaimsFactInput): SourceFact {
+  return {
+    id: nextId('fact'),
+    patientId: input.patientId,
+    label: fact.label,
+    value: fact.value,
+    sourceKind: 'claims',
+    sourceName: input.sourceName,
+    retrievedAt: input.retrievedAt ?? now(),
+    effectiveDate: fact.effectiveDate,
+    confidence: 'confirmed',
+    patientConfirmed: input.patientConfirmed === true,
+    navigatorOverridden: false,
+    fhirRef: fact.fhirRef,
+  }
+}
+
+export function ingestClaimsFacts(state: BackendState, input: IngestClaimsFactsInput): IngestClaimsFactsResult {
+  const identityResult = recordIdentityCorroboration(state, input)
+  const { corroboration } = identityResult
+
+  if (corroboration.decision !== 'auto_link') {
+    return {
+      state: appendAuditEvent(identityResult.state, {
+        actor: 'system',
+        action: 'claims_ingest_held_for_identity_review',
+        outcome: 'blocked',
+        patientId: input.patientId,
+        sourceIds: patientSourceFactIds(state, input.patientId),
+        detail: `Claims ingest from ${input.externalSystem} held; identity decision=${corroboration.decision}.`,
+      }),
+      identityDecision: corroboration.decision,
+      autonomousOutreachAllowed: corroboration.autonomousOutreachAllowed,
+      acceptedSourceFacts: [],
+    }
+  }
+
+  const patientIdentity = patientIdentityFromCorroboration(input, corroboration)
+  const acceptedSourceFacts = input.facts.map((fact) => sourceFactFromClaim(input, fact))
+  const withFacts = {
+    ...identityResult.state,
+    updatedAt: now(),
+    data: {
+      ...identityResult.state.data,
+      patientIdentities: [...identityResult.state.data.patientIdentities, patientIdentity],
+      sourceFacts: [...identityResult.state.data.sourceFacts, ...acceptedSourceFacts],
+    },
+  }
+  const audited = appendAuditEvent(withFacts, {
+    actor: 'system',
+    action: 'claims_ingest_completed',
+    outcome: 'allowed',
+    patientId: input.patientId,
+    sourceIds: acceptedSourceFacts.map((fact) => fact.id),
+    detail: `Claims ingest accepted ${acceptedSourceFacts.length} facts from ${input.sourceName}; autonomousOutreachAllowed=${corroboration.autonomousOutreachAllowed}.`,
+  })
+
+  return {
+    state: audited,
+    identityDecision: corroboration.decision,
+    autonomousOutreachAllowed: corroboration.autonomousOutreachAllowed,
+    acceptedSourceFacts,
+    patientIdentity,
+  }
 }
 
 export function startVoiceSession(state: BackendState, patientId: string): BackendState {

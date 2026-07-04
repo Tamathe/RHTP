@@ -65,4 +65,31 @@ describe('backend state persistence', () => {
     expect(loaded.data.transcriptSegments).toEqual([])
     expect(loaded.data.toolCalls).toEqual([])
   })
+
+  it('hydrates older persisted demo state with identity rows and source fact confirmation fields', async () => {
+    const filePath = await tempStatePath()
+    const store = createFileStateStore(filePath)
+    const legacyState = createInitialBackendState() as unknown as {
+      data: Record<string, unknown>
+    }
+    delete legacyState.data.patientIdentities
+    legacyState.data.sourceFacts = (
+      legacyState.data.sourceFacts as Array<Record<string, unknown>>
+    ).map((fact) => {
+      const copy = { ...fact }
+      delete copy.patientConfirmed
+      delete copy.navigatorOverridden
+      delete copy.fhirRef
+      return copy
+    })
+
+    await writeFile(filePath, JSON.stringify(legacyState, null, 2), 'utf8')
+    const loaded = await store.load()
+
+    expect(loaded.data.patientIdentities).toEqual([])
+    for (const fact of loaded.data.sourceFacts) {
+      expect(fact.patientConfirmed).toBe(false)
+      expect(fact.navigatorOverridden).toBe(false)
+    }
+  })
 })

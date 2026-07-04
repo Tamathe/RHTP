@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production identity/MPI integration, async RLS, Part 2, SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, async RLS, Part 2, SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -211,16 +211,18 @@
       "status": "blocked",
       "phase": "P3",
       "proof": [],
-      "notes": "Requires FHIR store choice, production MPI/identity integration, consent repository, RLS, and Part 2 controls. Local E2 identity corroboration gate is verified but not wired to real ingest."
+      "notes": "Requires FHIR store choice, production MPI/identity integration, consent repository, RLS, and Part 2 controls. Local claims ingest now calls the E2 identity gate and lands only non-outreach-driving unconfirmed source facts after auto-link."
     },
     {
       "id": "identity_corroboration_gate",
-      "name": "E2 identity corroboration gate",
-      "status": "local_control_verified",
+      "name": "E2 identity corroboration and claims ingest seam",
+      "status": "local_ingest_seam_verified",
       "phase": "P3/P4 real-PHI gate",
       "proof": [
         "src/lib/identity-corroboration.ts",
         "src/lib/identity-corroboration.test.ts",
+        "src/data/seed.ts",
+        "server/state.ts",
         "server/actions.ts",
         "server/actions.test.ts",
         "server/routes.ts",
@@ -230,7 +232,7 @@
         "npm run identity:gate",
         "docs/ops/red-team-results/2026-07-04-e2-identity-gate.md"
       ],
-      "notes": "Local gate downgrades deterministic strong-ID-only matches to identity_match_review and blocks autonomous outreach until first patient confirmation. E2 is not fully closed until this is wired to the production MPI/claims/FHIR/HIE ingest path."
+      "notes": "Local gate downgrades deterministic strong-ID-only matches to identity_match_review, holds claims facts when identity review is required, and lands corroborated claims facts as patientConfirmed=false without protocol events or autonomous outreach. E2 is not fully closed until the same behavior is proven through production MPI/FHIR/HIE adapters."
     },
     {
       "id": "deployment_substrate",
@@ -274,7 +276,7 @@
         "server/identity-gate.test.ts",
         "docs/ops/red-team-results/2026-07-04-e2-identity-gate.md"
       ],
-      "residual": "Local control is verified. Still blocks real-PHI until MPI ownership is chosen, production patient_identities/ingest integration exists, and real claims/FHIR/HIE adapters prove the same downgrade/no-outreach behavior."
+      "residual": "Local claims ingest seam is verified. Still blocks real-PHI until MPI ownership is chosen, real FHIR/claims/HIE adapters exist, and production storage/RLS/Part 2 controls prove the same downgrade/no-outreach behavior."
     },
     {
       "id": "H1",
@@ -517,7 +519,7 @@
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",
-    "Wire the E2 identity gate into the production MPI/claims/FHIR/HIE ingest path before closing E2 for real-PHI.",
+    "Extend the E2 identity gate from the local claims ingest seam into production MPI/FHIR/HIE adapters before closing E2 for real-PHI.",
     "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."
   ]
 }

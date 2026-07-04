@@ -39,6 +39,15 @@ describe('seed integrity', () => {
 describe('production-shaped seed rails', () => {
   it('gives the hero patient consent and trusted source facts', () => {
     expect(seed.consents.find((consent) => consent.patientId === HERO_ID)?.status).toBe('active')
+    expect(seed.patientIdentities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientId: HERO_ID,
+          externalSystem: 'kentucky_mco',
+          proofingStatus: 'proofed_delegated',
+        }),
+      ]),
+    )
     expect(seed.sourceFacts.filter((fact) => fact.patientId === HERO_ID)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ sourceKind: 'hie', label: 'Diabetes diagnosis' }),
@@ -46,6 +55,10 @@ describe('production-shaped seed rails', () => {
         expect.objectContaining({ sourceKind: 'site_feed', label: 'Screening site availability' }),
       ]),
     )
+    for (const fact of seed.sourceFacts) {
+      expect(typeof fact.patientConfirmed).toBe('boolean')
+      expect(typeof fact.navigatorOverridden).toBe('boolean')
+    }
   })
 
   it('starts the hero protocol with imported gap and consent events', () => {

@@ -3,6 +3,7 @@ import type {
   OpsAlert,
   Patient,
   PatientConsent,
+  PatientIdentity,
   ProtocolEvent,
   RedFlagEvent,
   RuleGapTicket,
@@ -15,6 +16,7 @@ import type {
 } from '../src/types'
 import {
   completeNavigatorTask,
+  ingestClaimsFacts,
   invokeSandyTool,
   recordIdentityCorroboration,
   recordModelBackstopHealth,
@@ -41,6 +43,7 @@ interface PatientContextResponse {
   redFlagEvents: RedFlagEvent[]
   ruleGapTickets: RuleGapTicket[]
   navigatorQueue: NavigatorQueueItem[]
+  patientIdentities: PatientIdentity[]
 }
 
 interface NavigatorQueueResponseItem extends NavigatorQueueItem {
@@ -102,6 +105,16 @@ function isStrongIdentifier(value: unknown): value is StrongIdentifier {
   )
 }
 
+function isClaimsFact(value: unknown): value is { label: string; value: string; effectiveDate: string; fhirRef?: string } {
+  return (
+    isRecord(value) &&
+    typeof value.label === 'string' &&
+    typeof value.value === 'string' &&
+    typeof value.effectiveDate === 'string' &&
+    (value.fhirRef === undefined || typeof value.fhirRef === 'string')
+  )
+}
+
 function statusForToolResult(result: ToolResult): 200 | 400 | 403 | 404 | 409 {
   if (result.ok) return 200
   if (result.refusalReason === 'invalid_input') return 400
@@ -139,6 +152,7 @@ function patientContext(state: BackendState, patientId: string): RouteResponse<P
       navigatorQueue: state.data.navigatorQueue.filter(
         (item) => item.patientId === patientId && item.status === 'open',
       ),
+      patientIdentities: state.data.patientIdentities.filter((identity) => identity.patientId === patientId),
     },
   }
 }
@@ -181,6 +195,61 @@ export async function handleApiRequest(
 
   if (method === 'GET' && segments[0] === 'api' && segments[1] === 'patients' && segments[3] === 'context') {
     return patientContext(state, segments[2] ?? '')
+  }
+
+  if (method === 'POST' && segments[0] === 'api' && segments[1] === 'ingest' && segments[2] === 'claims') {
+    if (
+      !isRecord(body) ||
+      typeof body.patientId !== 'string' ||
+      typeof body.externalSystem !== 'string' ||
+      typeof body.externalRecordId !== 'string' ||
+      !isIdentityMatchMethod(body.matchMethod) ||
+      typeof body.matchConfidence !== 'number' ||
+      typeof body.sourceName !== 'string' ||
+      !Array.isArray(body.facts) ||
+      body.facts.some((fact) => !isClaimsFact(fact)) ||
+      (body.retrievedAt !== undefined && typeof body.retrievedAt !== 'string') ||
+      (body.candidateDateOfBirth !== undefined && typeof body.candidateDateOfBirth !== 'string') ||
+      (body.externalName !== undefined && typeof body.externalName !== 'string') ||
+      (body.externalDateOfBirth !== undefined && typeof body.externalDateOfBirth !== 'string') ||
+      (body.patientConfirmed !== undefined && typeof body.patientConfirmed !== 'boolean') ||
+      (body.candidateStrongIdentifier !== undefined && !isStrongIdentifier(body.candidateStrongIdentifier)) ||
+      (body.strongIdentifier !== undefined && !isStrongIdentifier(body.strongIdentifier))
+    ) {
+      return { status: 400, body: { error: 'Claims ingest requires typed identity evidence and facts' } }
+    }
+
+    if (!state.data.patients.some((patient) => patient.id === body.patientId)) {
+      return { status: 404, body: { error: 'Patient not found' } }
+    }
+
+    const result = ingestClaimsFacts(state, {
+      patientId: body.patientId,
+      candidateDateOfBirth: body.candidateDateOfBirth,
+      candidateStrongIdentifier: body.candidateStrongIdentifier,
+      externalSystem: body.externalSystem,
+      externalRecordId: body.externalRecordId,
+      matchMethod: body.matchMethod,
+      matchConfidence: body.matchConfidence,
+      strongIdentifier: body.strongIdentifier,
+      externalName: body.externalName,
+      externalDateOfBirth: body.externalDateOfBirth,
+      patientConfirmed: body.patientConfirmed,
+      sourceName: body.sourceName,
+      retrievedAt: body.retrievedAt,
+      facts: body.facts,
+    })
+    await store.save(result.state)
+
+    return {
+      status: result.identityDecision === 'auto_link' ? 200 : 202,
+      body: {
+        ok: result.identityDecision === 'auto_link',
+        identityDecision: result.identityDecision,
+        acceptedSourceFactIds: result.acceptedSourceFacts.map((fact) => fact.id),
+        autonomousOutreachAllowed: result.autonomousOutreachAllowed,
+      },
+    }
   }
 
   if (

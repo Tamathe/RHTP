@@ -127,6 +127,22 @@ export type SourceKind =
 
 export type SourceConfidence = 'confirmed' | 'probable' | 'patient_reported' | 'needs_review'
 
+export type IdentityProofingStatus = 'unproofed' | 'proofed_in_person' | 'proofed_remote' | 'proofed_delegated'
+export type PatientIdentityMatchMethod = 'deterministic' | 'probabilistic'
+
+export interface PatientIdentity {
+  id: string
+  patientId: string
+  externalSystem: string
+  externalId: string
+  matchMethod: PatientIdentityMatchMethod
+  matchConfidence: number
+  proofingStatus: IdentityProofingStatus
+  confirmedByPatient: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface SourceFact {
   id: string
   patientId: string
@@ -137,6 +153,9 @@ export interface SourceFact {
   retrievedAt: string
   effectiveDate: string
   confidence: SourceConfidence
+  patientConfirmed: boolean
+  navigatorOverridden: boolean
+  fhirRef?: string
 }
 
 export type ConsentStatus = 'active' | 'missing' | 'revoked'

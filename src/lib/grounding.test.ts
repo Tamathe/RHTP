@@ -18,6 +18,9 @@ const sourceFacts: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2024-11-18',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
+    fhirRef: 'Condition/fact_diabetes',
   },
   {
     id: 'fact_a1c',
@@ -29,6 +32,9 @@ const sourceFacts: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-05-12',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
+    fhirRef: 'Observation/fact_a1c',
   },
   {
     id: 'fact_gap',
@@ -40,6 +46,9 @@ const sourceFacts: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-06-30',
     confidence: 'probable',
+    patientConfirmed: false,
+    navigatorOverridden: false,
+    fhirRef: 'CoverageEligibilityResponse/fact_gap',
   },
   {
     id: 'fact_site',
@@ -51,6 +60,8 @@ const sourceFacts: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-07-06',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
   },
 ]
 

@@ -8,6 +8,7 @@ import type {
   NavigatorQueueItem,
   Patient,
   PatientConsent,
+  PatientIdentity,
   PriorityLabel,
   ProtocolEvent,
   RedFlagEvent,
@@ -40,6 +41,7 @@ export interface SeedState {
   timeline: TimelineEntry[]
   metrics: HubMetric[]
   sourceFacts: SourceFact[]
+  patientIdentities: PatientIdentity[]
   consents: PatientConsent[]
   protocolEvents: ProtocolEvent[]
   voiceTurns: VoiceTurn[]
@@ -137,6 +139,9 @@ const HERO_SOURCE_FACTS: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2024-11-18',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
+    fhirRef: 'Condition/fact_ruth_diabetes_hie',
   },
   {
     id: 'fact_ruth_a1c_hie',
@@ -148,6 +153,9 @@ const HERO_SOURCE_FACTS: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-05-12',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
+    fhirRef: 'Observation/fact_ruth_a1c_hie',
   },
   {
     id: 'fact_ruth_gap_claims',
@@ -159,6 +167,9 @@ const HERO_SOURCE_FACTS: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-06-30',
     confidence: 'probable',
+    patientConfirmed: false,
+    navigatorOverridden: false,
+    fhirRef: 'CoverageEligibilityResponse/fact_ruth_gap_claims',
   },
   {
     id: 'fact_ruth_site_feed',
@@ -170,6 +181,23 @@ const HERO_SOURCE_FACTS: SourceFact[] = [
     retrievedAt: '2026-07-01',
     effectiveDate: '2026-07-06',
     confidence: 'confirmed',
+    patientConfirmed: true,
+    navigatorOverridden: false,
+  },
+]
+
+const HERO_PATIENT_IDENTITIES: PatientIdentity[] = [
+  {
+    id: 'identity_ruth_mco',
+    patientId: HERO_ID,
+    externalSystem: 'kentucky_mco',
+    externalId: 'ext_ruth_seed',
+    matchMethod: 'deterministic',
+    matchConfidence: 1,
+    proofingStatus: 'proofed_delegated',
+    confirmedByPatient: true,
+    createdAt: '2026-07-01T08:00:00',
+    updatedAt: '2026-07-01T08:00:00',
   },
 ]
 
@@ -323,6 +351,7 @@ export const seed: SeedState = {
   timeline: [{ id: 'tl_hero_0', patientId: HERO_ID, label: 'Gap identified', seq: 0 }],
   metrics,
   sourceFacts: HERO_SOURCE_FACTS,
+  patientIdentities: HERO_PATIENT_IDENTITIES,
   consents: [HERO_CONSENT],
   protocolEvents: HERO_PROTOCOL_EVENTS,
   voiceTurns: [],

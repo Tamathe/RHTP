@@ -27,6 +27,18 @@ describe('runE2IdentityGate', () => {
           decision: 'auto_link',
           autonomousOutreachAllowed: true,
         }),
+        expect.objectContaining({
+          id: 'claims_ingest_wrong_patient_held',
+          ok: true,
+          decision: 'navigator_review',
+          autonomousOutreachAllowed: false,
+        }),
+        expect.objectContaining({
+          id: 'claims_ingest_pre_confirmation_not_outreach_driving',
+          ok: true,
+          decision: 'auto_link',
+          autonomousOutreachAllowed: false,
+        }),
       ]),
     )
   })

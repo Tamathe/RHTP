@@ -17,6 +17,12 @@ export function createInitialBackendState(): BackendState {
 function normalizeSeedState(data: SeedState): SeedState {
   return {
     ...data,
+    sourceFacts: data.sourceFacts.map((fact) => ({
+      ...fact,
+      patientConfirmed: fact.patientConfirmed ?? false,
+      navigatorOverridden: fact.navigatorOverridden ?? false,
+    })),
+    patientIdentities: data.patientIdentities ?? [],
     voiceSessions: data.voiceSessions ?? [],
     transcriptSegments: data.transcriptSegments ?? [],
     toolCalls: data.toolCalls ?? [],
