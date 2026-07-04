@@ -10,13 +10,12 @@ The first version is a prototype for stakeholder review. It should show what the
 Before any stakeholder preview:
 
 ```bash
-npm run ops:status -- --blockers
-npm run build
+npm run demo:gate
 ```
 
 Required interpretation:
 
-- `ops:status -- --blockers` must show `No open demo blockers.`
+- `demo:gate` must show `Cases: 5/5` before the build starts.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.

@@ -498,9 +498,13 @@
         "docs/ops/RHTP-DEPLOYMENT-RUNBOOK.md",
         "scripts/rhtp-status.ts",
         "scripts/rhtp-status.test.ts",
+        "server/stakeholder-demo-gate.ts",
+        "server/stakeholder-demo-gate.test.ts",
+        "scripts/rhtp-stakeholder-demo-gate.ts",
+        "npm run demo:gate",
         "docs/ops/red-team-results/2026-07-04-stakeholder-demo-readiness.md"
       ],
-      "notes": "Status tracking separates no-PHI stakeholder demo blockers from real-PHI blockers. IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
+      "notes": "Status tracking separates no-PHI stakeholder demo blockers from real-PHI blockers. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, and open E/H gates scoped to real-PHI only before running the build. IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
     }
   ],
   "blockers": [
@@ -526,6 +530,7 @@
       "title": "Silent wrong-patient linkage",
       "phaseGate": "Before real-PHI pilot",
       "status": "local_control_verified",
+      "appliesTo": "real_phi",
       "requiredControl": "Strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until patient confirmation.",
       "source": "Appendix B.1",
       "evidence": [
@@ -560,6 +565,7 @@
       "title": "Async lane RLS bypass",
       "phaseGate": "P3",
       "status": "local_control_verified",
+      "appliesTo": "real_phi",
       "requiredControl": "Gateway-minted single-patient, pack-scoped, short-lived token for every async job; no standing broad async grant.",
       "source": "Appendix B.2",
       "evidence": [
@@ -577,6 +583,7 @@
       "title": "Part 2 leakage through facility identity",
       "phaseGate": "Before P3 HIE and P7 BH packs",
       "status": "local_control_verified",
+      "appliesTo": "real_phi",
       "requiredControl": "Suppress sensitive facility identity before pack, insight, navigator, or outbound exposure; fail closed on unrecognized disposition.",
       "source": "Appendix B.2",
       "evidence": [
@@ -594,6 +601,7 @@
       "title": "Break-glass is not Part 2 consent",
       "phaseGate": "P7",
       "status": "local_control_verified",
+      "appliesTo": "real_phi",
       "requiredControl": "Define issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent.",
       "source": "Appendix B.2",
       "evidence": [
@@ -610,6 +618,7 @@
       "title": "SMS condition-name leakage",
       "phaseGate": "P4 first SMS",
       "status": "local_control_verified",
+      "appliesTo": "real_phi",
       "requiredControl": "Approved template library, deterministic slotting, disclosure linting in every language, and category exclusion.",
       "source": "Appendix B.2",
       "evidence": [
@@ -821,8 +830,8 @@
       "name": "Stakeholder no-PHI demo",
       "status": "ready_local_and_static_preview",
       "phi": false,
-      "command": "npm run build",
-      "proofRequired": ["npm run build", "synthetic seed data only", "RHTP_REAL_PHI remains off"]
+      "command": "npm run demo:gate",
+      "proofRequired": ["npm run demo:gate", "synthetic seed data only", "RHTP_REAL_PHI remains off"]
     },
     {
       "id": "real_phi_pilot",
@@ -865,7 +874,7 @@
   ],
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
-    "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, run npm run build, then deploy or preview the static Vite app.",
+    "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, run npm run demo:gate, then deploy or preview the static Vite app.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
     "Run npm run identity:gate before claiming local E2 wrong-patient control proof.",
     "Run npm run async:gate before claiming local H2 async access proof.",

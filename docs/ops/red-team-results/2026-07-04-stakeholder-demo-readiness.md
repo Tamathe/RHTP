@@ -1,26 +1,26 @@
 # Stakeholder Demo Readiness Result
 
 **Date:** 2026-07-04
-**Commands:** `npm run ops:status -- --blockers`, `npm run build`
+**Command:** `npm run demo:gate`
 **Proof rung:** stakeholder demo ready, no real PHI
 
 ```text
-RHTP release ledger v1
-Current proof rung: stakeholder_demo_ready_no_real_phi
-
-Open real-PHI blockers
-----------------------
-E2, H2, H3, H4, and H5 remain open for real-PHI use.
-
-Open demo blockers
-------------------
-No open demo blockers.
+RHTP stakeholder no-PHI demo gate
+Cases: 5/5
+- stakeholder_demo_has_no_demo_blockers: pass (no open demo blockers)
+- stakeholder_demo_real_phi_flag_is_off: pass (RHTP_REAL_PHI=unset)
+- stakeholder_demo_target_is_no_phi: pass (ready_local_and_static_preview; phi=false)
+- stakeholder_demo_phases_allow_only_real_phi_blockers: pass (demo-ready phases have no demo blockers)
+- stakeholder_demo_health_info_gates_are_real_phi_only: pass (open E/H gates are real-PHI only)
 ```
 
 ```text
 npm run build
 tsc --noEmit && vite build
 1609 modules transformed.
+dist/index.html
+dist/assets/index-CrCHOhV6.css
+dist/assets/index-ByrDHA5R.js
 built successfully.
 ```
 

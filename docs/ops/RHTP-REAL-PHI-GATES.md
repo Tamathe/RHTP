@@ -8,10 +8,10 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 For demo readiness, the source of truth is:
 
 ```bash
-npm run ops:status -- --blockers
+npm run demo:gate
 ```
 
-That command must show `No open demo blockers.`
+That command must show `Cases: 5/5` and complete the build.
 
 ## Existential Gates
 
