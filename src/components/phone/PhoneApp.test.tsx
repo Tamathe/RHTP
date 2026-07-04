@@ -15,6 +15,10 @@ describe('PhoneApp', () => {
     expect(screen.getByRole('button', { name: 'Voice' })).toHaveClass('bg-teal-700')
     expect(screen.getByText(/start with voice/i)).toBeInTheDocument()
 
+    await user.click(screen.getByRole('button', { name: 'Health' }))
+    expect(screen.getByText(/your health signals/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /blood pressure/i })).toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Today' }))
     expect(screen.getByText(/your diabetes eye screening is due/i)).toBeInTheDocument()
 
