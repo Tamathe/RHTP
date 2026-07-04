@@ -1,0 +1,50 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, describe, expect, it } from 'vitest'
+import { HERO_ID } from '../src/data/seed'
+import { createFileStateStore, createInitialBackendState } from './state'
+
+const tempDirs: string[] = []
+
+async function tempStatePath(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), 'rhtp-state-'))
+  tempDirs.push(dir)
+  return join(dir, 'state.json')
+}
+
+afterEach(async () => {
+  await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })))
+})
+
+describe('backend state persistence', () => {
+  it('creates initial backend state from the trusted seed bundle', () => {
+    const state = createInitialBackendState()
+
+    expect(state.schemaVersion).toBe(1)
+    expect(state.data.patients.some((patient) => patient.id === HERO_ID)).toBe(true)
+    expect(state.data.consents.find((consent) => consent.patientId === HERO_ID)?.status).toBe('active')
+    expect(state.auditEvents).toHaveLength(0)
+  })
+
+  it('loads seed state when no persisted state exists, then saves changes', async () => {
+    const filePath = await tempStatePath()
+    const store = createFileStateStore(filePath)
+
+    const loaded = await store.load()
+    loaded.data.voiceTurns.push({
+      id: 'voice_test',
+      patientId: HERO_ID,
+      speaker: 'sandy',
+      text: 'Persisted hello',
+      createdAt: '2026-07-04T09:00:00',
+      mode: 'voice',
+      safety: 'normal',
+    })
+
+    await store.save(loaded)
+    const reloaded = await store.load()
+
+    expect(reloaded.data.voiceTurns.at(-1)?.text).toBe('Persisted hello')
+  })
+})
