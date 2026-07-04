@@ -27,6 +27,7 @@ const reasonLabel: Record<NavigatorQueueReason, string> = {
   abnormal_result_referral: 'Abnormal result referral',
   ungradable_repeat_needed: 'Ungradable repeat needed',
   nonresponse: 'Nonresponse',
+  identity_match_review: 'Identity match review',
   low_confidence_identity_or_gap_match: 'Low confidence identity or gap match',
 }
 

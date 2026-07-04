@@ -66,6 +66,7 @@ describe('navigator queue helpers', () => {
   it('keeps red flags urgent and common barriers routine or soon', () => {
     expect(priorityForQueueReason('red_flag_symptom')).toBe('urgent')
     expect(priorityForQueueReason('abnormal_result_referral')).toBe('soon')
+    expect(priorityForQueueReason('identity_match_review')).toBe('soon')
     expect(priorityForQueueReason('transportation_barrier')).toBe('routine')
   })
 })

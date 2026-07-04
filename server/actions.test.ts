@@ -3,6 +3,7 @@ import { HERO_ID } from '../src/data/seed'
 import {
   completeNavigatorTask,
   invokeSandyTool,
+  recordIdentityCorroboration,
   recordModelBackstopHealth,
   recordRealtimeTranscriptSegment,
   recordRealtimeVoiceSessionStarted,
@@ -314,6 +315,43 @@ describe('backend protocol actions', () => {
     )
     expect(updated.auditEvents.at(-1)).toEqual(
       expect.objectContaining({ actor: 'navigator', action: 'navigator_queue_completed' }),
+    )
+  })
+
+  it('downgrades strong-ID-only identity matches without emitting outreach-driving events', () => {
+    const state = createInitialBackendState()
+    const result = recordIdentityCorroboration(state, {
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_wrong_patient',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Marla Baker',
+      externalDateOfBirth: '1968-10-03',
+      patientConfirmed: false,
+    })
+
+    expect(result.corroboration.decision).toBe('navigator_review')
+    expect(result.corroboration.autonomousOutreachAllowed).toBe(false)
+    expect(result.state.data.protocolEvents).toHaveLength(state.data.protocolEvents.length)
+    expect(result.state.data.navigatorQueue.at(-1)).toEqual(
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'identity_match_review',
+        priority: 'soon',
+        status: 'open',
+      }),
+    )
+    expect(result.state.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({
+        actor: 'system',
+        action: 'identity_corroboration_checked',
+        outcome: 'blocked',
+        patientId: HERO_ID,
+      }),
     )
   })
 })

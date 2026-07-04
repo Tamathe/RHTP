@@ -321,6 +321,7 @@ export type NavigatorQueueReason =
   | 'abnormal_result_referral'
   | 'ungradable_repeat_needed'
   | 'nonresponse'
+  | 'identity_match_review'
   | 'low_confidence_identity_or_gap_match'
 
 export type NavigatorQueuePriority = 'routine' | 'soon' | 'urgent'

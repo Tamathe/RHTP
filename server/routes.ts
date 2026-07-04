@@ -16,6 +16,7 @@ import type {
 import {
   completeNavigatorTask,
   invokeSandyTool,
+  recordIdentityCorroboration,
   recordModelBackstopHealth,
   recordRealtimeTranscriptSegment,
   recordRealtimeVoiceSessionStarted,
@@ -24,6 +25,7 @@ import {
   startVoiceSession,
   type ModelBackstopStatus,
 } from './actions'
+import type { IdentityMatchMethod, StrongIdentifier, StrongIdentifierKind } from '../src/lib/identity-corroboration'
 import { createRealtimeVoiceClientSecret, type RealtimeVoiceRuntimeOptions } from './realtime-voice'
 import type { BackendState, RouteResponse, StateStore } from './types'
 
@@ -80,6 +82,23 @@ function isClassifierLabel(value: unknown): value is TranscriptSegment['classifi
     value === 'red_flag' ||
     value === 'off_protocol' ||
     value === 'unknown'
+  )
+}
+
+function isIdentityMatchMethod(value: unknown): value is IdentityMatchMethod {
+  return value === 'deterministic' || value === 'probabilistic'
+}
+
+function isStrongIdentifierKind(value: unknown): value is StrongIdentifierKind {
+  return value === 'payer_member_id' || value === 'beneficiary_id' || value === 'mpi_id'
+}
+
+function isStrongIdentifier(value: unknown): value is StrongIdentifier {
+  return (
+    isRecord(value) &&
+    isStrongIdentifierKind(value.kind) &&
+    typeof value.value === 'string' &&
+    value.value.trim().length > 0
   )
 }
 
@@ -162,6 +181,60 @@ export async function handleApiRequest(
 
   if (method === 'GET' && segments[0] === 'api' && segments[1] === 'patients' && segments[3] === 'context') {
     return patientContext(state, segments[2] ?? '')
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'patients' &&
+    segments[3] === 'identity' &&
+    segments[4] === 'corroborate'
+  ) {
+    if (
+      !isRecord(body) ||
+      typeof body.externalSystem !== 'string' ||
+      typeof body.externalRecordId !== 'string' ||
+      !isIdentityMatchMethod(body.matchMethod) ||
+      typeof body.matchConfidence !== 'number' ||
+      (body.candidateDateOfBirth !== undefined && typeof body.candidateDateOfBirth !== 'string') ||
+      (body.externalName !== undefined && typeof body.externalName !== 'string') ||
+      (body.externalDateOfBirth !== undefined && typeof body.externalDateOfBirth !== 'string') ||
+      (body.patientConfirmed !== undefined && typeof body.patientConfirmed !== 'boolean') ||
+      (body.candidateStrongIdentifier !== undefined && !isStrongIdentifier(body.candidateStrongIdentifier)) ||
+      (body.strongIdentifier !== undefined && !isStrongIdentifier(body.strongIdentifier))
+    ) {
+      return {
+        status: 400,
+        body: { error: 'Identity corroboration requires typed external match evidence' },
+      }
+    }
+
+    const patientId = segments[2] ?? ''
+    const result = recordIdentityCorroboration(state, {
+      patientId,
+      candidateDateOfBirth: body.candidateDateOfBirth,
+      candidateStrongIdentifier: body.candidateStrongIdentifier,
+      externalSystem: body.externalSystem,
+      externalRecordId: body.externalRecordId,
+      matchMethod: body.matchMethod,
+      matchConfidence: body.matchConfidence,
+      strongIdentifier: body.strongIdentifier,
+      externalName: body.externalName,
+      externalDateOfBirth: body.externalDateOfBirth,
+      patientConfirmed: body.patientConfirmed,
+    })
+    await store.save(result.state)
+
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        decision: result.corroboration.decision,
+        queueReason: result.corroboration.queueReason,
+        autonomousOutreachAllowed: result.corroboration.autonomousOutreachAllowed,
+        matchQuality: result.corroboration.matchQuality,
+      },
+    }
   }
 
   if (method === 'GET' && url.pathname === '/api/navigator/queue') {

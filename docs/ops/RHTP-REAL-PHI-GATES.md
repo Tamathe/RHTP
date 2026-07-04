@@ -10,7 +10,7 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 | ID | Gate | Required control | Current state |
 |---|---|---|---|
 | E1 | Model-in-the-crisis-path | Versioned deterministic recall floor, maintained adversarial corpus, model-net-only hits hard-lock and create rule-gap tickets, fail-safe alerting when model net degrades. | Closed for local P2 gate: safety gate, rule-gap tickets, and degraded-model ops alert state pass. Production alert transport still belongs to deployment-substrate work before real PHI. |
-| E2 | Silent wrong-patient linkage | Deterministic strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until first patient confirmation. | Open |
+| E2 | Silent wrong-patient linkage | Deterministic strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until first patient confirmation. | Local control verified: `npm run identity:gate` proves strong-ID-only matches downgrade to `identity_match_review` and no autonomous outreach occurs before patient confirmation. Still open for real-PHI until production MPI/claims/FHIR/HIE ingest integration proves the same behavior. |
 
 ## High-Severity Phase Gates
 

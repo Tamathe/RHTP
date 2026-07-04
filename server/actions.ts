@@ -7,6 +7,13 @@ import {
   isRetinopathyConversationTool,
   RETINOPATHY_PACK_ID,
 } from '../src/lib/sandy-tools'
+import {
+  corroborateIdentity,
+  type ExternalIdentityRecord,
+  type IdentityCorroborationResult,
+  type IdentityMatchMethod,
+  type StrongIdentifier,
+} from '../src/lib/identity-corroboration'
 import type {
   BarrierType,
   CarePlanTask,
@@ -82,6 +89,25 @@ export interface InvokeSandyToolInput {
 export interface InvokeSandyToolResult {
   state: BackendState
   toolResult: ToolResult
+}
+
+export interface RecordIdentityCorroborationInput {
+  patientId: string
+  candidateDateOfBirth?: string
+  candidateStrongIdentifier?: StrongIdentifier
+  externalSystem: string
+  externalRecordId: string
+  matchMethod: IdentityMatchMethod
+  matchConfidence: number
+  strongIdentifier?: StrongIdentifier
+  externalName?: string
+  externalDateOfBirth?: string
+  patientConfirmed?: boolean
+}
+
+export interface RecordIdentityCorroborationResult {
+  state: BackendState
+  corroboration: IdentityCorroborationResult
 }
 
 type ParsedSandyToolInput =
@@ -343,6 +369,71 @@ function carePlanTask(patientId: string, siteId: string, siteName: string, when:
     step: `Complete retinal screening at ${siteName}`,
     when,
   }
+}
+
+function identityCandidateFromState(state: BackendState, input: RecordIdentityCorroborationInput) {
+  const patient = state.data.patients.find((candidate) => candidate.id === input.patientId)
+  const strongIds =
+    input.candidateStrongIdentifier === undefined
+      ? undefined
+      : { [input.candidateStrongIdentifier.kind]: input.candidateStrongIdentifier.value }
+
+  return {
+    patientId: input.patientId,
+    name: patient?.name ?? '',
+    dateOfBirth: input.candidateDateOfBirth,
+    strongIds,
+  }
+}
+
+function externalIdentityFromInput(input: RecordIdentityCorroborationInput): ExternalIdentityRecord {
+  return {
+    externalSystem: input.externalSystem,
+    externalRecordId: input.externalRecordId,
+    matchMethod: input.matchMethod,
+    matchConfidence: input.matchConfidence,
+    strongIdentifier: input.strongIdentifier,
+    name: input.externalName,
+    dateOfBirth: input.externalDateOfBirth,
+    patientConfirmed: input.patientConfirmed,
+  }
+}
+
+export function recordIdentityCorroboration(
+  state: BackendState,
+  input: RecordIdentityCorroborationInput,
+): RecordIdentityCorroborationResult {
+  const corroboration = corroborateIdentity(identityCandidateFromState(state, input), externalIdentityFromInput(input))
+  const withQueue =
+    corroboration.decision === 'navigator_review' && corroboration.queueReason
+      ? {
+          ...state,
+          updatedAt: now(),
+          data: {
+            ...state.data,
+            navigatorQueue: [
+              ...state.data.navigatorQueue,
+              queueItem(
+                input.patientId,
+                corroboration.queueReason,
+                `Identity match from ${input.externalSystem} requires review before linkage.`,
+                'Compare DOB/name evidence and confirm the external record belongs to this patient before any outreach.',
+                [],
+              ),
+            ],
+          },
+        }
+      : { ...state, updatedAt: now() }
+  const audited = appendAuditEvent(withQueue, {
+    actor: 'system',
+    action: 'identity_corroboration_checked',
+    outcome: corroboration.decision === 'auto_link' ? 'allowed' : 'blocked',
+    patientId: input.patientId,
+    sourceIds: patientSourceFactIds(state, input.patientId),
+    detail: `${corroboration.reason} externalSystem=${input.externalSystem}; externalRecordId=${input.externalRecordId}; autonomousOutreachAllowed=${corroboration.autonomousOutreachAllowed}.`,
+  })
+
+  return { state: audited, corroboration }
 }
 
 export function startVoiceSession(state: BackendState, patientId: string): BackendState {

@@ -334,6 +334,37 @@ describe('handleApiRequest', () => {
     )
   })
 
+  it('routes uncorroborated deterministic identity matches to navigator review', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', `/api/patients/${HERO_ID}/identity/corroborate`, {
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalSystem: 'kentucky_mco',
+      externalRecordId: 'ext_wrong_patient',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Marla Baker',
+      externalDateOfBirth: '1968-10-03',
+      patientConfirmed: false,
+    })
+    const queue = await handleApiRequest(store, 'GET', '/api/navigator/queue')
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: true,
+        decision: 'navigator_review',
+        autonomousOutreachAllowed: false,
+      }),
+    )
+    expect(queue.body).toEqual(expect.arrayContaining([expect.objectContaining({ reason: 'identity_match_review' })]))
+    expect(audit.body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ action: 'identity_corroboration_checked' })]),
+    )
+  })
+
   it('returns typed errors for unknown routes and invalid payloads', async () => {
     expect(await handleApiRequest(createMemoryStore(), 'GET', '/api/nope')).toEqual({
       status: 404,

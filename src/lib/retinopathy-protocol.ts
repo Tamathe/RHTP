@@ -96,6 +96,7 @@ export function priorityForQueueReason(reason: NavigatorQueueReason): NavigatorQ
   if (
     reason === 'abnormal_result_referral' ||
     reason === 'ungradable_repeat_needed' ||
+    reason === 'identity_match_review' ||
     reason === 'low_confidence_identity_or_gap_match'
   ) {
     return 'soon'
