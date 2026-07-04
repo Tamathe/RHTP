@@ -56,6 +56,16 @@ describe('VoiceCompanionScreen', () => {
         realtimeVoiceStarter={async () => ({
           status: 'connected',
           voiceSessionId: 'voice_component_test',
+          getMetricsReport: () => ({
+            voiceTurnSamples: [],
+            voiceTurnP95Ms: null,
+            voiceTurnP99Ms: null,
+            voiceTurnBudgetMet: true,
+            toolGatewaySamples: [],
+            toolGatewayP95Ms: null,
+            toolGatewayBudgetMet: true,
+            liveAudioMeasured: false,
+          }),
           stop: () => undefined,
         })}
       />,

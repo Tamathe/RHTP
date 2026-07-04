@@ -1,4 +1,8 @@
 import { HERO_ID } from '../data/seed'
+import {
+  createRealtimeVoiceMetricsRecorder,
+  type RealtimeVoiceMetricsReport,
+} from './realtime-voice-metrics'
 
 export interface RealtimeVoiceEnv {
   NEXT_PUBLIC_RHTP_REAL_VOICE?: string
@@ -43,11 +47,13 @@ export interface StartRealtimeVoiceSessionInput {
   createPeerConnection?: () => RealtimeVoicePeerConnection
   getUserMedia?: () => Promise<RealtimeVoiceMediaStream>
   createAudioElement?: () => RealtimeVoiceAudioElement
+  nowMs?: () => number
 }
 
 export interface RealtimeVoiceConnectedSession {
   status: 'connected'
   voiceSessionId: string
+  getMetricsReport: () => RealtimeVoiceMetricsReport
   stop: () => void
 }
 
@@ -300,6 +306,7 @@ async function handleRealtimeToolCall(
   voiceSessionId: string,
   modelVersion: string,
   toolCall: RealtimeToolCall,
+  finishToolGatewaySample: () => void,
 ): Promise<void> {
   const toolResult = await invokeSandyToolGateway(
     fetcher,
@@ -309,6 +316,7 @@ async function handleRealtimeToolCall(
     modelVersion,
     toolCall,
   )
+  finishToolGatewaySample()
 
   dataChannel.send(
     JSON.stringify({
@@ -336,6 +344,7 @@ export async function startRealtimeVoiceSession(
   const createPeerConnection = input.createPeerConnection ?? defaultPeerConnection
   const getUserMedia = input.getUserMedia ?? defaultGetUserMedia
   const createAudioElement = input.createAudioElement ?? defaultAudioElement
+  const metricsRecorder = createRealtimeVoiceMetricsRecorder({ nowMs: input.nowMs })
   const apiBaseUrl = input.apiBaseUrl ?? env.VITE_RHTP_API_BASE_URL ?? ''
   const tokenResponse = await fetcher(sessionEndpoint(apiBaseUrl, patientId), { method: 'POST' })
 
@@ -395,12 +404,15 @@ export async function startRealtimeVoiceSession(
 
   const dataChannel = peerConnection.createDataChannel('oai-events')
   dataChannel.addEventListener('message', (event) => {
+    metricsRecorder.observeServerEvent(event.data)
+
     const segment = transcriptSegmentFromRealtimeEvent(event.data)
     if (segment) {
       persistTranscriptSegment(fetcher, apiBaseUrl, patientId, voiceSessionId, segment)
     }
 
     for (const toolCall of toolCallsFromRealtimeEvent(event.data)) {
+      const finishToolGatewaySample = metricsRecorder.startToolGatewaySample()
       void handleRealtimeToolCall(
         dataChannel,
         fetcher,
@@ -409,6 +421,7 @@ export async function startRealtimeVoiceSession(
         voiceSessionId,
         modelVersion,
         toolCall,
+        finishToolGatewaySample,
       )
     }
   })
@@ -443,6 +456,7 @@ export async function startRealtimeVoiceSession(
   return {
     status: 'connected',
     voiceSessionId,
+    getMetricsReport: () => metricsRecorder.report(),
     stop: () => {
       stopTracks(tracks)
       peerConnection.close()

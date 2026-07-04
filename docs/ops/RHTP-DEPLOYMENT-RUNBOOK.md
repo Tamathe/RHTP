@@ -54,6 +54,17 @@ Required no-PHI live drill environment:
 
 To measure the server-side OpenAI client-secret mint only, set `RHTP_LIVE_VOICE_PROVIDER_MINT=1` before running `npm run voice:live:preflight`. This still does not prove live browser audio; the final P2 exit needs a no-PHI browser/microphone Realtime journey and p95/p99 audio latency record.
 
+During the no-PHI browser/microphone journey, the connected Realtime session exposes `getMetricsReport()`. Record these fields in the proof note:
+
+- `voiceTurnP95Ms`
+- `voiceTurnP99Ms`
+- `voiceTurnBudgetMet`
+- `toolGatewayP95Ms`
+- `toolGatewayBudgetMet`
+- `liveAudioMeasured`
+
+The voice latency target is p95 <= 1200 ms and p99 <= 2000 ms. Tool gateway p95 must be <= 400 ms.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:

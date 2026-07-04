@@ -74,6 +74,21 @@ describe('startRealtimeVoiceSession', () => {
     expect(localTrack.stopped).toBe(false)
 
     dataChannel.emit({
+      type: 'input_audio_buffer.speech_started',
+    })
+    dataChannel.emit({
+      type: 'response.output_audio.done',
+    })
+    await Promise.resolve()
+
+    expect(result.status === 'connected' ? result.getMetricsReport() : undefined).toEqual(
+      expect.objectContaining({
+        voiceTurnSamples: expect.arrayContaining([expect.any(Number)]),
+        liveAudioMeasured: true,
+      }),
+    )
+
+    dataChannel.emit({
       type: 'conversation.item.input_audio_transcription.completed',
       transcript: 'Why do I need this?',
     })
