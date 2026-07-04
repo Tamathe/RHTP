@@ -1,4 +1,5 @@
 import type { NavigatorQueueReason } from '../types'
+import { screenCrisisRedFlags } from './crisis-red-flags'
 
 export type SafetyAction =
   | 'answer_education'
@@ -16,17 +17,6 @@ export interface SafetyScreeningResult {
   queueReason?: NavigatorQueueReason
 }
 
-const RED_FLAG_PATTERNS = [
-  /sudden(?:ly)?\s+(?:lost|loss|lose).{0,24}vision/i,
-  /sudden(?:ly)?\s+vision\s+loss/i,
-  /sudden(?:ly)?\s+vision\s+changes?/i,
-  /loss\s+of\s+vision/i,
-  /new\s+(?:flashes|floaters)/i,
-  /flashes?\s+and\s+floaters?/i,
-  /eye\s+pain/i,
-  /curtain.{0,24}vision/i,
-]
-
 const OFF_PROTOCOL_PATTERNS = [
   /do i have/i,
   /diagnos/i,
@@ -36,13 +26,16 @@ const OFF_PROTOCOL_PATTERNS = [
 ]
 
 export function screenPatientMessage(input: string): SafetyScreeningResult {
-  if (RED_FLAG_PATTERNS.some((pattern) => pattern.test(input))) {
+  const crisisScreening = screenCrisisRedFlags(input)
+
+  if (crisisScreening.matched) {
+    const domain = crisisScreening.domain ? ` (${crisisScreening.domain})` : ''
     return {
       category: 'red_flag',
       queueReason: 'red_flag_symptom',
       patientCopy:
         'That could be urgent. Sandy cannot diagnose this, so a navigator should help you get human guidance now.',
-      navigatorSummary: `Patient reported a possible vision red flag: "${input}"`,
+      navigatorSummary: `Patient reported a possible red flag${domain}: "${input}"`,
     }
   }
 

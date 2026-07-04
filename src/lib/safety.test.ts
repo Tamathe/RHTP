@@ -31,6 +31,14 @@ describe('screenPatientMessage', () => {
     expect(screenPatientMessage('Should I change my insulin?').category).toBe('off_protocol')
   })
 
+  it('routes self-harm language to urgent red-flag handling', () => {
+    const result = screenPatientMessage('I do not want to wake up tomorrow')
+
+    expect(result.category).toBe('red_flag')
+    expect(result.queueReason).toBe('red_flag_symptom')
+    expect(result.navigatorSummary).toMatch(/self-harm|red flag/i)
+  })
+
   it('keeps normal logistics questions autonomous', () => {
     const result = screenPatientMessage('Can you help me find a Saturday appointment?')
 

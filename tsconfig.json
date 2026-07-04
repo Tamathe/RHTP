@@ -15,5 +15,5 @@
     "skipLibCheck": true,
     "types": ["vitest/globals", "@testing-library/jest-dom", "node"]
   },
-  "include": ["src", "server", "vite.config.ts"]
+  "include": ["src", "server", "scripts", "vite.config.ts"]
 }
