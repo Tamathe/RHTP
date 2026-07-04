@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "stakeholder_demo_ready_no_real_phi",
-  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P8 remains not built. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
   "phases": [
     {
       "id": "P0",
@@ -164,8 +164,17 @@
     {
       "id": "P8",
       "name": "Scale and writeback",
-      "status": "not_built",
-      "proof": [],
+      "status": "local_writeback_boundary_verified_demo_ready_real_emr_blocked",
+      "proof": [
+        "npm run p8:gate",
+        "server/clinician-writeback.ts",
+        "server/clinician-writeback.test.ts",
+        "server/p8-writeback-gate.ts",
+        "server/p8-writeback-gate.test.ts",
+        "scripts/rhtp-p8-writeback-gate.ts",
+        "docs/superpowers/plans/2026-07-04-p8-clinician-writeback-boundary-plan.md",
+        "docs/ops/red-team-results/2026-07-04-p8-writeback-gate.md"
+      ],
       "blockers": []
     }
   ],
@@ -259,6 +268,22 @@
         "docs/ops/red-team-results/2026-07-04-p6-protocol-pack-gate.md"
       ],
       "notes": "Retinopathy plus hypertension, PDC adherence, and transitional care are represented as typed protocol-pack manifests. The local gate verifies packs 2-4 are present, validate cleanly, reuse the shared Sandy tool gateway, avoid denied safety actions, declare shared rail reuse, and model transitional care from an ADT discharge trigger. This is no-PHI config proof only; real KHIE ADT, real claims feeds, production pack publication, and live outcome reporting are not built."
+    },
+    {
+      "id": "p8_clinician_writeback_boundary",
+      "name": "P8 clinician summary and writeback boundary",
+      "status": "local_boundary_verified_demo_ready_real_emr_blocked",
+      "phase": "P8",
+      "proof": [
+        "npm run p8:gate",
+        "server/clinician-writeback.ts",
+        "server/clinician-writeback.test.ts",
+        "server/p8-writeback-gate.ts",
+        "server/p8-writeback-gate.test.ts",
+        "scripts/rhtp-p8-writeback-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-p8-writeback-gate.md"
+      ],
+      "notes": "Local gate verifies navigator signature is required before clinician approval, prohibited diagnosis/dosing/triage content is blocked and audited, a safe navigator-attested DocumentReference can be approved and locally persisted, the clinician surface is P8-flagged and EMR-launch-only, and the expansion summary uses synthetic multi-county cohorts. This is no-PHI local proof only; real SMART-on-FHIR launch, EMR persistence, TEFCA IAS, and live multi-county expansion are not built."
     },
     {
       "id": "kentucky_sdoh_resources",
@@ -715,6 +740,15 @@
       "flipCondition": "Protocol packs are locally config-verified; production exposure requires runtime flag creation, approved content publication, and real integration proof where a pack depends on KHIE or claims."
     },
     {
+      "key": "RHTP_CLINICIAN_WRITEBACK",
+      "phase": "P8",
+      "exposure": "server",
+      "defaultValue": "0",
+      "currentValue": "not_created",
+      "status": "local_boundary_verified_off",
+      "flipCondition": "Local no-PHI writeback boundary is verified; production exposure requires SMART-on-FHIR launch, EMR adapter proof, navigator/clinician approval workflow, and real-PHI controls."
+    },
+    {
       "key": "RHTP_REAL_PHI",
       "phase": "Cross-phase",
       "exposure": "server",
@@ -810,6 +844,7 @@
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
     "Run npm run h4:gate before claiming local H4 break-glass proof.",
     "Run npm run p6:gate before claiming local P6 protocol-pack config proof.",
+    "Run npm run p8:gate before claiming local P8 clinician-writeback boundary proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",

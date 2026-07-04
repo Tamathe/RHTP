@@ -369,6 +369,27 @@ export interface RuleGapTicket {
   sourceEventIds: string[]
 }
 
+export type ClinicianWritebackStatus = 'draft' | 'navigator_signed' | 'clinician_approved' | 'persisted'
+
+export interface ClinicianWritebackDraft {
+  id: string
+  patientId: string
+  sourceSummaryId: string
+  navigatorAttesterId?: string
+  clinicianApproverId?: string
+  status: ClinicianWritebackStatus
+  fhirResourceType: 'DocumentReference'
+  provenance: {
+    author: 'rhtp_program'
+    attester: string
+  }
+  containsProhibited: boolean
+  body: string
+  createdAt: string
+  persistedAt?: string
+  emrSystem?: string
+}
+
 export type OpsAlertType = 'model_backstop_degraded' | 'real_voice_config_blocked' | 'real_voice_provider_error'
 export type OpsAlertSeverity = 'warning' | 'critical'
 export type OpsAlertStatus = 'open' | 'resolved'

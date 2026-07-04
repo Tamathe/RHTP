@@ -3,6 +3,7 @@ import type {
   AsyncAccessToken,
   BreakGlassAccess,
   CarePlanTask,
+  ClinicianWritebackDraft,
   DataSource,
   GapStatus,
   HubMetric,
@@ -58,6 +59,7 @@ export interface SeedState {
   navigatorQueue: NavigatorQueueItem[]
   asyncAccessTokens: AsyncAccessToken[]
   breakGlassAccesses: BreakGlassAccess[]
+  clinicianWritebackDrafts: ClinicianWritebackDraft[]
 }
 
 const counties = ['Perry', 'Leslie', 'Knott', 'Letcher', 'Breathitt', 'Harlan']
@@ -433,4 +435,5 @@ export const seed: SeedState = {
   navigatorQueue: [],
   asyncAccessTokens: [],
   breakGlassAccesses: [],
+  clinicianWritebackDrafts: [],
 }

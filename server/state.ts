@@ -31,6 +31,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     opsAlerts: data.opsAlerts ?? [],
     asyncAccessTokens: data.asyncAccessTokens ?? [],
     breakGlassAccesses: data.breakGlassAccesses ?? [],
+    clinicianWritebackDrafts: data.clinicianWritebackDrafts ?? [],
   }
 }
 

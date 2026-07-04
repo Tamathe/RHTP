@@ -124,6 +124,16 @@ npm run p6:gate
 
 This proves only the local pack-is-config boundary: retinopathy plus hypertension, PDC adherence, and transitional care are represented as typed manifests; packs 2-4 validate cleanly, reuse the shared Sandy tools and rails, avoid denied safety actions, and declare the ADT discharge trigger for transitional care. It does not call KHIE, pharmacy claims APIs, payer APIs, a production FHIR store, or an EMR.
 
+## P8 Local Writeback Boundary
+
+The local no-PHI P8 gate is:
+
+```bash
+npm run p8:gate
+```
+
+This proves only the local clinician-summary/writeback boundary: navigator signature is required before clinician approval, prohibited diagnosis/dosing/triage language is blocked and audited, a safe navigator-attested `DocumentReference` can be locally approved and persisted, the clinician surface is P8-flagged and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. It does not launch SMART on FHIR, write to an EMR, call TEFCA IAS, or prove live multi-county operations.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:

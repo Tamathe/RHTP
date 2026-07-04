@@ -50,7 +50,7 @@ Every phase change updates the ledger first, then the docs:
 | P5 | Local device boundary verified, real device rail blocked | Device source registry, canonical unit checks, FHIR provenance, non-diagnostic local insight summaries, unsafe device-action blocking, web/native gating, and local D4 PDC diabetes adherence policy/math are verified locally. Native shell, HealthKit/Health Connect, Dexcom API, production pharmacy claims feeds, stream storage, and production FHIR writes are not built. |
 | P6 | Local protocol-pack config verified, demo-ready, real integrations blocked | Retinopathy plus hypertension, PDC adherence, and transitional care are declared as protocol-pack manifests and pass the local pack-is-config gate. Real KHIE ADT, live pharmacy/claims feeds, production pack publication, and reportable outcome integrations are not built. |
 | P7 | Demo-ready, real-PHI blocked with local H4 and D2 gates verified | Break-glass request/approval, TTL, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, category-match enforcement, and Kentucky adolescent consent/proxy policy are verified locally. Stakeholders can see the safety story with synthetic data; screenings/campaigns still require production consent/RLS/proxy-portal controls and legal/clinical owner sign-off before real PHI. |
-| P8 | Not built | Scale/writeback remains future work. |
+| P8 | Local writeback boundary verified, demo-ready, real EMR blocked | Local clinician-summary/writeback gate verifies navigator review before approval, prohibited content blocking, P8/EMR-launch surface gating, and synthetic multi-county expansion proof. Real SMART-on-FHIR launch, EMR persistence, TEFCA IAS, and live multi-county expansion are not built. |
 
 ## Deploy Discipline
 
@@ -62,6 +62,7 @@ Every phase change updates the ledger first, then the docs:
 | Local D4 PDC adherence boundary works | `npm run d4:gate` passes and the D4 result note is recorded. |
 | Local P5 device boundary works | `npm run p5:gate` passes and the P5 result note is recorded. |
 | Local P6 protocol-pack config works | `npm run p6:gate` passes and the P6 result note is recorded. |
+| Local P8 writeback boundary works | `npm run p8:gate` passes and the P8 result note is recorded. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Stakeholder demo ready | `npm run ops:status -- --blockers` shows no open demo blockers, `npm run build` passes, and `RHTP_REAL_PHI` remains off. |
