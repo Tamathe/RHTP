@@ -2,9 +2,10 @@
 **Started:** 2026-07-03
 **Spec:** docs/superpowers/specs/2026-07-03-rhtp-production-architecture.md
 **Plan:** docs/superpowers/plans/2026-07-03-rhtp-production-shaped-prototype-plan.md
+**P1 Plan:** docs/superpowers/plans/2026-07-04-rhtp-backend-foundation-plan.md
 
 ## Current Phase
-Phase 5 - P0 implementation verified
+Phase 6 - P1 backend foundation planned
 
 ## Phase 1 - Discovery
 **Status:** done
@@ -33,5 +34,10 @@ Phase 5 - P0 implementation verified
 **Automated proof:** `npm test` passed with 27 files and 90 tests. `npm run build` passed.
 **Browser proof:** `http://127.0.0.1:5173/` opens on Sandy voice companion. Voice outreach plus `I need a ride` creates a navigator queue row for Ruth Ann Caldwell with transportation barrier, source facts, protocol trail, and suggested action. `I have sudden vision changes` creates an urgent red-flag queue row, disables routine voice controls, shows paused-coaching copy, and keeps the urgent clinical guidance action visible. `Already completed` sends the claim to navigator/source-record reconciliation without telling the patient the gap is closed. Browser console errors: none captured.
 
+## Phase 6 - P1 Backend Foundation
+**Status:** planned
+**Plan path:** docs/superpowers/plans/2026-07-04-rhtp-backend-foundation-plan.md
+**Scope:** persistent backend state, minimum trusted patient context API, protocol-safe voice actions, navigator queue API, and audit/event logging.
+
 ## Next Action
-Choose the P1 backend foundation path: persistent schema, protocol event API, navigator queue API, and audit/event logging.
+Execute the P1 backend foundation plan.
