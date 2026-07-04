@@ -15,7 +15,7 @@ The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. 
 | `RHTP_FHIR_INGEST` | Server | Off | Not created | P3 | Patient-authorized claims/FHIR ingest, provenance, identity, consent, and RLS controls pass. |
 | `RHTP_SMS_OUTREACH` | Server | Off | Not created | P4 | A2P path, disclosure-safe template library, opt-out, and delivery telemetry pass. |
 | `NEXT_PUBLIC_RHTP_DEVICE_RAIL` | Client | Off | Not created | P5 | Native shell/device rail has production consent, source labeling, and no-dosing guardrails. |
-| `RHTP_PROTOCOL_PACKS` | Server | Off | Not created | P6 | A second pack ships as configuration/content with zero new rail code. |
+| `RHTP_PROTOCOL_PACKS` | Server | Off | Local config verified; env flag not created | P6 | Production exposure requires approved content publication and real integration proof where a pack depends on KHIE or claims. |
 | `RHTP_REAL_PHI` | Server | Off | Not created | Cross-phase | All real-PHI gates close, BAAs are recorded, and clinical-safety sign-off is recorded. |
 
 ## Flip Protocol

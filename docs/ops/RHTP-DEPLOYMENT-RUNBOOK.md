@@ -114,6 +114,16 @@ npm run p5:gate
 
 This proves only the local boundary: registered device source vocabulary, canonical unit enforcement, FHIR provenance, non-diagnostic insight text, unsafe-action blocking, and web/native gating. It does not call HealthKit, Health Connect, Dexcom, pharmacy claims APIs, Timescale, or a production FHIR store.
 
+## P6 Local Protocol-Pack Boundary
+
+The local no-PHI P6 gate is:
+
+```bash
+npm run p6:gate
+```
+
+This proves only the local pack-is-config boundary: retinopathy plus hypertension, PDC adherence, and transitional care are represented as typed manifests; packs 2-4 validate cleanly, reuse the shared Sandy tools and rails, avoid denied safety actions, and declare the ADT discharge trigger for transitional care. It does not call KHIE, pharmacy claims APIs, payer APIs, a production FHIR store, or an EMR.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:

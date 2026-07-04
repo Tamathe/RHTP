@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "stakeholder_demo_ready_no_real_phi",
-  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 and P8 remain not built. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P8 remains not built. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
   "phases": [
     {
       "id": "P0",
@@ -132,8 +132,17 @@
     {
       "id": "P6",
       "name": "Protocol packs 2-4",
-      "status": "not_built",
-      "proof": [],
+      "status": "local_protocol_pack_config_verified_demo_ready_real_integrations_blocked",
+      "proof": [
+        "npm run p6:gate",
+        "src/lib/protocol-packs.ts",
+        "src/lib/protocol-packs.test.ts",
+        "server/p6-protocol-pack-gate.ts",
+        "server/p6-protocol-pack-gate.test.ts",
+        "scripts/rhtp-p6-protocol-pack-gate.ts",
+        "docs/superpowers/plans/2026-07-04-p6-protocol-packs-plan.md",
+        "docs/ops/red-team-results/2026-07-04-p6-protocol-pack-gate.md"
+      ],
       "blockers": []
     },
     {
@@ -234,6 +243,22 @@
         "docs/ops/RHTP-P5-DECISIONS.md"
       ],
       "notes": "Local policy follows the CMS 2026 QRS/PQA Diabetes All Class PDC-DR shape: IPSD-to-measurement-year-end treatment period, 80 percent threshold, diabetes all-class medication grouping, same-target-drug overlap carry-forward, insulin exclusion, unknown medication review, and claims-floor refill-gap event separation. Production still needs real pharmacy claims feeds, official value-set refresh/import controls, and FHIR-store writes before PDC can be used as a live adherence metric."
+    },
+    {
+      "id": "p6_protocol_pack_registry",
+      "name": "P6 protocol-pack config registry",
+      "status": "local_config_verified_demo_ready_real_integrations_blocked",
+      "phase": "P6",
+      "proof": [
+        "npm run p6:gate",
+        "src/lib/protocol-packs.ts",
+        "src/lib/protocol-packs.test.ts",
+        "server/p6-protocol-pack-gate.ts",
+        "server/p6-protocol-pack-gate.test.ts",
+        "scripts/rhtp-p6-protocol-pack-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-p6-protocol-pack-gate.md"
+      ],
+      "notes": "Retinopathy plus hypertension, PDC adherence, and transitional care are represented as typed protocol-pack manifests. The local gate verifies packs 2-4 are present, validate cleanly, reuse the shared Sandy tool gateway, avoid denied safety actions, declare shared rail reuse, and model transitional care from an ADT discharge trigger. This is no-PHI config proof only; real KHIE ADT, real claims feeds, production pack publication, and live outcome reporting are not built."
     },
     {
       "id": "kentucky_sdoh_resources",
@@ -686,8 +711,8 @@
       "exposure": "server",
       "defaultValue": "0",
       "currentValue": "not_created",
-      "status": "off",
-      "flipCondition": "A second pack ships as configuration and content with zero new rail code."
+      "status": "local_config_verified_off",
+      "flipCondition": "Protocol packs are locally config-verified; production exposure requires runtime flag creation, approved content publication, and real integration proof where a pack depends on KHIE or claims."
     },
     {
       "key": "RHTP_REAL_PHI",
@@ -784,6 +809,7 @@
     "Run npm run d4:gate before claiming local D4 PDC diabetes adherence proof.",
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
     "Run npm run h4:gate before claiming local H4 break-glass proof.",
+    "Run npm run p6:gate before claiming local P6 protocol-pack config proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",

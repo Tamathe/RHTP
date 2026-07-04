@@ -20,6 +20,7 @@
     "d4:gate": "tsx scripts/rhtp-d4-pdc-gate.ts",
     "p5:gate": "tsx scripts/rhtp-p5-device-gate.ts",
     "h4:gate": "tsx scripts/rhtp-h4-break-glass-gate.ts",
+    "p6:gate": "tsx scripts/rhtp-p6-protocol-pack-gate.ts",
     "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "voice:live:preflight": "tsx scripts/rhtp-live-voice-drill.ts",
     "server:dev": "tsx server/index.ts",

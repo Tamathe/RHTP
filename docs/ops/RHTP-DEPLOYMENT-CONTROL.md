@@ -48,7 +48,7 @@ Every phase change updates the ledger first, then the docs:
 | P3 | Local ingestion boundary verified, demo-ready, real-PHI blocked | P3 source registry and patient-access claims boundary are verified locally with consent checks, FHIR provenance, E2 identity corroboration, H2 async access composition, and H3 Part 2 composition. Real Blue Button/MCO/KHIE/FHIR-store adapters and production MPI/consent/RLS/Part 2 controls are not built and are not needed for the stakeholder demo. |
 | P4 | Demo-ready, real-PHI blocked | The retinopathy stakeholder story can be shown with synthetic/local data. Production pilot and SMS outreach still require P2/P3 real-PHI controls and production SMS operations. |
 | P5 | Local device boundary verified, real device rail blocked | Device source registry, canonical unit checks, FHIR provenance, non-diagnostic local insight summaries, unsafe device-action blocking, web/native gating, and local D4 PDC diabetes adherence policy/math are verified locally. Native shell, HealthKit/Health Connect, Dexcom API, production pharmacy claims feeds, stream storage, and production FHIR writes are not built. |
-| P6 | Not built | Protocol-pack platform proof remains future work; D4 no longer blocks the local pack-metrics policy, but P6 still needs actual zero-rail-code pack delivery. |
+| P6 | Local protocol-pack config verified, demo-ready, real integrations blocked | Retinopathy plus hypertension, PDC adherence, and transitional care are declared as protocol-pack manifests and pass the local pack-is-config gate. Real KHIE ADT, live pharmacy/claims feeds, production pack publication, and reportable outcome integrations are not built. |
 | P7 | Demo-ready, real-PHI blocked with local H4 and D2 gates verified | Break-glass request/approval, TTL, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, category-match enforcement, and Kentucky adolescent consent/proxy policy are verified locally. Stakeholders can see the safety story with synthetic data; screenings/campaigns still require production consent/RLS/proxy-portal controls and legal/clinical owner sign-off before real PHI. |
 | P8 | Not built | Scale/writeback remains future work. |
 
@@ -61,6 +61,7 @@ Every phase change updates the ledger first, then the docs:
 | Local P3 ingestion boundary works | `npm run p3:gate` passes and the P3 result note is recorded. |
 | Local D4 PDC adherence boundary works | `npm run d4:gate` passes and the D4 result note is recorded. |
 | Local P5 device boundary works | `npm run p5:gate` passes and the P5 result note is recorded. |
+| Local P6 protocol-pack config works | `npm run p6:gate` passes and the P6 result note is recorded. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Stakeholder demo ready | `npm run ops:status -- --blockers` shows no open demo blockers, `npm run build` passes, and `RHTP_REAL_PHI` remains off. |
