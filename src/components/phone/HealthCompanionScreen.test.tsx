@@ -7,6 +7,8 @@ describe('HealthCompanionScreen', () => {
   it('teaches blood pressure and offers digital cuff connection by default', () => {
     render(<HealthCompanionScreen />)
 
+    expect(screen.getByRole('heading', { name: 'Alerts' })).toBeInTheDocument()
+    expect(screen.getByText('Take evening medication')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /blood pressure/i })).toBeInTheDocument()
     expect(screen.getAllByText(/pressure inside your arteries/i).length).toBeGreaterThan(0)
     expect(screen.getByText('Digital blood pressure cuff')).toBeInTheDocument()
@@ -35,7 +37,7 @@ describe('HealthCompanionScreen', () => {
     await user.click(screen.getByRole('button', { name: /meds/i }))
 
     expect(screen.getByText('Smart pill bottle')).toBeInTheDocument()
-    expect(screen.getByText(/Metformin/i)).toBeInTheDocument()
+    expect(screen.getByText('Metformin')).toBeInTheDocument()
     expect(screen.getByText(/does not change medication doses/i)).toBeInTheDocument()
   })
 

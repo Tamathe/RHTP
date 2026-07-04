@@ -5,6 +5,7 @@ import {
   healthCompanionSections,
   type HealthCompanionSectionId,
 } from '../../lib/longitudinal-health'
+import { HealthAlertCenter } from './HealthAlertCenter'
 
 const iconForSection: Record<HealthCompanionSectionId, typeof HeartPulse> = {
   'blood-pressure': HeartPulse,
@@ -38,6 +39,8 @@ export function HealthCompanionScreen() {
           right follow-up from your patient-owned health history.
         </p>
       </section>
+
+      <HealthAlertCenter />
 
       <div className="grid grid-cols-2 gap-2">
         {healthCompanionSections.map((candidate) => {
