@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "stakeholder_demo_ready_no_real_phi",
-  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P7 local screenings/campaigns gate is verified: PHQ/GAD item text is locked, scoring and crisis routing are deterministic, SDOH flags are assistive-only, and vaccination campaign barriers reuse the navigator rail. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
   "phases": [
     {
       "id": "P0",
@@ -148,14 +148,22 @@
     {
       "id": "P7",
       "name": "Screenings and campaigns",
-      "status": "demo_ready_real_phi_blocked",
+      "status": "local_screening_campaign_gate_verified_demo_ready_real_phi_blocked",
       "proof": [
+        "npm run p7:gate",
+        "server/p7-screenings-campaigns.ts",
+        "server/p7-screenings-campaigns.test.ts",
+        "server/p7-screenings-campaigns-gate.ts",
+        "server/p7-screenings-campaigns-gate.test.ts",
+        "scripts/rhtp-p7-screenings-campaigns-gate.ts",
         "npm run d2:gate",
         "server/adolescent-consent-policy.ts",
         "server/adolescent-consent-policy.test.ts",
         "server/d2-adolescent-consent-gate.ts",
         "server/d2-adolescent-consent-gate.test.ts",
         "scripts/rhtp-d2-adolescent-consent-gate.ts",
+        "docs/superpowers/plans/2026-07-04-p7-screenings-campaigns-gate-plan.md",
+        "docs/ops/red-team-results/2026-07-04-p7-screenings-campaigns-gate.md",
         "docs/ops/red-team-results/2026-07-04-d2-adolescent-consent-gate.md",
         "docs/ops/RHTP-D2-ADOLESCENT-CONSENT-DECISION.md"
       ],
@@ -284,6 +292,22 @@
         "docs/ops/red-team-results/2026-07-04-p8-writeback-gate.md"
       ],
       "notes": "Local gate verifies navigator signature is required before clinician approval, prohibited diagnosis/dosing/triage content is blocked and audited, a safe navigator-attested DocumentReference can be approved and locally persisted, the clinician surface is P8-flagged and EMR-launch-only, and the expansion summary uses synthetic multi-county cohorts. This is no-PHI local proof only; real SMART-on-FHIR launch, EMR persistence, TEFCA IAS, and live multi-county expansion are not built."
+    },
+    {
+      "id": "p7_screenings_campaigns_gate",
+      "name": "P7 screenings, SDOH, and campaigns gate",
+      "status": "local_gate_verified_demo_ready_real_phi_blocked",
+      "phase": "P7",
+      "proof": [
+        "npm run p7:gate",
+        "server/p7-screenings-campaigns.ts",
+        "server/p7-screenings-campaigns.test.ts",
+        "server/p7-screenings-campaigns-gate.ts",
+        "server/p7-screenings-campaigns-gate.test.ts",
+        "scripts/rhtp-p7-screenings-campaigns-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-p7-screenings-campaigns-gate.md"
+      ],
+      "notes": "Local gate verifies PHQ/GAD item text is locked and byte-identical, PHQ/GAD scoring is deterministic, PHQ-9 item 9 and crisis free text route to 988/urgent navigator review by rule, SDOH flags carry Z-codes and cannot lower priority or suppress outreach, interpersonal-safety content is excluded from SMS, and a flu campaign barrier reuses the same navigator task shape as retinopathy. This is no-PHI local proof only; real behavioral-health/SDOH production use remains blocked by H3/H4, D2 residual production controls, consent/RBAC/RLS, and legal/clinical owner sign-off."
     },
     {
       "id": "kentucky_sdoh_resources",
@@ -740,6 +764,15 @@
       "flipCondition": "Protocol packs are locally config-verified; production exposure requires runtime flag creation, approved content publication, and real integration proof where a pack depends on KHIE or claims."
     },
     {
+      "key": "RHTP_SCREENINGS_CAMPAIGNS",
+      "phase": "P7",
+      "exposure": "server",
+      "defaultValue": "0",
+      "currentValue": "not_created",
+      "status": "local_gate_verified_off",
+      "flipCondition": "Local no-PHI PHQ/GAD, SDOH, and campaign gate is verified; production exposure requires consent/RBAC/RLS, segmentation, counsel/clinical sign-off, and live review workflows."
+    },
+    {
       "key": "RHTP_CLINICIAN_WRITEBACK",
       "phase": "P8",
       "exposure": "server",
@@ -844,6 +877,7 @@
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
     "Run npm run h4:gate before claiming local H4 break-glass proof.",
     "Run npm run p6:gate before claiming local P6 protocol-pack config proof.",
+    "Run npm run p7:gate before claiming local P7 screenings/campaigns proof.",
     "Run npm run p8:gate before claiming local P8 clinician-writeback boundary proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",

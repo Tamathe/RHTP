@@ -10,7 +10,7 @@ describe('rhtp status output', () => {
       'P4 Retinopathy pilot: demo_ready_real_phi_blocked | demo blockers: none | real-PHI blockers: E2, H2, H3, H5',
     )
     expect(output).toContain(
-      'P7 Screenings and campaigns: demo_ready_real_phi_blocked | demo blockers: none | real-PHI blockers: H4',
+      'P7 Screenings and campaigns: local_screening_campaign_gate_verified_demo_ready_real_phi_blocked | demo blockers: none | real-PHI blockers: H4',
     )
   })
 

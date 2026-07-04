@@ -16,6 +16,7 @@ The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. 
 | `RHTP_SMS_OUTREACH` | Server | Off | Not created | P4 | A2P path, disclosure-safe template library, opt-out, and delivery telemetry pass. |
 | `NEXT_PUBLIC_RHTP_DEVICE_RAIL` | Client | Off | Not created | P5 | Native shell/device rail has production consent, source labeling, and no-dosing guardrails. |
 | `RHTP_PROTOCOL_PACKS` | Server | Off | Local config verified; env flag not created | P6 | Production exposure requires approved content publication and real integration proof where a pack depends on KHIE or claims. |
+| `RHTP_SCREENINGS_CAMPAIGNS` | Server | Off | Local gate verified; env flag not created | P7 | Production exposure requires consent/RBAC/RLS, segmentation, counsel/clinical sign-off, and live review workflows. |
 | `RHTP_CLINICIAN_WRITEBACK` | Server | Off | Local boundary verified; env flag not created | P8 | Production exposure requires SMART-on-FHIR launch, EMR adapter proof, navigator/clinician approval workflow, and real-PHI controls. |
 | `RHTP_REAL_PHI` | Server | Off | Not created | Cross-phase | All real-PHI gates close, BAAs are recorded, and clinical-safety sign-off is recorded. |
 

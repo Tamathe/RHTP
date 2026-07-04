@@ -154,6 +154,16 @@ npm run d2:gate
 
 This proves only the local policy boundary: Kentucky PHQ/GAD self-consent floor, unaccompanied-youth QMHP verification, under-16 fail-closed behavior, substance-use self-consent handling, guardian proxy suppression for minor-consented confidential results, clinician health-benefit parent-notice override, and general SDOH guardian-proxy behavior. It does not prove production counsel approval, clinical owner approval, proxy-portal suppression, consent repository enforcement, RBAC/RLS, segmented storage, or real-PHI readiness.
 
+## P7 Local Screenings and Campaigns Boundary
+
+The local no-PHI P7 gate is:
+
+```bash
+npm run p7:gate
+```
+
+This proves only the local screenings/campaigns boundary: PHQ/GAD item text is locked, scoring is deterministic, crisis routing is rule-based, SDOH flags are assistive-only, interpersonal-safety content is excluded from SMS-style outbound channels, and a flu-campaign barrier reuses the navigator task rail. It does not authorize production PHQ/GAD, SDOH, crisis outreach, SMS, or campaign use with real patient data.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a stakeholder demo preview:
