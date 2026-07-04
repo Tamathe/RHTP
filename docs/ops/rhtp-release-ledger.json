@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, and web/native gating. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -98,16 +98,28 @@
     {
       "id": "P5",
       "name": "Device rail",
-      "status": "not_built",
-      "proof": [],
-      "blockers": ["D3", "D5"]
+      "status": "local_device_boundary_verified_real_device_blocked",
+      "proof": [
+        "npm run p5:gate",
+        "server/p5-device-rail.ts",
+        "server/p5-device-rail.test.ts",
+        "server/p5-device-gate.ts",
+        "server/p5-device-gate.test.ts",
+        "scripts/rhtp-p5-device-gate.ts",
+        "src/data/seed.ts",
+        "src/data/seed.test.ts",
+        "docs/superpowers/plans/2026-07-04-p5-device-rail-boundary-plan.md",
+        "docs/ops/red-team-results/2026-07-04-p5-device-rail-gate.md",
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "blockers": ["D4"]
     },
     {
       "id": "P6",
       "name": "Protocol packs 2-4",
       "status": "not_built",
       "proof": [],
-      "blockers": ["D3", "D4", "D5"]
+      "blockers": ["D4"]
     },
     {
       "id": "P7",
@@ -164,6 +176,23 @@
       "phase": "P0",
       "proof": ["src/lib/health-alerts.ts", "src/components/phone/HealthAlertCenter.tsx"],
       "notes": "Static/pure simulation only; no real device or outreach scheduler."
+    },
+    {
+      "id": "p5_device_rail_boundary",
+      "name": "P5 device rail boundary",
+      "status": "local_device_boundary_verified_real_device_blocked",
+      "phase": "P5",
+      "proof": [
+        "npm run p5:gate",
+        "server/p5-device-rail.ts",
+        "server/p5-device-rail.test.ts",
+        "server/p5-device-gate.ts",
+        "server/p5-device-gate.test.ts",
+        "scripts/rhtp-p5-device-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-p5-device-rail-gate.md",
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "notes": "Local rail accepts registered device readings only with active consent, canonical units, and FHIR references; accepted readings land as device source facts; deterministic insights remain non-diagnostic; unsafe dosing/diagnosis/med-change actions are blocked; HealthKit/Health Connect stay disabled on web. Real native/device/API/PDC/FHIR-store integrations are not built."
     },
     {
       "id": "kentucky_sdoh_resources",
@@ -458,9 +487,13 @@
       "severity": "decision",
       "title": "Longitudinal instance granularity",
       "phaseGate": "P5/P6",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Choose one long-lived instance per patient/pack or rolling intervals; default is long-lived instance plus high-frequency insight lane.",
-      "source": "Appendix C.1"
+      "source": "Appendix C.1",
+      "evidence": [
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "residual": "Closed as a local operating decision: one long-lived patient/pack instance plus high-frequency insight append lane. Production event-storage implementation remains future work."
     },
     {
       "id": "D4",
@@ -476,9 +509,13 @@
       "severity": "decision",
       "title": "CGM stream-vs-summary rule boundary",
       "phaseGate": "P5",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Choose which rules read raw Timescale streams versus FHIR summaries; default is raw per-night for nocturnal_hyperglycemia.",
-      "source": "Appendix C.1"
+      "source": "Appendix C.1",
+      "evidence": [
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "residual": "Closed as a local operating decision: raw per-night CGM for nocturnal pattern rules and daily summaries for TIR-style rules. Production stream storage remains future work."
     },
     {
       "id": "D6",
@@ -631,6 +668,7 @@
     "Run npm run part2:gate before claiming local H3 Part 2 suppression proof.",
     "Run npm run sms:gate before claiming local H5 SMS disclosure proof.",
     "Run npm run p3:gate before claiming local P3 ingestion-boundary proof.",
+    "Run npm run p5:gate before claiming local P5 device-boundary proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",
@@ -639,6 +677,8 @@
     "Extend the H3 Part 2 suppression gate into production HIE/FHIR adapters, storage policies, and outbound surfaces before closing H3 for real-PHI.",
     "Extend the H5 SMS disclosure gate into production A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging before closing H5 for production SMS.",
     "Build real Blue Button, Kentucky MCO Patient Access, KHIE, and Medplum adapter proof before claiming P3 production readiness.",
+    "Build real native shell, HealthKit/Health Connect, Dexcom OAuth/API, pharmacy PDC calculation, stream storage, and FHIR-store writes before claiming P5 production readiness.",
+    "Resolve D4 PDC window and drug-class grouping before production medication-adherence floor or P6 pack metrics.",
     "Assign owners for KHIE engagement, first Medicaid MCO, and model BAAs before real P3 execution."
   ]
 }

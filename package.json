@@ -16,6 +16,7 @@
     "part2:gate": "tsx scripts/rhtp-part2-gate.ts",
     "sms:gate": "tsx scripts/rhtp-sms-gate.ts",
     "p3:gate": "tsx scripts/rhtp-p3-ingestion-gate.ts",
+    "p5:gate": "tsx scripts/rhtp-p5-device-gate.ts",
     "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "voice:live:preflight": "tsx scripts/rhtp-live-voice-drill.ts",
     "server:dev": "tsx server/index.ts",

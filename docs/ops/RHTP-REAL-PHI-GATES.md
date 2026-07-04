@@ -28,6 +28,12 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 
 This is still not real-PHI proof. The real-PHI gate remains closed until the same controls are enforced by production MPI, FHIR/claims/HIE adapters, consent repository claims, database RLS, Part 2 storage/outbound controls, and signed deployment ownership.
 
+## P5 Local Boundary
+
+`npm run p5:gate` now proves a local P5 device boundary: registered device source vocabulary, active-consent enforcement, canonical-unit enforcement, FHIR-reference requirements, non-diagnostic deterministic insight text, unsafe device-action blocking, and web/native gating.
+
+This is still not real device proof. Real device use remains blocked until native shell work, HealthKit/Health Connect integration, Dexcom OAuth/API integration, pharmacy PDC calculation, stream storage, production FHIR writes, and real-PHI deployment controls exist.
+
 ## Medium Controls That Must Not Disappear
 
 | ID | Control | Owner area | Current state |

@@ -120,6 +120,7 @@ export interface HubMetric {
 export type SourceKind =
   | 'hie'
   | 'claims'
+  | 'device'
   | 'site_feed'
   | 'patient_reported'
   | 'navigator_review'

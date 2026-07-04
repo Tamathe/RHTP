@@ -309,6 +309,36 @@ export const P3_DATA_SOURCES: DataSource[] = [
   },
 ]
 
+export const P5_DATA_SOURCES: DataSource[] = [
+  {
+    id: 'healthkit_health_connect',
+    name: 'HealthKit and Health Connect',
+    kind: 'device',
+    trustTier: 3,
+    mode: 'subscription',
+    consentPath: 'patient_oauth',
+    status: 'planned',
+  },
+  {
+    id: 'dexcom_api',
+    name: 'Dexcom API',
+    kind: 'device',
+    trustTier: 3,
+    mode: 'poll',
+    consentPath: 'patient_oauth',
+    status: 'planned',
+  },
+  {
+    id: 'pharmacy_claims_pdc_floor',
+    name: 'Pharmacy claims PDC floor',
+    kind: 'claims',
+    trustTier: 2,
+    mode: 'poll',
+    consentPath: 'patient_oauth',
+    status: 'planned',
+  },
+]
+
 const metrics: HubMetric[] = [
   {
     id: 'contacted',
@@ -374,7 +404,7 @@ const referrals: Referral[] = [
 
 export const seed: SeedState = {
   patients: [hero, ...backgroundPatients],
-  dataSources: P3_DATA_SOURCES,
+  dataSources: [...P3_DATA_SOURCES, ...P5_DATA_SOURCES],
   sites,
   gaps: [heroGap, ...backgroundGaps],
   barriers: [],

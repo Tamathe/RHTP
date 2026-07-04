@@ -85,4 +85,14 @@ describe('production-shaped seed rails', () => {
       ]),
     )
   })
+
+  it('registers production-shaped P5 device sources and the claims PDC floor', () => {
+    expect(seed.dataSources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'healthkit_health_connect', kind: 'device', trustTier: 3 }),
+        expect.objectContaining({ id: 'dexcom_api', kind: 'device', trustTier: 3 }),
+        expect.objectContaining({ id: 'pharmacy_claims_pdc_floor', kind: 'claims', trustTier: 2 }),
+      ]),
+    )
+  })
 })
