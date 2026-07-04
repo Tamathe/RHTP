@@ -75,6 +75,16 @@ npm run p3:gate
 
 This proves only the local boundary: registered source vocabulary, patient-access claims consent, FHIR provenance, E2 identity handling, H2 async composition, and H3 Part 2 composition. It does not call Medicare Blue Button, a Kentucky Medicaid MCO, KHIE, TEFCA, or a FHIR store.
 
+## D4 Local PDC Adherence Boundary
+
+The local no-PHI D4 gate is:
+
+```bash
+npm run d4:gate
+```
+
+This proves only the local policy/calculation boundary: CMS/PQA PDC-DR treatment-period math, diabetes all-class grouping, same-drug overlap carry-forward, insulin exclusion, unknown-drug review, 80 percent threshold behavior, and `pharmacy_fill_claim` -> `insight.med.refill_gap` separation. It does not call a pharmacy claims API, import official NDC/RxNorm value-set files, write `med_pdc_daily` into a production FHIR store, or prove reportable live `pdc_diabetes` outcomes.
+
 ## P5 Local Device Boundary
 
 The local no-PHI P5 gate is:

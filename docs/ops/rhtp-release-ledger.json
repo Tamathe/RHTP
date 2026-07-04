@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, and web/native gating. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The D4 local PDC diabetes adherence gate is verified with PDC-DR treatment-period math, diabetes all-class grouping, same-drug overlap carry-forward, insulin exclusion, unknown-drug review, and claims-floor refill-gap separation. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, web/native gating, and the local D4 PDC policy. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -106,20 +106,28 @@
         "server/p5-device-gate.ts",
         "server/p5-device-gate.test.ts",
         "scripts/rhtp-p5-device-gate.ts",
+        "npm run d4:gate",
+        "server/pdc-adherence.ts",
+        "server/pdc-adherence.test.ts",
+        "server/d4-pdc-gate.ts",
+        "server/d4-pdc-gate.test.ts",
+        "scripts/rhtp-d4-pdc-gate.ts",
         "src/data/seed.ts",
         "src/data/seed.test.ts",
         "docs/superpowers/plans/2026-07-04-p5-device-rail-boundary-plan.md",
+        "docs/superpowers/plans/2026-07-04-d4-pdc-adherence-gate-plan.md",
         "docs/ops/red-team-results/2026-07-04-p5-device-rail-gate.md",
+        "docs/ops/red-team-results/2026-07-04-d4-pdc-adherence-gate.md",
         "docs/ops/RHTP-P5-DECISIONS.md"
       ],
-      "blockers": ["D4"]
+      "blockers": []
     },
     {
       "id": "P6",
       "name": "Protocol packs 2-4",
       "status": "not_built",
       "proof": [],
-      "blockers": ["D4"]
+      "blockers": []
     },
     {
       "id": "P7",
@@ -192,7 +200,24 @@
         "docs/ops/red-team-results/2026-07-04-p5-device-rail-gate.md",
         "docs/ops/RHTP-P5-DECISIONS.md"
       ],
-      "notes": "Local rail accepts registered device readings only with active consent, canonical units, and FHIR references; accepted readings land as device source facts; deterministic insights remain non-diagnostic; unsafe dosing/diagnosis/med-change actions are blocked; HealthKit/Health Connect stay disabled on web. Real native/device/API/PDC/FHIR-store integrations are not built."
+      "notes": "Local rail accepts registered device readings only with active consent, canonical units, and FHIR references; accepted readings land as device source facts; deterministic insights remain non-diagnostic; unsafe dosing/diagnosis/med-change actions are blocked; HealthKit/Health Connect stay disabled on web. The local D4 PDC diabetes policy/calculation is verified separately with npm run d4:gate. Real native/device/API/FHIR-store integrations and production pharmacy-claims PDC feeds are not built."
+    },
+    {
+      "id": "d4_pdc_adherence_gate",
+      "name": "D4 PDC diabetes adherence gate",
+      "status": "local_measure_policy_verified",
+      "phase": "P5/P6",
+      "proof": [
+        "npm run d4:gate",
+        "server/pdc-adherence.ts",
+        "server/pdc-adherence.test.ts",
+        "server/d4-pdc-gate.ts",
+        "server/d4-pdc-gate.test.ts",
+        "scripts/rhtp-d4-pdc-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-d4-pdc-adherence-gate.md",
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "notes": "Local policy follows the CMS 2026 QRS/PQA Diabetes All Class PDC-DR shape: IPSD-to-measurement-year-end treatment period, 80 percent threshold, diabetes all-class medication grouping, same-target-drug overlap carry-forward, insulin exclusion, unknown medication review, and claims-floor refill-gap event separation. Production still needs real pharmacy claims feeds, official value-set refresh/import controls, and FHIR-store writes before PDC can be used as a live adherence metric."
     },
     {
       "id": "kentucky_sdoh_resources",
@@ -523,9 +548,17 @@
       "severity": "decision",
       "title": "PDC window and drug-class grouping",
       "phaseGate": "P5/P6",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Match the HEDIS/RHTP pdc_diabetes definition exactly.",
-      "source": "Appendix C.1"
+      "source": "Appendix C.1",
+      "evidence": [
+        "npm run d4:gate",
+        "server/pdc-adherence.test.ts",
+        "server/d4-pdc-gate.test.ts",
+        "docs/ops/red-team-results/2026-07-04-d4-pdc-adherence-gate.md",
+        "docs/ops/RHTP-P5-DECISIONS.md"
+      ],
+      "residual": "Closed as a local operating decision against the CMS 2026 QRS/PQA PDC-DR contract. Production still requires official value-set refresh controls, live pharmacy claims feeds, FHIR-store writes, and measure-owner sign-off before reporting."
     },
     {
       "id": "D5",
@@ -691,6 +724,7 @@
     "Run npm run part2:gate before claiming local H3 Part 2 suppression proof.",
     "Run npm run sms:gate before claiming local H5 SMS disclosure proof.",
     "Run npm run p3:gate before claiming local P3 ingestion-boundary proof.",
+    "Run npm run d4:gate before claiming local D4 PDC diabetes adherence proof.",
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
     "Run npm run h4:gate before claiming local H4 break-glass proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
@@ -702,8 +736,8 @@
     "Extend the H4 break-glass gate into production consent repository, segmented storage/RBAC/RLS, post-hoc review workflow, and Kentucky adolescent legal-policy approval before closing H4 for real-PHI.",
     "Extend the H5 SMS disclosure gate into production A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging before closing H5 for production SMS.",
     "Build real Blue Button, Kentucky MCO Patient Access, KHIE, and Medplum adapter proof before claiming P3 production readiness.",
-    "Build real native shell, HealthKit/Health Connect, Dexcom OAuth/API, pharmacy PDC calculation, stream storage, and FHIR-store writes before claiming P5 production readiness.",
-    "Resolve D4 PDC window and drug-class grouping before production medication-adherence floor or P6 pack metrics.",
+    "Build real native shell, HealthKit/Health Connect, Dexcom OAuth/API, production pharmacy claims PDC feeds, stream storage, and FHIR-store writes before claiming P5 production readiness.",
+    "Import and version official PQA/CMS value sets before reporting live pdc_diabetes outcomes.",
     "Assign owners for KHIE engagement, first Medicaid MCO, and model BAAs before real P3 execution."
   ]
 }
