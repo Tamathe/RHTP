@@ -148,6 +148,16 @@ function statusForToolResult(result: ToolResult): 200 | 400 | 403 | 404 | 409 {
   return 403
 }
 
+function exposeSourceFact(fact: SourceFact): SourceFact {
+  const publicFact: SourceFact = { ...fact }
+  delete publicFact.sensitiveCategory
+  return publicFact
+}
+
+function exposeSourceFacts(facts: SourceFact[]): SourceFact[] {
+  return facts.map(exposeSourceFact)
+}
+
 function patientContext(state: BackendState, patientId: string): RouteResponse<PatientContextResponse | ErrorResponse> {
   const patient = state.data.patients.find((candidate) => candidate.id === patientId)
 
@@ -160,7 +170,7 @@ function patientContext(state: BackendState, patientId: string): RouteResponse<P
     body: {
       patient,
       consent: state.data.consents.find((consent) => consent.patientId === patientId) ?? null,
-      sourceFacts: state.data.sourceFacts.filter((fact) => fact.patientId === patientId),
+      sourceFacts: exposeSourceFacts(state.data.sourceFacts.filter((fact) => fact.patientId === patientId)),
       protocolEvents: state.data.protocolEvents.filter((event) => event.patientId === patientId),
       voiceTurns: state.data.voiceTurns.filter((turn) => turn.patientId === patientId),
       voiceSessions: state.data.voiceSessions.filter((session) => session.patientId === patientId),
@@ -192,7 +202,7 @@ function navigatorQueue(state: BackendState): NavigatorQueueResponseItem[] {
         ...item,
         patientName: patient?.name ?? 'Unknown patient',
         patientCounty: patient?.county ?? 'Unknown county',
-        sourceFacts: state.data.sourceFacts.filter((fact) => fact.patientId === item.patientId),
+        sourceFacts: exposeSourceFacts(state.data.sourceFacts.filter((fact) => fact.patientId === item.patientId)),
       }
     })
 }

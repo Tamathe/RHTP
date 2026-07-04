@@ -103,7 +103,7 @@ The local no-PHI H4 gate is:
 npm run h4:gate
 ```
 
-This proves only the local boundary: break-glass request/approval, short TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. It does not prove production consent repository enforcement, legal approval, segmented FHIR/storage, RBAC/RLS, or real-PHI readiness.
+This proves only the local boundary: break-glass request/approval, short TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, adolescent purpose-consent requirement, guardian-proxy blocking for adolescent facts, and category-match enforcement. It does not prove production consent repository enforcement, legal/clinical owner sign-off, segmented FHIR/storage, RBAC/RLS, or real-PHI readiness.
 
 ## D2 Local Adolescent Consent Boundary
 

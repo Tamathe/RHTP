@@ -46,6 +46,58 @@ function addPart2PurposeConsent(state: BackendState): BackendState {
   }
 }
 
+function createAdolescentState(): { state: BackendState; factId: string } {
+  const factId = 'fact_adolescent_phq'
+  return {
+    state: {
+      ...createInitialBackendState(),
+      data: {
+        ...createInitialBackendState().data,
+        sourceFacts: [
+          ...createInitialBackendState().data.sourceFacts,
+          {
+            id: factId,
+            patientId: HERO_ID,
+            label: 'Confidential PHQ/GAD screening result',
+            value: 'PHQ-9 result requires confidential care-team follow-up.',
+            sourceKind: 'patient_reported',
+            sourceName: 'RHTP PHQ/GAD screening',
+            retrievedAt: '2026-07-04',
+            effectiveDate: '2026-07-04',
+            confidence: 'confirmed',
+            patientConfirmed: true,
+            navigatorOverridden: false,
+            sensitiveCategory: 'adolescent',
+            aiContextSuppressed: true,
+          },
+        ],
+      },
+    },
+    factId,
+  }
+}
+
+function addAdolescentPurposeConsent(state: BackendState): BackendState {
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      consents: [
+        ...state.data.consents,
+        {
+          id: 'consent_adolescent_break_glass',
+          patientId: HERO_ID,
+          status: 'active',
+          scope: 'break_glass:emergency_care_coordination:adolescent',
+          category: 'adolescent',
+          version: 'v1',
+          updatedAt: '2026-07-04',
+        },
+      ],
+    },
+  }
+}
+
 describe('H4 break-glass access rail', () => {
   it('blocks Part 2 break-glass approval without purpose-specific Part 2 consent', () => {
     const { state, factId } = createPart2State()
@@ -164,9 +216,65 @@ describe('H4 break-glass access rail', () => {
     )
   })
 
-  it('fails closed for adolescent-confidential access until the Kentucky policy decision is approved', () => {
+  it('allows care-team adolescent break-glass only with D2 policy, purpose consent, and matching fact category', () => {
+    const { state, factId } = createAdolescentState()
+    const requested = requestBreakGlassAccess(addAdolescentPurposeConsent(state), {
+      patientId: HERO_ID,
+      category: 'adolescent',
+      purpose: 'emergency_care_coordination',
+      requestedBy: 'nav_dana',
+      sourceFactIds: [factId],
+    })
+    const approved = approveBreakGlassAccess(requested.state, {
+      accessId: requested.access.id,
+      approvedBy: 'privacy_officer',
+    })
+    const read = readSegmentedFactsWithBreakGlass(approved.state, {
+      accessId: requested.access.id,
+      now: '2026-07-04T09:05:00',
+    })
+
+    expect(approved.status).toBe('active')
+    expect(read.facts).toEqual([
+      expect.objectContaining({
+        id: factId,
+        sensitiveCategory: 'adolescent',
+        aiContextSuppressed: true,
+      }),
+    ])
+  })
+
+  it('blocks guardian-proxy break-glass access to adolescent-confidential facts', () => {
+    const { state, factId } = createAdolescentState()
+    const requested = requestBreakGlassAccess(addAdolescentPurposeConsent(state), {
+      patientId: HERO_ID,
+      category: 'adolescent',
+      purpose: 'emergency_care_coordination',
+      requestedBy: 'guardian_proxy_1',
+      requesterKind: 'guardian_proxy',
+      sourceFactIds: [factId],
+    })
+    const approved = approveBreakGlassAccess(requested.state, {
+      accessId: requested.access.id,
+      approvedBy: 'privacy_officer',
+    })
+
+    expect(approved.status).toBe('guardian_proxy_blocked')
+    expect(approved.access?.status).toBe('denied')
+    expect(approved.state.auditEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'break_glass_access',
+          outcome: 'blocked',
+          patientId: HERO_ID,
+        }),
+      ]),
+    )
+  })
+
+  it('blocks break-glass approval when the requested category does not match the segmented fact', () => {
     const { state, factId } = createPart2State()
-    const requested = requestBreakGlassAccess(addPart2PurposeConsent(state), {
+    const requested = requestBreakGlassAccess(addAdolescentPurposeConsent(state), {
       patientId: HERO_ID,
       category: 'adolescent',
       purpose: 'emergency_care_coordination',
@@ -178,7 +286,7 @@ describe('H4 break-glass access rail', () => {
       approvedBy: 'privacy_officer',
     })
 
-    expect(approved.status).toBe('adolescent_policy_required')
+    expect(approved.status).toBe('category_mismatch')
     expect(approved.access?.status).toBe('denied')
   })
 })

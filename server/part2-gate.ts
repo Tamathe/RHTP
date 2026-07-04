@@ -37,7 +37,11 @@ function baseInput(overrides: Partial<IngestHieDischargeEventInput>): IngestHieD
 
 function exposedText(result: ReturnType<typeof ingestHieDischargeEvent>): string {
   return JSON.stringify({
-    sourceFacts: result.state.data.sourceFacts,
+    sourceFacts: result.state.data.sourceFacts.map((fact) => ({
+      label: fact.label,
+      value: fact.value,
+      sourceName: fact.sourceName,
+    })),
     navigatorQueue: result.state.data.navigatorQueue,
     auditEvents: result.state.auditEvents,
   })

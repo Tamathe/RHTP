@@ -19,7 +19,7 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 | H1 | Grounding verifier is a stub | P2 exit | Deterministic verifier for clinical-adjacent claims using regex, lexicon, numeric normalization, and store-diff; model judge can add blocks only. | Closed locally: `npm run safety:gate` passes. |
 | H2 | Async lane RLS bypass | P3 | Gateway-minted, single-patient, pack-scoped, short-lived token for every async job; no standing broad grant. | Local control verified: `npm run async:gate` proves patient/pack-scoped token minting, matching reads, cross-patient/cross-pack blocks, expiry, revocation, audit events, and wildcard broad-grant rejection. Still open for real-PHI until production consent repository claims and database RLS policies enforce the same contract. |
 | H3 | Part 2 leakage through facility identity | Before P3 HIE and P7 BH packs | Deterministic code-set stripping plus facility-identity suppression before pack, insight, navigator, or outbound exposure. | Local control verified: `npm run part2:gate` proves sensitive facility/category suppression, generic segmented-data review, fail-closed unknown dispositions, and safe non-sensitive ingestion. Still open for real-PHI until production HIE/FHIR adapters, storage policies, and outbound surfaces enforce the same rule. |
-| H4 | Break-glass is not Part 2 consent | P7 | Break-glass issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent. | Local control verified: `npm run h4:gate` proves request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. Still open for real-PHI until production consent repository, segmented storage/RBAC/RLS, and Kentucky adolescent legal-policy approval are complete. |
+| H4 | Break-glass is not Part 2 consent | P7 | Break-glass issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent. | Local control verified: `npm run h4:gate` proves request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, and category-match enforcement. Still open for real-PHI until production consent repository, segmented storage/RBAC/RLS, review workflow, and production legal/clinical owner sign-off are complete. |
 | H5 | SMS condition-name leakage | P4 first SMS | Approved template library, deterministic slotting, disclosure linting in every shipped language, and category exclusion. | Local control verified: `npm run sms:gate` proves approved EN/ES templates, deterministic slots, category exclusion, and disclosure lint blocking condition names/unsafe slot values. Still open for production SMS until A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging are complete. |
 
 ## P3 Local Boundary
@@ -36,9 +36,9 @@ This is still not real device proof. Real device use remains blocked until nativ
 
 ## H4 Local Boundary
 
-`npm run h4:gate` now proves a local break-glass consent boundary: request, approval, TTL, expired-read blocking, post-hoc review, and purpose-specific Part 2 consent before segmented Part 2 access.
+`npm run h4:gate` now proves a local break-glass consent boundary: request, approval, TTL, expired-read blocking, post-hoc review, purpose-specific Part 2 consent before segmented Part 2 access, purpose-specific adolescent consent, guardian-proxy blocking for adolescent facts, and category-match enforcement before segmented reads.
 
-This is still not legal or real-PHI proof. Adolescent-confidential access fails closed until D2 is approved, and production use still requires real consent repository enforcement, segmented storage, RBAC/RLS, audit review workflow, and operational owner sign-off.
+This is still not legal or real-PHI proof. Production use still requires real consent repository enforcement, segmented storage, RBAC/RLS, audit review workflow, legal/clinical owner sign-off, and operational owner sign-off.
 
 ## Medium Controls That Must Not Disappear
 

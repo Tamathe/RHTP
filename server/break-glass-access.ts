@@ -1,9 +1,11 @@
 import type {
   BreakGlassAccess,
+  BreakGlassRequesterKind,
   BreakGlassReviewOutcome,
   SensitiveCategory,
   SourceFact,
 } from '../src/types'
+import { KENTUCKY_ADOLESCENT_CONSENT_POLICY } from './adolescent-consent-policy'
 import { appendAuditEvent } from './audit'
 import type { BackendState } from './types'
 
@@ -12,6 +14,7 @@ export interface BreakGlassRequestInput {
   category: SensitiveCategory
   purpose: string
   requestedBy: string
+  requesterKind?: BreakGlassRequesterKind
   sourceFactIds: string[]
 }
 
@@ -39,7 +42,14 @@ export interface BreakGlassRequestResult {
 
 export interface BreakGlassApprovalResult {
   state: BackendState
-  status: 'active' | 'part2_consent_required' | 'adolescent_policy_required' | 'not_found' | 'not_requested'
+  status:
+    | 'active'
+    | 'part2_consent_required'
+    | 'adolescent_policy_required'
+    | 'guardian_proxy_blocked'
+    | 'category_mismatch'
+    | 'not_found'
+    | 'not_requested'
   access?: BreakGlassAccess
 }
 
@@ -55,15 +65,12 @@ export interface BreakGlassReviewResult {
   access?: BreakGlassAccess
 }
 
-type KentuckyAdolescentPolicyStatus = 'legal_review_required' | 'approved'
-
-export const kentuckyAdolescentPolicy: { status: KentuckyAdolescentPolicyStatus; note: string } = {
-  status: 'legal_review_required',
-  note: 'Adolescent-confidential access remains fail-closed until Kentucky minor-consent ages and proxy disclosure rules are approved by legal/clinical owners.',
-}
-
 const NOW = '2026-07-04T09:00:00'
 const EXPIRES_AT = '2026-07-04T09:30:00'
+const REQUIRED_D2_SOURCE_REF_IDS = new Set([
+  'KY_KRS_214_185_2',
+  'HHS_HIPAA_PERSONAL_REPRESENTATIVE_MINOR_EXCEPTION',
+])
 let breakGlassCounter = 0
 
 function nextId(): string {
@@ -92,6 +99,31 @@ function purposeConsentScope(category: SensitiveCategory, purpose: string): stri
   return `break_glass:${purpose}:${category}`
 }
 
+function isLocalD2PolicyPinned(): boolean {
+  const sourceRefIds = new Set(KENTUCKY_ADOLESCENT_CONSENT_POLICY.sourceRefs.map((source) => source.id))
+  return (
+    KENTUCKY_ADOLESCENT_CONSENT_POLICY.jurisdiction === 'KY' &&
+    KENTUCKY_ADOLESCENT_CONSENT_POLICY.mentalHealthSelfConsentAge === 16 &&
+    [...REQUIRED_D2_SOURCE_REF_IDS].every((sourceRefId) => sourceRefIds.has(sourceRefId))
+  )
+}
+
+function sourceFactsForAccess(state: BackendState, access: BreakGlassAccess): SourceFact[] {
+  const sourceFactsById = new Map(state.data.sourceFacts.map((fact) => [fact.id, fact]))
+  return access.sourceFactIds
+    .map((sourceFactId) => sourceFactsById.get(sourceFactId))
+    .filter((fact): fact is SourceFact => Boolean(fact))
+}
+
+function factsMatchRequestedCategory(state: BackendState, access: BreakGlassAccess): boolean {
+  const facts = sourceFactsForAccess(state, access)
+  return (
+    facts.length === access.sourceFactIds.length &&
+    facts.length > 0 &&
+    facts.every((fact) => fact.patientId === access.patientId && fact.sensitiveCategory === access.category)
+  )
+}
+
 function hasPurposeSpecificConsent(state: BackendState, access: BreakGlassAccess): boolean {
   if (access.category === 'part2_sud') {
     return state.data.consents.some(
@@ -107,6 +139,7 @@ function hasPurposeSpecificConsent(state: BackendState, access: BreakGlassAccess
     (consent) =>
       consent.patientId === access.patientId &&
       consent.status === 'active' &&
+      (access.category !== 'adolescent' || consent.category === 'adolescent') &&
       consent.scope === purposeConsentScope(access.category, access.purpose),
   )
 }
@@ -143,6 +176,7 @@ export function requestBreakGlassAccess(
     category: input.category,
     purpose: input.purpose,
     requestedBy: input.requestedBy,
+    requesterKind: input.requesterKind ?? 'navigator',
     status: 'requested',
     issuedAt: NOW,
     reviewRequired: true,
@@ -175,12 +209,28 @@ export function approveBreakGlassAccess(
   if (access.status !== 'requested') {
     return { state, status: 'not_requested', access }
   }
-  if (access.category === 'adolescent' && kentuckyAdolescentPolicy.status !== 'approved') {
+  if (access.category === 'adolescent' && !isLocalD2PolicyPinned()) {
     return denyAccess(
       state,
       access,
       'adolescent_policy_required',
-      'Adolescent-confidential break-glass access failed closed because Kentucky minor-consent policy is not approved.',
+      'Adolescent-confidential break-glass access failed closed because the local D2 Kentucky minor-consent policy is not pinned.',
+    )
+  }
+  if (!factsMatchRequestedCategory(state, access)) {
+    return denyAccess(
+      state,
+      access,
+      'category_mismatch',
+      `Break-glass access blocked because requested category=${access.category} does not match every segmented source fact.`,
+    )
+  }
+  if (access.category === 'adolescent' && access.requesterKind === 'guardian_proxy') {
+    return denyAccess(
+      state,
+      access,
+      'guardian_proxy_blocked',
+      'Adolescent-confidential break-glass access blocked because guardian-linked accounts cannot retrieve adolescent facts.',
     )
   }
   if (!hasPurposeSpecificConsent(state, access)) {
@@ -245,11 +295,10 @@ export function readSegmentedFactsWithBreakGlass(
     }
   }
 
-  const facts = state.data.sourceFacts
-    .filter((fact) => access.sourceFactIds.includes(fact.id))
+  const facts = sourceFactsForAccess(state, access)
+    .filter((fact) => fact.patientId === access.patientId && fact.sensitiveCategory === access.category)
     .map((fact) => ({
       ...fact,
-      sensitiveCategory: access.category,
       aiContextSuppressed: true,
     }))
 

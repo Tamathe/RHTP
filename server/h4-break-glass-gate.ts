@@ -1,4 +1,5 @@
 import { HERO_ID } from '../src/data/seed'
+import type { SensitiveCategory } from '../src/types'
 import type { BackendState } from './types'
 import {
   approveBreakGlassAccess,
@@ -60,12 +61,71 @@ function addPart2Consent(state: BackendState): BackendState {
   }
 }
 
-function request(state: BackendState, factId: string, category: 'part2_sud' | 'adolescent') {
+function createAdolescentState(): { state: BackendState; factId: string } {
+  const state = createInitialBackendState()
+  const factId = 'fact_adolescent_phq_gate'
+  return {
+    state: {
+      ...state,
+      data: {
+        ...state.data,
+        sourceFacts: [
+          ...state.data.sourceFacts,
+          {
+            id: factId,
+            patientId: HERO_ID,
+            label: 'Confidential PHQ/GAD screening result',
+            value: 'PHQ-9 result requires confidential care-team follow-up.',
+            sourceKind: 'patient_reported',
+            sourceName: 'RHTP PHQ/GAD screening',
+            retrievedAt: '2026-07-04',
+            effectiveDate: '2026-07-04',
+            confidence: 'confirmed',
+            patientConfirmed: true,
+            navigatorOverridden: false,
+            sensitiveCategory: 'adolescent',
+            aiContextSuppressed: true,
+          },
+        ],
+      },
+    },
+    factId,
+  }
+}
+
+function addAdolescentConsent(state: BackendState): BackendState {
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      consents: [
+        ...state.data.consents,
+        {
+          id: 'consent_adolescent_break_glass_gate',
+          patientId: HERO_ID,
+          status: 'active',
+          scope: 'break_glass:emergency_care_coordination:adolescent',
+          category: 'adolescent',
+          version: 'v1',
+          updatedAt: '2026-07-04',
+        },
+      ],
+    },
+  }
+}
+
+function request(
+  state: BackendState,
+  factId: string,
+  category: SensitiveCategory,
+  requesterKind: 'navigator' | 'guardian_proxy' = 'navigator',
+) {
   return requestBreakGlassAccess(state, {
     patientId: HERO_ID,
     category,
     purpose: 'emergency_care_coordination',
-    requestedBy: 'nav_dana',
+    requestedBy: requesterKind === 'guardian_proxy' ? 'guardian_proxy_1' : 'nav_dana',
+    requesterKind,
     sourceFactIds: [factId],
   })
 }
@@ -101,10 +161,37 @@ export function runH4BreakGlassGate(): H4BreakGlassGateReport {
     outcome: 'confirmed_appropriate',
   })
 
-  const adolescentState = createPart2State()
-  const adolescentRequest = request(addPart2Consent(adolescentState.state), adolescentState.factId, 'adolescent')
-  const adolescentApproval = approveBreakGlassAccess(adolescentRequest.state, {
-    accessId: adolescentRequest.access.id,
+  const adolescentMissingConsentState = createAdolescentState()
+  const adolescentMissingConsentRequest = request(
+    adolescentMissingConsentState.state,
+    adolescentMissingConsentState.factId,
+    'adolescent',
+  )
+  const adolescentMissingConsentApproval = approveBreakGlassAccess(adolescentMissingConsentRequest.state, {
+    accessId: adolescentMissingConsentRequest.access.id,
+    approvedBy: 'privacy_officer',
+  })
+
+  const adolescentGuardianState = createAdolescentState()
+  const adolescentGuardianRequest = request(
+    addAdolescentConsent(adolescentGuardianState.state),
+    adolescentGuardianState.factId,
+    'adolescent',
+    'guardian_proxy',
+  )
+  const adolescentGuardianApproval = approveBreakGlassAccess(adolescentGuardianRequest.state, {
+    accessId: adolescentGuardianRequest.access.id,
+    approvedBy: 'privacy_officer',
+  })
+
+  const categoryMismatchState = createPart2State()
+  const categoryMismatchRequest = request(
+    addAdolescentConsent(categoryMismatchState.state),
+    categoryMismatchState.factId,
+    'adolescent',
+  )
+  const categoryMismatchApproval = approveBreakGlassAccess(categoryMismatchRequest.state, {
+    accessId: categoryMismatchRequest.access.id,
     approvedBy: 'privacy_officer',
   })
 
@@ -136,9 +223,19 @@ export function runH4BreakGlassGate(): H4BreakGlassGateReport {
       detail: reviewed.status,
     },
     {
-      id: 'adolescent_policy_fails_closed',
-      ok: adolescentApproval.status === 'adolescent_policy_required',
-      detail: adolescentApproval.status,
+      id: 'adolescent_break_glass_requires_purpose_consent',
+      ok: adolescentMissingConsentApproval.status === 'part2_consent_required',
+      detail: adolescentMissingConsentApproval.status,
+    },
+    {
+      id: 'adolescent_guardian_proxy_blocked',
+      ok: adolescentGuardianApproval.status === 'guardian_proxy_blocked',
+      detail: adolescentGuardianApproval.status,
+    },
+    {
+      id: 'adolescent_break_glass_category_match_required',
+      ok: categoryMismatchApproval.status === 'category_mismatch',
+      detail: categoryMismatchApproval.status,
     },
   ]
   const passed = cases.filter((testCase) => testCase.ok).length

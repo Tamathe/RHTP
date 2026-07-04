@@ -235,6 +235,7 @@ export interface AsyncAccessToken {
 
 export type BreakGlassAccessStatus = 'requested' | 'active' | 'expired' | 'denied' | 'reviewed'
 export type BreakGlassReviewOutcome = 'confirmed_appropriate' | 'inappropriate_access'
+export type BreakGlassRequesterKind = 'navigator' | 'guardian_proxy' | 'privacy_officer'
 
 export interface BreakGlassAccess {
   id: string
@@ -242,6 +243,7 @@ export interface BreakGlassAccess {
   category: SensitiveCategory
   purpose: string
   requestedBy: string
+  requesterKind?: BreakGlassRequesterKind
   approvedBy?: string
   status: BreakGlassAccessStatus
   issuedAt: string

@@ -83,6 +83,7 @@ function restrictedFact(input: IngestHieDischargeEventInput): SourceFact {
     patientConfirmed: false,
     navigatorOverridden: false,
     fhirRef: input.fhirRef,
+    sensitiveCategory: 'part2_sud',
     aiContextSuppressed: true,
   }
 }

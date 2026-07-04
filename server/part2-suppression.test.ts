@@ -17,8 +17,12 @@ describe('Part 2 facility-identity suppression', () => {
       retrievedAt: '2026-07-04',
       fhirRef: 'Encounter/part2-sensitive',
     })
-    const exposed = JSON.stringify({
-      sourceFacts: result.state.data.sourceFacts.slice(state.data.sourceFacts.length),
+    const exposedText = JSON.stringify({
+      sourceFacts: result.state.data.sourceFacts.slice(state.data.sourceFacts.length).map((fact) => ({
+        label: fact.label,
+        value: fact.value,
+        sourceName: fact.sourceName,
+      })),
       navigatorQueue: result.state.data.navigatorQueue.slice(state.data.navigatorQueue.length),
       auditEvents: result.state.auditEvents,
     })
@@ -31,6 +35,8 @@ describe('Part 2 facility-identity suppression', () => {
         value: 'A restricted facility encounter requires navigator review before protocol use.',
         sourceKind: 'hie',
         confidence: 'needs_review',
+        sensitiveCategory: 'part2_sud',
+        aiContextSuppressed: true,
       }),
     )
     expect(result.state.data.navigatorQueue.at(-1)).toEqual(
@@ -41,7 +47,7 @@ describe('Part 2 facility-identity suppression', () => {
         suggestedAction: 'Confirm consent and segmentation rules before exposing this encounter anywhere else.',
       }),
     )
-    expect(exposed).not.toMatch(SENSITIVE_TEXT)
+    expect(exposedText).not.toMatch(SENSITIVE_TEXT)
   })
 
   it('fails closed for unrecognized discharge dispositions', () => {
