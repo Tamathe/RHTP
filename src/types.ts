@@ -203,6 +203,46 @@ export type SpeechActLabel =
   | 'off_protocol'
   | 'unknown'
 
+export type ToolName = 'answer_education' | 'collect_barrier' | 'match_site' | 'confirm_plan'
+export type ToolCallDecision = 'allowed' | 'blocked' | 'failed'
+export type ToolRefusalReason =
+  | 'invalid_input'
+  | 'patient_not_found'
+  | 'voice_session_not_found'
+  | 'pack_not_authorized'
+  | 'consent_missing'
+  | 'red_flag_lock'
+
+export interface ToolCallRecord {
+  id: string
+  voiceSessionId?: string
+  patientId: string
+  protocolInstanceId: string
+  packId: PackId
+  toolName: string
+  input: Record<string, unknown>
+  decision: ToolCallDecision
+  emittedEventId?: string
+  modelId: string
+  modelVersion: string
+  createdAt: string
+}
+
+export type ToolResult =
+  | {
+      ok: true
+      toolName: string
+      emittedEventId: string
+      message: string
+      payload?: Record<string, unknown>
+    }
+  | {
+      ok: false
+      toolName: string
+      refusalReason: ToolRefusalReason
+      message: string
+    }
+
 export interface VoiceTurn {
   id: string
   patientId: string

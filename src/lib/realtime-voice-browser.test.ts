@@ -83,6 +83,7 @@ describe('startRealtimeVoiceSession', () => {
     })
     await Promise.resolve()
     await Promise.resolve()
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(calls).toEqual(
       expect.arrayContaining([
@@ -141,6 +142,100 @@ describe('startRealtimeVoiceSession', () => {
     expect(peerConnection.closed).toBe(true)
   })
 
+  it('routes Realtime function calls through the Sandy tool gateway', async () => {
+    const calls: { url: string; body?: unknown }[] = []
+    const dataChannel = createFakeDataChannel()
+    const peerConnection = createFakePeerConnection(dataChannel)
+    const fetcher: typeof fetch = async (input, init) => {
+      const url = String(input)
+      calls.push({ url, body: init?.body })
+
+      if (url === `/api/voice/${HERO_ID}/realtime-session`) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            provider: 'openai_realtime',
+            model: 'gpt-realtime-2',
+            voiceSessionId: 'voice_browser_test',
+            clientSecret: { value: 'ek_browser_test', expiresAt: 12345 },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        )
+      }
+
+      if (url === `/api/voice/${HERO_ID}/realtime-session/voice_browser_test/tool`) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            toolName: 'answer_education',
+            emittedEventId: 'proto_tool_answer',
+            message: 'Sandy may answer this retinopathy education question using approved context.',
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        )
+      }
+
+      return new Response('answer-sdp', { status: 200, headers: { 'content-type': 'application/sdp' } })
+    }
+
+    await startRealtimeVoiceSession({
+      patientId: HERO_ID,
+      fetch: fetcher,
+      createPeerConnection: () => peerConnection,
+      getUserMedia: async () => ({
+        getTracks: () => [{ stop: () => undefined }],
+      }),
+      createAudioElement: () => ({ autoplay: false, srcObject: null }),
+    })
+
+    dataChannel.emit({
+      type: 'response.done',
+      response: {
+        output: [
+          {
+            type: 'function_call',
+            name: 'answer_education',
+            call_id: 'call_answer',
+            arguments: '{"question":"Why do I need this screening?"}',
+          },
+        ],
+      },
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: `/api/voice/${HERO_ID}/realtime-session/voice_browser_test/tool`,
+          body: JSON.stringify({
+            toolName: 'answer_education',
+            input: { question: 'Why do I need this screening?' },
+            modelId: 'openai_realtime',
+            modelVersion: 'gpt-realtime-2',
+          }),
+        }),
+      ]),
+    )
+    expect(dataChannel.sent.map((payload) => JSON.parse(payload) as unknown)).toEqual([
+      {
+        type: 'conversation.item.create',
+        item: {
+          type: 'function_call_output',
+          call_id: 'call_answer',
+          output: JSON.stringify({
+            ok: true,
+            toolName: 'answer_education',
+            emittedEventId: 'proto_tool_answer',
+            message: 'Sandy may answer this retinopathy education question using approved context.',
+          }),
+        },
+      },
+      { type: 'response.create' },
+    ])
+  })
+
   it('closes the peer connection when microphone access is unavailable', async () => {
     const peerConnection = createFakePeerConnection()
     const fetcher: typeof fetch = async () =>
@@ -171,7 +266,10 @@ describe('startRealtimeVoiceSession', () => {
 function createFakeDataChannel() {
   let listener: ((event: { data: string }) => void) | undefined
   return {
-    send: () => undefined,
+    sent: [] as string[],
+    send(data: string) {
+      this.sent.push(data)
+    },
     close: () => undefined,
     addEventListener(event: string, handler: (event: { data: string }) => void) {
       if (event === 'message') listener = handler

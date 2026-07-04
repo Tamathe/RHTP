@@ -9,6 +9,7 @@ interface ContextResponseBody {
   voiceTurns: { speaker: string }[]
   voiceSessions?: { id: string }[]
   transcriptSegments?: { text: string; speaker: string }[]
+  toolCalls?: { toolName: string; decision: string }[]
   ruleGapTickets?: { id: string }[]
 }
 
@@ -244,6 +245,69 @@ describe('handleApiRequest', () => {
         expect.objectContaining({
           voiceSessionId: sessionBody.voiceSessionId,
           text: 'Why do I need this?',
+        }),
+      ]),
+    )
+  })
+
+  it('routes realtime Sandy tool calls through the server gateway', async () => {
+    const store = createMemoryStore()
+    const fetcher: typeof fetch = async () =>
+      new Response(JSON.stringify({ client_secret: { value: 'ek_route_test', expires_at: 98765 } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    const session = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session`,
+      undefined,
+      {
+        env: { OPENAI_API_KEY: 'sk_route_secret', RHTP_REAL_VOICE: '1' },
+        fetch: fetcher,
+      },
+    )
+    const sessionBody = session.body as { voiceSessionId?: string }
+    if (!sessionBody.voiceSessionId) throw new Error('Expected voice session id')
+
+    const tool = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session/${sessionBody.voiceSessionId}/tool`,
+      {
+        toolName: 'answer_education',
+        input: { question: 'Why do I need this screening?' },
+        modelId: 'openai_realtime',
+        modelVersion: 'gpt-realtime-2',
+      },
+    )
+    const context = await handleApiRequest(store, 'GET', `/api/patients/${HERO_ID}/context`)
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+    const contextBody = context.body as ContextResponseBody
+
+    expect(tool.status).toBe(200)
+    expect(tool.body).toEqual(
+      expect.objectContaining({
+        ok: true,
+        toolName: 'answer_education',
+        emittedEventId: expect.stringMatching(/^proto_/),
+      }),
+    )
+    expect(contextBody.toolCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ toolName: 'answer_education', decision: 'allowed' }),
+      ]),
+    )
+    expect(audit.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'sandy_tool_called',
+          outcome: 'allowed',
+          modelId: 'openai_realtime',
+          modelVersion: 'gpt-realtime-2',
+          sessionId: sessionBody.voiceSessionId,
+          toolName: 'answer_education',
+          packId: 'retinopathy',
         }),
       ]),
     )

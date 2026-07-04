@@ -60,12 +60,20 @@ export interface RealtimeVoiceFailedSession {
 export type RealtimeVoiceStartResult = RealtimeVoiceConnectedSession | RealtimeVoiceFailedSession
 
 interface ClientSecretPayload {
+  provider?: string
+  model?: string
   voiceSessionId?: string
   clientSecret?: {
     value?: string
   }
   error?: string
   reason?: string
+}
+
+interface RealtimeToolCall {
+  name: string
+  callId: string
+  input: Record<string, unknown>
 }
 
 const REALTIME_CALLS_URL = 'https://api.openai.com/v1/realtime/calls'
@@ -125,6 +133,11 @@ function transcriptEndpoint(apiBaseUrl: string, patientId: string, voiceSessionI
   return `${base}/api/voice/${patientId}/realtime-session/${voiceSessionId}/transcript`
 }
 
+function toolEndpoint(apiBaseUrl: string, patientId: string, voiceSessionId: string): string {
+  const base = apiBaseUrl.replace(/\/$/, '')
+  return `${base}/api/voice/${patientId}/realtime-session/${voiceSessionId}/tool`
+}
+
 function stopTracks(tracks: RealtimeVoiceTrack[]): void {
   for (const track of tracks) {
     track.stop()
@@ -154,6 +167,80 @@ function transcriptSegmentFromRealtimeEvent(data: string): { speaker: 'patient' 
   }
 }
 
+function parseToolArguments(argumentsPayload: unknown): Record<string, unknown> | null {
+  if (typeof argumentsPayload !== 'string') return null
+
+  try {
+    const parsed = JSON.parse(argumentsPayload) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null
+
+    return parsed as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+function toolCallsFromRealtimeEvent(data: string): RealtimeToolCall[] {
+  try {
+    const parsed = JSON.parse(data) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return []
+
+    const event = parsed as Record<string, unknown>
+    if (event.type === 'response.done') {
+      const response = event.response
+      if (typeof response !== 'object' || response === null || Array.isArray(response)) return []
+
+      const output = (response as Record<string, unknown>).output
+      if (!Array.isArray(output)) return []
+
+      return output.flatMap((item): RealtimeToolCall[] => {
+        if (typeof item !== 'object' || item === null || Array.isArray(item)) return []
+
+        const candidate = item as Record<string, unknown>
+        if (
+          candidate.type !== 'function_call' ||
+          typeof candidate.name !== 'string' ||
+          typeof candidate.call_id !== 'string'
+        ) {
+          return []
+        }
+
+        const input = parseToolArguments(candidate.arguments)
+        return input ? [{ name: candidate.name, callId: candidate.call_id, input }] : []
+      })
+    }
+
+    if (event.type === 'response.function_call_arguments.done') {
+      const item = event.item
+      const itemRecord =
+        typeof item === 'object' && item !== null && !Array.isArray(item)
+          ? (item as Record<string, unknown>)
+          : undefined
+      const name =
+        typeof event.name === 'string'
+          ? event.name
+          : typeof itemRecord?.name === 'string'
+            ? itemRecord.name
+            : undefined
+      const callId =
+        typeof event.call_id === 'string'
+          ? event.call_id
+          : typeof itemRecord?.call_id === 'string'
+            ? itemRecord.call_id
+            : undefined
+      const argumentsPayload =
+        typeof event.arguments === 'string' ? event.arguments : itemRecord?.arguments
+      const input = parseToolArguments(argumentsPayload)
+
+      return name && callId && input ? [{ name, callId, input }] : []
+    }
+
+    return []
+  } catch {
+    return []
+  }
+}
+
 function persistTranscriptSegment(
   fetcher: typeof fetch,
   apiBaseUrl: string,
@@ -171,6 +258,69 @@ function persistTranscriptSegment(
       classifierLabels: [],
     }),
   })
+}
+
+async function invokeSandyToolGateway(
+  fetcher: typeof fetch,
+  apiBaseUrl: string,
+  patientId: string,
+  voiceSessionId: string,
+  modelVersion: string,
+  toolCall: RealtimeToolCall,
+): Promise<unknown> {
+  try {
+    const response = await fetcher(toolEndpoint(apiBaseUrl, patientId, voiceSessionId), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        toolName: toolCall.name,
+        input: toolCall.input,
+        modelId: 'openai_realtime',
+        modelVersion,
+      }),
+    })
+
+    return (await response.json().catch(() => ({
+      ok: false,
+      error: 'Sandy tool gateway returned a non-JSON response.',
+    }))) as unknown
+  } catch {
+    return {
+      ok: false,
+      error: 'Sandy tool gateway could not be reached.',
+    }
+  }
+}
+
+async function handleRealtimeToolCall(
+  dataChannel: RealtimeVoiceDataChannel,
+  fetcher: typeof fetch,
+  apiBaseUrl: string,
+  patientId: string,
+  voiceSessionId: string,
+  modelVersion: string,
+  toolCall: RealtimeToolCall,
+): Promise<void> {
+  const toolResult = await invokeSandyToolGateway(
+    fetcher,
+    apiBaseUrl,
+    patientId,
+    voiceSessionId,
+    modelVersion,
+    toolCall,
+  )
+
+  dataChannel.send(
+    JSON.stringify({
+      type: 'conversation.item.create',
+      item: {
+        type: 'function_call_output',
+        call_id: toolCall.callId,
+        output: JSON.stringify(toolResult),
+      },
+    }),
+  )
+  dataChannel.send(JSON.stringify({ type: 'response.create' }))
 }
 
 export function isRealtimeVoiceClientEnabled(env: RealtimeVoiceEnv = import.meta.env): boolean {
@@ -199,6 +349,7 @@ export async function startRealtimeVoiceSession(
   }
 
   const payload = (await tokenResponse.json()) as ClientSecretPayload
+  const modelVersion = payload.model ?? 'unknown_realtime_model'
   const clientSecret = payload.clientSecret?.value
   if (!clientSecret) {
     return {
@@ -247,6 +398,18 @@ export async function startRealtimeVoiceSession(
     const segment = transcriptSegmentFromRealtimeEvent(event.data)
     if (segment) {
       persistTranscriptSegment(fetcher, apiBaseUrl, patientId, voiceSessionId, segment)
+    }
+
+    for (const toolCall of toolCallsFromRealtimeEvent(event.data)) {
+      void handleRealtimeToolCall(
+        dataChannel,
+        fetcher,
+        apiBaseUrl,
+        patientId,
+        voiceSessionId,
+        modelVersion,
+        toolCall,
+      )
     }
   })
 

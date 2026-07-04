@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { HERO_ID } from '../src/data/seed'
 import {
   completeNavigatorTask,
+  invokeSandyTool,
   recordModelBackstopHealth,
   recordRealtimeTranscriptSegment,
   recordRealtimeVoiceSessionStarted,
@@ -169,6 +170,131 @@ describe('backend protocol actions', () => {
         action: 'realtime_transcript_segment_recorded',
         outcome: 'allowed',
       }),
+    )
+  })
+
+  it('allows an authorized Sandy education tool through the gateway with model provenance', () => {
+    const withSession = recordRealtimeVoiceSessionStarted(createInitialBackendState(), {
+      patientId: HERO_ID,
+      model: 'gpt-realtime-2',
+      safetyIdentifier: 'rhtp_voice_hash',
+    })
+    const voiceSessionId = withSession.data.voiceSessions.at(-1)?.id
+    if (!voiceSessionId) throw new Error('Expected voice session')
+
+    const result = invokeSandyTool(withSession, {
+      patientId: HERO_ID,
+      voiceSessionId,
+      toolName: 'answer_education',
+      input: { question: 'Why do I need this screening?' },
+      modelId: 'openai_realtime',
+      modelVersion: 'gpt-realtime-2',
+    })
+
+    expect(result.toolResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        toolName: 'answer_education',
+        emittedEventId: expect.stringMatching(/^proto_/),
+      }),
+    )
+    expect(result.state.data.toolCalls.at(-1)).toEqual(
+      expect.objectContaining({
+        voiceSessionId,
+        patientId: HERO_ID,
+        packId: 'retinopathy',
+        toolName: 'answer_education',
+        decision: 'allowed',
+        modelId: 'openai_realtime',
+        modelVersion: 'gpt-realtime-2',
+      }),
+    )
+    expect(result.state.data.protocolEvents.at(-1)).toEqual(
+      expect.objectContaining({ type: 'question_answered', actor: 'sandy' }),
+    )
+    expect(result.state.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({
+        action: 'sandy_tool_called',
+        outcome: 'allowed',
+        modelId: 'openai_realtime',
+        modelVersion: 'gpt-realtime-2',
+        sessionId: voiceSessionId,
+        toolName: 'answer_education',
+        packId: 'retinopathy',
+      }),
+    )
+  })
+
+  it('blocks Sandy tools that are not authorized by the pack', () => {
+    const withSession = recordRealtimeVoiceSessionStarted(createInitialBackendState(), {
+      patientId: HERO_ID,
+      model: 'gpt-realtime-2',
+      safetyIdentifier: 'rhtp_voice_hash',
+    })
+    const voiceSessionId = withSession.data.voiceSessions.at(-1)?.id
+    if (!voiceSessionId) throw new Error('Expected voice session')
+
+    const result = invokeSandyTool(withSession, {
+      patientId: HERO_ID,
+      voiceSessionId,
+      toolName: 'change_medication',
+      input: { medication: 'insulin' },
+      modelId: 'openai_realtime',
+      modelVersion: 'gpt-realtime-2',
+    })
+
+    expect(result.toolResult).toEqual({
+      ok: false,
+      toolName: 'change_medication',
+      refusalReason: 'pack_not_authorized',
+      message: 'Sandy cannot use that tool for this protocol pack.',
+    })
+    expect(result.state.data.toolCalls.at(-1)).toEqual(
+      expect.objectContaining({
+        toolName: 'change_medication',
+        decision: 'blocked',
+      }),
+    )
+    expect(result.state.data.protocolEvents).toHaveLength(withSession.data.protocolEvents.length)
+    expect(result.state.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({ action: 'sandy_tool_called', outcome: 'blocked' }),
+    )
+  })
+
+  it('blocks Sandy tool calls while a red-flag lock is open', () => {
+    const redFlagged = recordVoiceReply(createInitialBackendState(), {
+      patientId: HERO_ID,
+      text: 'I have sudden vision changes',
+    })
+    const withSession = recordRealtimeVoiceSessionStarted(redFlagged, {
+      patientId: HERO_ID,
+      model: 'gpt-realtime-2',
+      safetyIdentifier: 'rhtp_voice_hash',
+    })
+    const voiceSessionId = withSession.data.voiceSessions.at(-1)?.id
+    if (!voiceSessionId) throw new Error('Expected voice session')
+
+    const result = invokeSandyTool(withSession, {
+      patientId: HERO_ID,
+      voiceSessionId,
+      toolName: 'answer_education',
+      input: { question: 'Can you keep coaching me?' },
+      modelId: 'openai_realtime',
+      modelVersion: 'gpt-realtime-2',
+    })
+
+    expect(result.toolResult).toEqual({
+      ok: false,
+      toolName: 'answer_education',
+      refusalReason: 'red_flag_lock',
+      message:
+        'A navigator must review the urgent concern before Sandy can continue routine coaching.',
+    })
+    expect(result.state.data.toolCalls.at(-1)).toEqual(
+      expect.objectContaining({ toolName: 'answer_education', decision: 'blocked' }),
+    )
+    expect(result.state.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({ action: 'sandy_tool_called', outcome: 'blocked' }),
     )
   })
 

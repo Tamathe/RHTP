@@ -7,6 +7,11 @@ interface AppendAuditEventInput {
   detail: string
   patientId?: string
   sourceIds?: string[]
+  modelId?: string
+  modelVersion?: string
+  sessionId?: string
+  toolName?: string
+  packId?: string
 }
 
 let auditCounter = 0
@@ -27,6 +32,11 @@ export function appendAuditEvent(state: BackendState, input: AppendAuditEventInp
         outcome: input.outcome,
         patientId: input.patientId,
         sourceIds: input.sourceIds ?? [],
+        modelId: input.modelId,
+        modelVersion: input.modelVersion,
+        sessionId: input.sessionId,
+        toolName: input.toolName,
+        packId: input.packId,
         detail: input.detail,
       },
     ],

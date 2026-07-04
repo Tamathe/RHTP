@@ -48,7 +48,7 @@ describe('backend state persistence', () => {
     expect(reloaded.data.voiceTurns.at(-1)?.text).toBe('Persisted hello')
   })
 
-  it('hydrates older persisted demo state with new realtime voice arrays', async () => {
+  it('hydrates older persisted demo state with new realtime voice arrays and tool calls', async () => {
     const filePath = await tempStatePath()
     const store = createFileStateStore(filePath)
     const legacyState = createInitialBackendState() as unknown as {
@@ -56,11 +56,13 @@ describe('backend state persistence', () => {
     }
     delete legacyState.data.voiceSessions
     delete legacyState.data.transcriptSegments
+    delete legacyState.data.toolCalls
 
     await writeFile(filePath, JSON.stringify(legacyState, null, 2), 'utf8')
     const loaded = await store.load()
 
     expect(loaded.data.voiceSessions).toEqual([])
     expect(loaded.data.transcriptSegments).toEqual([])
+    expect(loaded.data.toolCalls).toEqual([])
   })
 })

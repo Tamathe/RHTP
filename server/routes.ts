@@ -7,12 +7,15 @@ import type {
   RedFlagEvent,
   RuleGapTicket,
   SourceFact,
+  ToolCallRecord,
+  ToolResult,
   TranscriptSegment,
   VoiceSession,
   VoiceTurn,
 } from '../src/types'
 import {
   completeNavigatorTask,
+  invokeSandyTool,
   recordModelBackstopHealth,
   recordRealtimeTranscriptSegment,
   recordRealtimeVoiceSessionStarted,
@@ -32,6 +35,7 @@ interface PatientContextResponse {
   voiceTurns: VoiceTurn[]
   voiceSessions: VoiceSession[]
   transcriptSegments: TranscriptSegment[]
+  toolCalls: ToolCallRecord[]
   redFlagEvents: RedFlagEvent[]
   ruleGapTickets: RuleGapTicket[]
   navigatorQueue: NavigatorQueueItem[]
@@ -79,6 +83,14 @@ function isClassifierLabel(value: unknown): value is TranscriptSegment['classifi
   )
 }
 
+function statusForToolResult(result: ToolResult): 200 | 400 | 403 | 404 | 409 {
+  if (result.ok) return 200
+  if (result.refusalReason === 'invalid_input') return 400
+  if (result.refusalReason === 'patient_not_found' || result.refusalReason === 'voice_session_not_found') return 404
+  if (result.refusalReason === 'red_flag_lock') return 409
+  return 403
+}
+
 function patientContext(state: BackendState, patientId: string): RouteResponse<PatientContextResponse | ErrorResponse> {
   const patient = state.data.patients.find((candidate) => candidate.id === patientId)
 
@@ -100,6 +112,7 @@ function patientContext(state: BackendState, patientId: string): RouteResponse<P
           (session) => session.id === segment.voiceSessionId && session.patientId === patientId,
         ),
       ),
+      toolCalls: state.data.toolCalls.filter((call) => call.patientId === patientId),
       redFlagEvents: state.data.redFlagEvents.filter((event) => event.patientId === patientId),
       ruleGapTickets: state.data.ruleGapTickets.filter(
         (ticket) => ticket.patientId === patientId && ticket.status === 'open',
@@ -267,6 +280,42 @@ export async function handleApiRequest(
     return segment
       ? { status: 200, body: segment }
       : { status: 404, body: { error: 'Voice session not found' } }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'voice' &&
+    segments[3] === 'realtime-session' &&
+    segments[5] === 'tool'
+  ) {
+    const patientId = segments[2] ?? ''
+    const voiceSessionId = segments[4] ?? ''
+
+    if (
+      !isRecord(body) ||
+      typeof body.toolName !== 'string' ||
+      !isRecord(body.input) ||
+      typeof body.modelId !== 'string' ||
+      typeof body.modelVersion !== 'string'
+    ) {
+      return {
+        status: 400,
+        body: { error: 'Sandy tool call requires toolName, input, modelId, and modelVersion' },
+      }
+    }
+
+    const result = invokeSandyTool(state, {
+      patientId,
+      voiceSessionId,
+      toolName: body.toolName,
+      input: body.input,
+      modelId: body.modelId,
+      modelVersion: body.modelVersion,
+    })
+    await store.save(result.state)
+
+    return { status: statusForToolResult(result.toolResult), body: result.toolResult }
   }
 
   if (method === 'POST' && url.pathname === '/api/safety/model-backstop/status') {

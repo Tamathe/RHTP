@@ -19,6 +19,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     ...data,
     voiceSessions: data.voiceSessions ?? [],
     transcriptSegments: data.transcriptSegments ?? [],
+    toolCalls: data.toolCalls ?? [],
     ruleGapTickets: data.ruleGapTickets ?? [],
     opsAlerts: data.opsAlerts ?? [],
   }

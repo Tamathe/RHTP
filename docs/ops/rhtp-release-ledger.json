@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, and transcript persistence are built behind off-by-default flags. The Sandy tool gateway remains pending. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, and Sandy tool gateway routing are built behind off-by-default flags. Full live voice-journey red-team and latency proof remain pending. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -35,7 +35,7 @@
     {
       "id": "P2",
       "name": "Real voice",
-      "status": "transcript_persistence_verified",
+      "status": "tool_gateway_verified",
       "proof": [
         "npm run safety:gate",
         "src/lib/grounding.test.ts",
@@ -46,10 +46,12 @@
         "server/actions.test.ts",
         "server/routes.test.ts",
         "server/state.test.ts",
+        "src/lib/sandy-tools.ts",
         "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-session-gate.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-browser-attach.md",
-        "docs/ops/red-team-results/2026-07-04-real-voice-transcript-persistence.md"
+        "docs/ops/red-team-results/2026-07-04-real-voice-transcript-persistence.md",
+        "docs/ops/red-team-results/2026-07-04-real-voice-tool-gateway.md"
       ],
       "blockers": []
     },
@@ -164,7 +166,7 @@
     {
       "id": "real_voice_gateway",
       "name": "Real voice and tool gateway",
-      "status": "transcript_persistence_built",
+      "status": "tool_gateway_verified",
       "phase": "P2",
       "proof": [
         "server/realtime-voice.ts",
@@ -178,9 +180,10 @@
         "server/actions.ts",
         "server/actions.test.ts",
         "server/state.ts",
-        "server/state.test.ts"
+        "server/state.test.ts",
+        "src/lib/sandy-tools.ts"
       ],
-      "notes": "Safety gate is verified. Server-minted OpenAI Realtime client-secret route exists behind RHTP_REAL_VOICE. Browser WebRTC attach code exists behind NEXT_PUBLIC_RHTP_REAL_VOICE/VITE_RHTP_REAL_VOICE and cleans up microphone tracks on failed SDP exchange. Successful Realtime session mints now create voice_sessions rows, and completed transcript events persist as transcript_segments. Live Sandy tool gateway, latency proof, and red-team voice journey remain pending. Flags remain off."
+      "notes": "Safety gate is verified. Server-minted OpenAI Realtime client-secret route exists behind RHTP_REAL_VOICE. Browser WebRTC attach code exists behind NEXT_PUBLIC_RHTP_REAL_VOICE/VITE_RHTP_REAL_VOICE and cleans up microphone tracks on failed SDP exchange. Successful Realtime session mints create voice_sessions rows, completed transcript events persist as transcript_segments, and Realtime function calls route through the server-gated Sandy tool gateway into tool_calls plus audit_events with model/version/session/tool/pack provenance. Full live retinopathy voice journey red-team and latency proof remain pending. Flags remain off."
     },
     {
       "id": "fhir_ingestion",
@@ -462,8 +465,8 @@
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
-    "Add the server-gated Sandy tool gateway before claiming P2 real voice exit.",
-    "Run the full retinopathy voice journey red-team with live Realtime enabled only after transcript and tool gateway controls exist.",
+    "Run the full retinopathy voice journey red-team with live Realtime enabled now that transcript and tool gateway controls exist.",
+    "Measure voice p95 and p99 latency before claiming P2 real voice exit.",
     "Close E2 before any real-PHI pilot claim.",
     "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."
   ]

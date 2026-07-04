@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { sandyRealtimeToolSchemas } from '../src/lib/sandy-tools'
 import type { BackendState } from './types'
 
 export type RealtimeVoiceBlockReason =
@@ -145,6 +146,7 @@ export async function createRealtimeVoiceClientSecret(
         model,
         instructions: SANDY_REALTIME_INSTRUCTIONS,
         audio: { output: { voice } },
+        tools: sandyRealtimeToolSchemas(),
       },
     }),
   )

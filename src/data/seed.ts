@@ -17,6 +17,7 @@ import type {
   ScreeningResult,
   ScreeningSite,
   SourceFact,
+  ToolCallRecord,
   TranscriptSegment,
   TimelineEntry,
   OutreachEvent,
@@ -44,6 +45,7 @@ export interface SeedState {
   voiceTurns: VoiceTurn[]
   voiceSessions: VoiceSession[]
   transcriptSegments: TranscriptSegment[]
+  toolCalls: ToolCallRecord[]
   redFlagEvents: RedFlagEvent[]
   ruleGapTickets: RuleGapTicket[]
   opsAlerts: OpsAlert[]
@@ -326,6 +328,7 @@ export const seed: SeedState = {
   voiceTurns: [],
   voiceSessions: [],
   transcriptSegments: [],
+  toolCalls: [],
   redFlagEvents: [],
   ruleGapTickets: [],
   opsAlerts: [],

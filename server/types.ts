@@ -11,6 +11,11 @@ export interface AuditEvent {
   outcome: AuditOutcome
   patientId?: string
   sourceIds: string[]
+  modelId?: string
+  modelVersion?: string
+  sessionId?: string
+  toolName?: string
+  packId?: string
   detail: string
 }
 

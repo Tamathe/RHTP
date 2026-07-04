@@ -95,8 +95,18 @@ describe('createRealtimeVoiceClientSecret', () => {
         instructions:
           'You are Sandy for the RHTP retinopathy protocol. Stay inside the approved protocol, cite source facts only through server tools, do not diagnose, do not change medication, and stop routine coaching for red flags.',
         audio: { output: { voice: 'marin' } },
+        tools: expect.arrayContaining([
+          expect.objectContaining({ name: 'answer_education' }),
+          expect.objectContaining({ name: 'collect_barrier' }),
+          expect.objectContaining({ name: 'match_site' }),
+          expect.objectContaining({ name: 'confirm_plan' }),
+        ]),
       },
     })
+    const toolNames = (capturedRequest?.session as { session?: { tools?: { name?: string }[] } }).session?.tools?.map(
+      (tool) => tool.name,
+    )
+    expect(toolNames).toEqual(['answer_education', 'collect_barrier', 'match_site', 'confirm_plan'])
     expect(JSON.stringify(result)).not.toContain('sk_server_secret')
     expect(JSON.stringify(capturedRequest?.session)).not.toContain('Ruth Ann Caldwell')
     expect(JSON.stringify(capturedRequest?.session)).not.toContain('8.4')
