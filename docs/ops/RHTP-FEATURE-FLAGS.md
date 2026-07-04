@@ -4,14 +4,14 @@
 **Source of truth:** `docs/ops/rhtp-release-ledger.json`
 **Status command:** `npm run ops:status -- --flags`
 
-The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. Client-exposed flags and the other phase flags are still registry entries until runtime code is added. The table below is the deployment registry so future work has a known set of switches and cannot quietly expose unfinished rails.
+The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. The Vite browser bundle accepts `NEXT_PUBLIC_RHTP_REAL_VOICE` through `envPrefix` and also accepts `VITE_RHTP_REAL_VOICE` as a local alias. Other phase flags are still registry entries until runtime code is added. The table below is the deployment registry so future work has a known set of switches and cannot quietly expose unfinished rails.
 
 ## Registry
 
 | Flag | Exposure | Default | Current | Phase | Flip condition |
 |---|---|---|---|---|---|
 | `RHTP_REAL_VOICE` | Server | Off | Runtime env default off | P2 | Real voice tool gateway, transcript storage, grounding verifier, and red-team gate pass. |
-| `NEXT_PUBLIC_RHTP_REAL_VOICE` | Client | Off | Not created | P2 | Server flag is on and a browser bundle redeploy has happened. |
+| `NEXT_PUBLIC_RHTP_REAL_VOICE` | Client | Off | Runtime env default off | P2 | Server flag is on and a browser bundle redeploy has happened. |
 | `RHTP_FHIR_INGEST` | Server | Off | Not created | P3 | Patient-authorized claims/FHIR ingest, provenance, identity, consent, and RLS controls pass. |
 | `RHTP_SMS_OUTREACH` | Server | Off | Not created | P4 | A2P path, disclosure-safe template library, opt-out, and delivery telemetry pass. |
 | `NEXT_PUBLIC_RHTP_DEVICE_RAIL` | Client | Off | Not created | P5 | Native shell/device rail has production consent, source labeling, and no-dosing guardrails. |

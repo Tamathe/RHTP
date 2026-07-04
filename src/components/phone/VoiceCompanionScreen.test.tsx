@@ -42,4 +42,26 @@ describe('VoiceCompanionScreen', () => {
       expect.objectContaining({ reason: 'red_flag_symptom', priority: 'urgent' }),
     )
   })
+
+  it('keeps live voice hidden unless the client gate is enabled', () => {
+    render(<VoiceCompanionScreen />)
+
+    expect(screen.queryByRole('button', { name: /connect live voice/i })).not.toBeInTheDocument()
+  })
+
+  it('connects live voice through the gated browser connector', async () => {
+    render(
+      <VoiceCompanionScreen
+        realtimeVoiceEnabled
+        realtimeVoiceStarter={async () => ({
+          status: 'connected',
+          stop: () => undefined,
+        })}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /connect live voice/i }))
+
+    expect(screen.getByText(/live voice connected/i)).toBeInTheDocument()
+  })
 })

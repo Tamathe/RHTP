@@ -19,4 +19,4 @@ Model-backstop rule-gap check: pass
 
 - H1 deterministic grounding verifier is locally implemented and passing.
 - E1 deterministic recall floor, adversarial corpus, model-backstop-only hard-lock behavior, rule-gap ticket workflow, and degraded-model ops alert state are locally implemented and passing.
-- P2 real voice remains off. Server Realtime client-secret plumbing now exists behind `RHTP_REAL_VOICE`, but browser WebRTC attach, transcript storage, live tool gateway, latency proof, and full voice-journey red-team proof are not complete.
+- P2 real voice remains off. Server Realtime client-secret plumbing and browser WebRTC attach code now exist behind off-by-default flags, but transcript storage, live tool gateway, latency proof, and full voice-journey red-team proof are not complete.

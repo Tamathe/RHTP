@@ -1,5 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { Mic, Radio, UserRound } from 'lucide-react'
 import { HERO_ID } from '../../data/seed'
+import {
+  isRealtimeVoiceClientEnabled,
+  startRealtimeVoiceSession,
+  type RealtimeVoiceStartResult,
+} from '../../lib/realtime-voice-browser'
 import { useStore } from '../../store/useStore'
 import { ProvenanceStrip } from './ProvenanceStrip'
 import { SafetyBoundaryCard } from './SafetyBoundaryCard'
@@ -11,16 +17,55 @@ const CHIPS = [
   'I have sudden vision changes',
 ]
 
-export function VoiceCompanionScreen() {
+interface VoiceCompanionScreenProps {
+  realtimeVoiceEnabled?: boolean
+  realtimeVoiceStarter?: () => Promise<RealtimeVoiceStartResult>
+}
+
+type LiveVoiceStatus = 'idle' | 'connecting' | 'connected' | 'failed'
+
+export function VoiceCompanionScreen({
+  realtimeVoiceEnabled,
+  realtimeVoiceStarter,
+}: VoiceCompanionScreenProps = {}) {
   const voiceTurns = useStore((state) => state.voiceTurns)
   const redFlagEvents = useStore((state) => state.redFlagEvents)
   const startAutonomousOutreach = useStore((state) => state.startAutonomousOutreach)
   const recordPatientVoiceReply = useStore((state) => state.recordPatientVoiceReply)
+  const [liveVoiceStatus, setLiveVoiceStatus] = useState<LiveVoiceStatus>('idle')
+  const [liveVoiceMessage, setLiveVoiceMessage] = useState('')
+  const stopLiveVoice = useRef<(() => void) | null>(null)
   const turns = voiceTurns.filter((turn) => turn.patientId === HERO_ID)
   const latestTurn = turns.at(-1)
   const hasOpenRedFlag = redFlagEvents.some(
     (event) => event.patientId === HERO_ID && event.status === 'open',
   )
+  const canUseRealtimeVoice = realtimeVoiceEnabled ?? isRealtimeVoiceClientEnabled()
+  const connectRealtimeVoice =
+    realtimeVoiceStarter ?? (() => startRealtimeVoiceSession({ patientId: HERO_ID }))
+
+  useEffect(
+    () => () => {
+      stopLiveVoice.current?.()
+    },
+    [],
+  )
+
+  const handleRealtimeVoice = async () => {
+    setLiveVoiceStatus('connecting')
+    setLiveVoiceMessage('Connecting live voice.')
+    const result = await connectRealtimeVoice()
+
+    if (result.status === 'connected') {
+      stopLiveVoice.current = result.stop
+      setLiveVoiceStatus('connected')
+      setLiveVoiceMessage('Live voice connected.')
+      return
+    }
+
+    setLiveVoiceStatus('failed')
+    setLiveVoiceMessage(result.message)
+  }
 
   return (
     <div className="space-y-4">
@@ -46,6 +91,25 @@ export function VoiceCompanionScreen() {
           <Mic className="size-4" />
           Start voice outreach
         </button>
+        {canUseRealtimeVoice && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              disabled={hasOpenRedFlag || liveVoiceStatus === 'connecting' || liveVoiceStatus === 'connected'}
+              onClick={() => {
+                void handleRealtimeVoice()
+              }}
+              className={`inline-flex items-center gap-2 rounded-lg border border-white/70 px-3 py-2 text-sm font-semibold text-white ${
+                hasOpenRedFlag || liveVoiceStatus === 'connecting' || liveVoiceStatus === 'connected'
+                  ? 'cursor-not-allowed opacity-60'
+                  : ''
+              }`}
+            >
+              <Radio className="size-4" />
+              Connect live voice
+            </button>
+            {liveVoiceMessage && <span className="text-sm text-teal-50">{liveVoiceMessage}</span>}
+          </div>
+        )}
       </section>
 
       <div className="space-y-2">
