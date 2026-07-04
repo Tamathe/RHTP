@@ -7,11 +7,14 @@ import type {
   RedFlagEvent,
   RuleGapTicket,
   SourceFact,
+  TranscriptSegment,
+  VoiceSession,
   VoiceTurn,
 } from '../src/types'
 import {
   completeNavigatorTask,
   recordModelBackstopHealth,
+  recordRealtimeTranscriptSegment,
   recordRealtimeVoiceSessionStarted,
   recordRealVoiceSessionIssue,
   recordVoiceReply,
@@ -27,6 +30,8 @@ interface PatientContextResponse {
   sourceFacts: SourceFact[]
   protocolEvents: ProtocolEvent[]
   voiceTurns: VoiceTurn[]
+  voiceSessions: VoiceSession[]
+  transcriptSegments: TranscriptSegment[]
   redFlagEvents: RedFlagEvent[]
   ruleGapTickets: RuleGapTicket[]
   navigatorQueue: NavigatorQueueItem[]
@@ -55,6 +60,25 @@ function isModelBackstopStatus(value: unknown): value is ModelBackstopStatus {
   return value === 'available' || value === 'degraded' || value === 'unavailable'
 }
 
+function isTranscriptSpeaker(value: unknown): value is TranscriptSegment['speaker'] {
+  return value === 'patient' || value === 'sandy'
+}
+
+function isTranscriptSafety(value: unknown): value is TranscriptSegment['safety'] {
+  return value === 'normal' || value === 'fallback' || value === 'red_flag'
+}
+
+function isClassifierLabel(value: unknown): value is TranscriptSegment['classifierLabels'][number] {
+  return (
+    value === 'education_question' ||
+    value === 'barrier_report' ||
+    value === 'site_preference' ||
+    value === 'red_flag' ||
+    value === 'off_protocol' ||
+    value === 'unknown'
+  )
+}
+
 function patientContext(state: BackendState, patientId: string): RouteResponse<PatientContextResponse | ErrorResponse> {
   const patient = state.data.patients.find((candidate) => candidate.id === patientId)
 
@@ -70,6 +94,12 @@ function patientContext(state: BackendState, patientId: string): RouteResponse<P
       sourceFacts: state.data.sourceFacts.filter((fact) => fact.patientId === patientId),
       protocolEvents: state.data.protocolEvents.filter((event) => event.patientId === patientId),
       voiceTurns: state.data.voiceTurns.filter((turn) => turn.patientId === patientId),
+      voiceSessions: state.data.voiceSessions.filter((session) => session.patientId === patientId),
+      transcriptSegments: state.data.transcriptSegments.filter((segment) =>
+        state.data.voiceSessions.some(
+          (session) => session.id === segment.voiceSessionId && session.patientId === patientId,
+        ),
+      ),
       redFlagEvents: state.data.redFlagEvents.filter((event) => event.patientId === patientId),
       ruleGapTickets: state.data.ruleGapTickets.filter(
         (ticket) => ticket.patientId === patientId && ticket.status === 'open',
@@ -155,6 +185,7 @@ export async function handleApiRequest(
     segments[0] === 'api' &&
     segments[1] === 'voice' &&
     segments[3] === 'realtime-session'
+    && segments.length === 4
   ) {
     const patientId = segments[2] ?? ''
     const result = await createRealtimeVoiceClientSecret(state, patientId, options)
@@ -163,9 +194,21 @@ export async function handleApiRequest(
       const updated = recordRealtimeVoiceSessionStarted(state, {
         patientId,
         model: result.model,
+        safetyIdentifier: result.safetyIdentifier,
       })
+      const voiceSession = updated.data.voiceSessions.at(-1)
       await store.save(updated)
-      return { status: 200, body: result }
+      return {
+        status: 200,
+        body: {
+          ok: true,
+          provider: result.provider,
+          patientId: result.patientId,
+          model: result.model,
+          voiceSessionId: voiceSession?.id,
+          clientSecret: result.clientSecret,
+        },
+      }
     }
 
     if (
@@ -182,6 +225,48 @@ export async function handleApiRequest(
     }
 
     return { status: result.status, body: { error: result.error, reason: result.reason } }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'voice' &&
+    segments[3] === 'realtime-session' &&
+    segments[5] === 'transcript'
+  ) {
+    const patientId = segments[2] ?? ''
+    const voiceSessionId = segments[4] ?? ''
+    const session = state.data.voiceSessions.find(
+      (candidate) => candidate.id === voiceSessionId && candidate.patientId === patientId,
+    )
+
+    if (!session) {
+      return { status: 404, body: { error: 'Voice session not found' } }
+    }
+
+    if (
+      !isRecord(body) ||
+      !isTranscriptSpeaker(body.speaker) ||
+      typeof body.text !== 'string' ||
+      !isTranscriptSafety(body.safety)
+    ) {
+      return { status: 400, body: { error: 'Transcript segment requires speaker, text, and safety' } }
+    }
+
+    const rawLabels = Array.isArray(body.classifierLabels) ? body.classifierLabels : []
+    const updated = recordRealtimeTranscriptSegment(state, {
+      voiceSessionId,
+      speaker: body.speaker,
+      text: body.text,
+      safety: body.safety,
+      classifierLabels: rawLabels.filter(isClassifierLabel),
+    })
+    await store.save(updated)
+    const segment = updated.data.transcriptSegments.at(-1)
+
+    return segment
+      ? { status: 200, body: segment }
+      : { status: 404, body: { error: 'Voice session not found' } }
   }
 
   if (method === 'POST' && url.pathname === '/api/safety/model-backstop/status') {

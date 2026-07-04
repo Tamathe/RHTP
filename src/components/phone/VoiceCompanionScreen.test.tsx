@@ -55,6 +55,7 @@ describe('VoiceCompanionScreen', () => {
         realtimeVoiceEnabled
         realtimeVoiceStarter={async () => ({
           status: 'connected',
+          voiceSessionId: 'voice_component_test',
           stop: () => undefined,
         })}
       />,

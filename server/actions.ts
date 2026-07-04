@@ -12,6 +12,11 @@ import type {
   ProtocolStatus,
   RuleGapTicket,
   ResultOutcome,
+  SpeechActLabel,
+  TranscriptSegment,
+  VoiceSession,
+  VoiceSpeaker,
+  VoiceTurnSafety,
 } from '../src/types'
 import { appendAuditEvent } from './audit'
 import type { BackendState } from './types'
@@ -44,6 +49,15 @@ export interface RecordRealVoiceSessionIssueInput {
 export interface RecordRealtimeVoiceSessionStartedInput {
   patientId: string
   model: string
+  safetyIdentifier: string
+}
+
+export interface RecordRealtimeTranscriptSegmentInput {
+  voiceSessionId: string
+  speaker: VoiceSpeaker
+  text: string
+  safety: VoiceTurnSafety
+  classifierLabels: SpeechActLabel[]
 }
 
 let actionCounter = 0
@@ -67,6 +81,10 @@ function latestProtocolStatus(state: BackendState, patientId: string): ProtocolS
 
 function patientSourceFactIds(state: BackendState, patientId: string): string[] {
   return state.data.sourceFacts.filter((fact) => fact.patientId === patientId).map((fact) => fact.id)
+}
+
+function protocolInstanceIdForPatient(state: BackendState, patientId: string): string {
+  return state.data.gaps.find((gap) => gap.patientId === patientId)?.id ?? `protoinst_${patientId}`
 }
 
 function hasOpenRedFlag(state: BackendState, patientId: string): boolean {
@@ -512,20 +530,86 @@ export function recordRealtimeVoiceSessionStarted(
   state: BackendState,
   input: RecordRealtimeVoiceSessionStartedInput,
 ): BackendState {
-  return appendAuditEvent(
-    {
-      ...state,
-      updatedAt: now(),
-    },
-    {
-      actor: 'system',
-      action: 'realtime_voice_client_secret_minted',
-      outcome: 'allowed',
-      patientId: input.patientId,
-      sourceIds: patientSourceFactIds(state, input.patientId),
-      detail: `Realtime voice client secret minted for ${input.model}. Secret value was not persisted.`,
-    },
+  const event = protocolEvent(
+    state,
+    input.patientId,
+    'sandy_explained_gap',
+    'Sandy explained the retinal screening gap',
+    'sandy',
   )
+  const session: VoiceSession = {
+    id: nextId('voice'),
+    patientId: input.patientId,
+    protocolInstanceId: protocolInstanceIdForPatient(state, input.patientId),
+    packId: 'retinopathy',
+    channel: 'voice',
+    realtimeModelId: input.model,
+    safetyIdentifier: input.safetyIdentifier,
+    status: 'active',
+    startedAt: now(),
+  }
+  const updated = {
+    ...state,
+    updatedAt: now(),
+    data: {
+      ...state.data,
+      protocolEvents: [...state.data.protocolEvents, event],
+      voiceSessions: [...state.data.voiceSessions, session],
+    },
+  }
+
+  return appendAuditEvent(updated, {
+    actor: 'system',
+    action: 'realtime_voice_client_secret_minted',
+    outcome: 'allowed',
+    patientId: input.patientId,
+    sourceIds: event.sourceFactIds,
+    detail: `Realtime voice client secret minted for ${input.model}. Secret value was not persisted.`,
+  })
+}
+
+export function recordRealtimeTranscriptSegment(
+  state: BackendState,
+  input: RecordRealtimeTranscriptSegmentInput,
+): BackendState {
+  const session = state.data.voiceSessions.find((candidate) => candidate.id === input.voiceSessionId)
+
+  if (!session) {
+    return appendAuditEvent(state, {
+      actor: 'system',
+      action: 'realtime_transcript_segment_recorded',
+      outcome: 'failed',
+      sourceIds: [],
+      detail: `Transcript segment rejected because voice session ${input.voiceSessionId} was not found.`,
+    })
+  }
+
+  const segment: TranscriptSegment = {
+    id: nextId('transcript'),
+    voiceSessionId: input.voiceSessionId,
+    speaker: input.speaker,
+    text: input.text,
+    createdAt: now(),
+    safety: input.safety,
+    classifierLabels: input.classifierLabels,
+  }
+  const updated = {
+    ...state,
+    updatedAt: now(),
+    data: {
+      ...state.data,
+      transcriptSegments: [...state.data.transcriptSegments, segment],
+    },
+  }
+
+  return appendAuditEvent(updated, {
+    actor: 'system',
+    action: 'realtime_transcript_segment_recorded',
+    outcome: 'allowed',
+    patientId: session.patientId,
+    sourceIds: patientSourceFactIds(state, session.patientId),
+    detail: `Realtime ${input.speaker} transcript segment recorded for ${input.voiceSessionId}.`,
+  })
 }
 
 export function completeNavigatorTask(

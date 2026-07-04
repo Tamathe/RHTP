@@ -17,8 +17,10 @@ import type {
   ScreeningResult,
   ScreeningSite,
   SourceFact,
+  TranscriptSegment,
   TimelineEntry,
   OutreachEvent,
+  VoiceSession,
   VoiceTurn,
 } from '../types'
 
@@ -40,6 +42,8 @@ export interface SeedState {
   consents: PatientConsent[]
   protocolEvents: ProtocolEvent[]
   voiceTurns: VoiceTurn[]
+  voiceSessions: VoiceSession[]
+  transcriptSegments: TranscriptSegment[]
   redFlagEvents: RedFlagEvent[]
   ruleGapTickets: RuleGapTicket[]
   opsAlerts: OpsAlert[]
@@ -320,6 +324,8 @@ export const seed: SeedState = {
   consents: [HERO_CONSENT],
   protocolEvents: HERO_PROTOCOL_EVENTS,
   voiceTurns: [],
+  voiceSessions: [],
+  transcriptSegments: [],
   redFlagEvents: [],
   ruleGapTickets: [],
   opsAlerts: [],

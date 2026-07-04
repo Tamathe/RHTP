@@ -3,6 +3,8 @@ import { HERO_ID } from '../src/data/seed'
 import {
   completeNavigatorTask,
   recordModelBackstopHealth,
+  recordRealtimeTranscriptSegment,
+  recordRealtimeVoiceSessionStarted,
   recordVoiceReply,
   startVoiceSession,
 } from './actions'
@@ -103,6 +105,70 @@ describe('backend protocol actions', () => {
     )
     expect(updated.auditEvents.at(-1)).toEqual(
       expect.objectContaining({ actor: 'system', action: 'model_backstop_health_recorded' }),
+    )
+  })
+
+  it('creates a durable realtime voice session with protocol and audit provenance', () => {
+    const updated = recordRealtimeVoiceSessionStarted(createInitialBackendState(), {
+      patientId: HERO_ID,
+      model: 'gpt-realtime-2',
+      safetyIdentifier: 'rhtp_voice_hash',
+    })
+
+    expect(updated.data.voiceSessions.at(-1)).toEqual(
+      expect.objectContaining({
+        patientId: HERO_ID,
+        packId: 'retinopathy',
+        channel: 'voice',
+        realtimeModelId: 'gpt-realtime-2',
+        safetyIdentifier: 'rhtp_voice_hash',
+        status: 'active',
+      }),
+    )
+    expect(updated.data.protocolEvents.at(-1)).toEqual(
+      expect.objectContaining({
+        patientId: HERO_ID,
+        type: 'sandy_explained_gap',
+        actor: 'sandy',
+      }),
+    )
+    expect(updated.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({ action: 'realtime_voice_client_secret_minted', outcome: 'allowed' }),
+    )
+  })
+
+  it('records completed realtime transcript segments against a voice session', () => {
+    const withSession = recordRealtimeVoiceSessionStarted(createInitialBackendState(), {
+      patientId: HERO_ID,
+      model: 'gpt-realtime-2',
+      safetyIdentifier: 'rhtp_voice_hash',
+    })
+    const voiceSessionId = withSession.data.voiceSessions.at(-1)?.id
+    if (!voiceSessionId) throw new Error('Expected voice session')
+
+    const updated = recordRealtimeTranscriptSegment(withSession, {
+      voiceSessionId,
+      speaker: 'patient',
+      text: 'Why do I need this?',
+      safety: 'normal',
+      classifierLabels: ['education_question'],
+    })
+
+    expect(updated.data.transcriptSegments.at(-1)).toEqual(
+      expect.objectContaining({
+        voiceSessionId,
+        speaker: 'patient',
+        text: 'Why do I need this?',
+        safety: 'normal',
+        classifierLabels: ['education_question'],
+      }),
+    )
+    expect(updated.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({
+        actor: 'system',
+        action: 'realtime_transcript_segment_recorded',
+        outcome: 'allowed',
+      }),
     )
   })
 

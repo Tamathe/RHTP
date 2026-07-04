@@ -17,6 +17,7 @@ export interface RealtimeVoiceMediaStream {
 export interface RealtimeVoiceDataChannel {
   send: (data: string) => void
   close: () => void
+  addEventListener: (event: 'message', handler: (event: { data: string }) => void) => void
 }
 
 export interface RealtimeVoiceAudioElement {
@@ -46,6 +47,7 @@ export interface StartRealtimeVoiceSessionInput {
 
 export interface RealtimeVoiceConnectedSession {
   status: 'connected'
+  voiceSessionId: string
   stop: () => void
 }
 
@@ -58,6 +60,7 @@ export interface RealtimeVoiceFailedSession {
 export type RealtimeVoiceStartResult = RealtimeVoiceConnectedSession | RealtimeVoiceFailedSession
 
 interface ClientSecretPayload {
+  voiceSessionId?: string
   clientSecret?: {
     value?: string
   }
@@ -117,10 +120,57 @@ function sessionEndpoint(apiBaseUrl: string, patientId: string): string {
   return `${base}/api/voice/${patientId}/realtime-session`
 }
 
+function transcriptEndpoint(apiBaseUrl: string, patientId: string, voiceSessionId: string): string {
+  const base = apiBaseUrl.replace(/\/$/, '')
+  return `${base}/api/voice/${patientId}/realtime-session/${voiceSessionId}/transcript`
+}
+
 function stopTracks(tracks: RealtimeVoiceTrack[]): void {
   for (const track of tracks) {
     track.stop()
   }
+}
+
+function transcriptSegmentFromRealtimeEvent(data: string): { speaker: 'patient' | 'sandy'; text: string } | null {
+  try {
+    const parsed = JSON.parse(data) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null
+
+    const event = parsed as Record<string, unknown>
+    if (
+      event.type === 'conversation.item.input_audio_transcription.completed' &&
+      typeof event.transcript === 'string'
+    ) {
+      return { speaker: 'patient', text: event.transcript }
+    }
+
+    if (event.type === 'response.output_audio_transcript.done' && typeof event.transcript === 'string') {
+      return { speaker: 'sandy', text: event.transcript }
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+function persistTranscriptSegment(
+  fetcher: typeof fetch,
+  apiBaseUrl: string,
+  patientId: string,
+  voiceSessionId: string,
+  segment: { speaker: 'patient' | 'sandy'; text: string },
+): void {
+  void fetcher(transcriptEndpoint(apiBaseUrl, patientId, voiceSessionId), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      speaker: segment.speaker,
+      text: segment.text,
+      safety: 'normal',
+      classifierLabels: [],
+    }),
+  })
 }
 
 export function isRealtimeVoiceClientEnabled(env: RealtimeVoiceEnv = import.meta.env): boolean {
@@ -157,6 +207,14 @@ export async function startRealtimeVoiceSession(
       message: 'Realtime voice could not start.',
     }
   }
+  const voiceSessionId = payload.voiceSessionId
+  if (!voiceSessionId) {
+    return {
+      status: 'failed',
+      reason: 'missing_voice_session',
+      message: 'Realtime voice could not start.',
+    }
+  }
 
   const peerConnection = createPeerConnection()
   const audioElement = createAudioElement()
@@ -184,7 +242,13 @@ export async function startRealtimeVoiceSession(
     peerConnection.addTrack(track)
   }
 
-  peerConnection.createDataChannel('oai-events')
+  const dataChannel = peerConnection.createDataChannel('oai-events')
+  dataChannel.addEventListener('message', (event) => {
+    const segment = transcriptSegmentFromRealtimeEvent(event.data)
+    if (segment) {
+      persistTranscriptSegment(fetcher, apiBaseUrl, patientId, voiceSessionId, segment)
+    }
+  })
 
   const offer = await peerConnection.createOffer()
   await peerConnection.setLocalDescription(offer)
@@ -215,6 +279,7 @@ export async function startRealtimeVoiceSession(
 
   return {
     status: 'connected',
+    voiceSessionId,
     stop: () => {
       stopTracks(tracks)
       peerConnection.close()

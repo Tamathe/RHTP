@@ -29,7 +29,7 @@ Phase 5 - Verified locally
 ## Implementation
 **Status:** verified locally
 **Proof:** `npm run test -- src/lib/grounding.test.ts src/lib/crisis-red-flags.test.ts src/lib/safety.test.ts server/actions.test.ts server/routes.test.ts src/store/useStore.test.ts`; `npm run safety:gate`; `npm run ops:status -- --blockers`; `npm run build`; `npm test`
-**Ledger:** H1 and E1 closed for the local P2 safety gate; real voice server session plumbing and browser WebRTC attach code are built behind off-by-default flags, but flags remain off and transcript storage plus live tool gateway are pending.
+**Ledger:** H1 and E1 closed for the local P2 safety gate; real voice server session plumbing, browser WebRTC attach code, and transcript persistence are built behind off-by-default flags, but flags remain off and live tool gateway is pending.
 
 ## Next Action
-Add transcript persistence and the Sandy tool gateway before any P2 real voice exit claim.
+Add the Sandy tool gateway before any P2 real voice exit claim.

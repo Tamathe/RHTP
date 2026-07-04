@@ -18,4 +18,5 @@ Tests  10 passed (10)
 - The browser uses the ephemeral client secret for the OpenAI Realtime SDP exchange; it does not use or receive the server API key.
 - Failed SDP exchange closes the peer connection and stops local microphone tracks.
 - Failed microphone access closes the peer connection and returns a safe UI failure.
-- This still does not complete P2 real voice exit. Transcript persistence, Sandy tool gateway, latency proof, and full voice-journey red-team proof remain pending.
+- Transcript persistence is now covered separately in `docs/ops/red-team-results/2026-07-04-real-voice-transcript-persistence.md`.
+- This still does not complete P2 real voice exit. Sandy tool gateway, latency proof, and full voice-journey red-team proof remain pending.

@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
-import { seed } from '../src/data/seed'
+import { seed, type SeedState } from '../src/data/seed'
 import type { BackendState, StateStore } from './types'
 
 const NOW = '2026-07-04T09:00:00'
@@ -14,6 +14,23 @@ export function createInitialBackendState(): BackendState {
   }
 }
 
+function normalizeSeedState(data: SeedState): SeedState {
+  return {
+    ...data,
+    voiceSessions: data.voiceSessions ?? [],
+    transcriptSegments: data.transcriptSegments ?? [],
+    ruleGapTickets: data.ruleGapTickets ?? [],
+    opsAlerts: data.opsAlerts ?? [],
+  }
+}
+
+function normalizeBackendState(state: BackendState): BackendState {
+  return {
+    ...state,
+    data: normalizeSeedState(state.data),
+  }
+}
+
 export function createFileStateStore(filePath: string): StateStore {
   const save = async (state: BackendState): Promise<void> => {
     await mkdir(dirname(filePath), { recursive: true })
@@ -24,7 +41,7 @@ export function createFileStateStore(filePath: string): StateStore {
     async load() {
       try {
         const raw = await readFile(filePath, 'utf8')
-        return JSON.parse(raw) as BackendState
+        return normalizeBackendState(JSON.parse(raw) as BackendState)
       } catch (error) {
         const fileError = error as NodeJS.ErrnoException
         if (fileError.code === 'ENOENT') {

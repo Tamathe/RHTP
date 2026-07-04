@@ -180,6 +180,7 @@ export type ProtocolEventType =
   | 'repeat_scheduled'
 
 export type ProtocolActor = 'sandy' | 'patient' | 'navigator' | 'system'
+export type PackId = string
 
 export interface ProtocolEvent {
   id: string
@@ -194,6 +195,13 @@ export interface ProtocolEvent {
 
 export type VoiceSpeaker = 'patient' | 'sandy'
 export type VoiceTurnSafety = 'normal' | 'fallback' | 'red_flag'
+export type SpeechActLabel =
+  | 'education_question'
+  | 'barrier_report'
+  | 'site_preference'
+  | 'red_flag'
+  | 'off_protocol'
+  | 'unknown'
 
 export interface VoiceTurn {
   id: string
@@ -203,6 +211,29 @@ export interface VoiceTurn {
   createdAt: string
   mode: 'voice' | 'text'
   safety: VoiceTurnSafety
+}
+
+export interface VoiceSession {
+  id: string
+  patientId: string
+  protocolInstanceId: string
+  packId: PackId
+  channel: 'voice'
+  realtimeModelId: string
+  safetyIdentifier: string
+  status: 'active' | 'ended' | 'blocked_red_flag'
+  startedAt: string
+  endedAt?: string
+}
+
+export interface TranscriptSegment {
+  id: string
+  voiceSessionId: string
+  speaker: VoiceSpeaker
+  text: string
+  createdAt: string
+  safety: VoiceTurnSafety
+  classifierLabels: SpeechActLabel[]
 }
 
 export interface RedFlagEvent {

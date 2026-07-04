@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -46,5 +46,21 @@ describe('backend state persistence', () => {
     const reloaded = await store.load()
 
     expect(reloaded.data.voiceTurns.at(-1)?.text).toBe('Persisted hello')
+  })
+
+  it('hydrates older persisted demo state with new realtime voice arrays', async () => {
+    const filePath = await tempStatePath()
+    const store = createFileStateStore(filePath)
+    const legacyState = createInitialBackendState() as unknown as {
+      data: Record<string, unknown>
+    }
+    delete legacyState.data.voiceSessions
+    delete legacyState.data.transcriptSegments
+
+    await writeFile(filePath, JSON.stringify(legacyState, null, 2), 'utf8')
+    const loaded = await store.load()
+
+    expect(loaded.data.voiceSessions).toEqual([])
+    expect(loaded.data.transcriptSegments).toEqual([])
   })
 })

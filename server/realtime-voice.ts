@@ -25,6 +25,7 @@ export interface RealtimeVoiceClientSecretSuccess {
   provider: 'openai_realtime'
   patientId: string
   model: string
+  safetyIdentifier: string
   clientSecret: RealtimeVoiceClientSecret
 }
 
@@ -133,6 +134,7 @@ export async function createRealtimeVoiceClientSecret(
   const model = envValue(options, 'RHTP_REAL_VOICE_MODEL') ?? DEFAULT_REALTIME_MODEL
   const voice = envValue(options, 'RHTP_REAL_VOICE_OUTPUT_VOICE') ?? DEFAULT_REALTIME_VOICE
   const salt = envValue(options, 'RHTP_SAFETY_IDENTIFIER_SALT') ?? undefined
+  const safetyIdentifier = buildVoiceSafetyIdentifier(patientId, salt)
   const fetcher = options.fetch ?? fetch
   const form = new FormData()
   form.set(
@@ -151,7 +153,7 @@ export async function createRealtimeVoiceClientSecret(
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'OpenAI-Safety-Identifier': buildVoiceSafetyIdentifier(patientId, salt),
+      'OpenAI-Safety-Identifier': safetyIdentifier,
     },
     body: form,
   })
@@ -182,6 +184,7 @@ export async function createRealtimeVoiceClientSecret(
     provider: 'openai_realtime',
     patientId,
     model,
+    safetyIdentifier,
     clientSecret,
   }
 }

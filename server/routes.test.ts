@@ -7,6 +7,8 @@ import type { BackendState, StateStore } from './types'
 interface ContextResponseBody {
   navigatorQueue: { id: string; reason: string }[]
   voiceTurns: { speaker: string }[]
+  voiceSessions?: { id: string }[]
+  transcriptSegments?: { text: string; speaker: string }[]
   ruleGapTickets?: { id: string }[]
 }
 
@@ -180,6 +182,7 @@ describe('handleApiRequest', () => {
       expect.objectContaining({
         ok: true,
         provider: 'openai_realtime',
+        voiceSessionId: expect.stringMatching(/^voice_/),
         clientSecret: { value: 'ek_route_test', expiresAt: 98765 },
       }),
     )
@@ -187,6 +190,61 @@ describe('handleApiRequest', () => {
     expect(audit.body).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ action: 'realtime_voice_client_secret_minted', outcome: 'allowed' }),
+      ]),
+    )
+  })
+
+  it('exposes realtime voice sessions and transcript segments in patient context', async () => {
+    const store = createMemoryStore()
+    const fetcher: typeof fetch = async () =>
+      new Response(JSON.stringify({ client_secret: { value: 'ek_route_test', expires_at: 98765 } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    const session = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session`,
+      undefined,
+      {
+        env: { OPENAI_API_KEY: 'sk_route_secret', RHTP_REAL_VOICE: '1' },
+        fetch: fetcher,
+      },
+    )
+    const sessionBody = session.body as { voiceSessionId?: string }
+    if (!sessionBody.voiceSessionId) throw new Error('Expected voice session id')
+
+    const segment = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session/${sessionBody.voiceSessionId}/transcript`,
+      {
+        speaker: 'patient',
+        text: 'Why do I need this?',
+        safety: 'normal',
+        classifierLabels: ['education_question'],
+      },
+    )
+    const context = await handleApiRequest(store, 'GET', `/api/patients/${HERO_ID}/context`)
+    const contextBody = context.body as ContextResponseBody
+
+    expect(segment.status).toBe(200)
+    expect(segment.body).toEqual(
+      expect.objectContaining({
+        voiceSessionId: sessionBody.voiceSessionId,
+        speaker: 'patient',
+        text: 'Why do I need this?',
+      }),
+    )
+    expect(contextBody.voiceSessions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: sessionBody.voiceSessionId })]),
+    )
+    expect(contextBody.transcriptSegments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          voiceSessionId: sessionBody.voiceSessionId,
+          text: 'Why do I need this?',
+        }),
       ]),
     )
   })
