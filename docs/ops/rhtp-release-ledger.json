@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, and the no-PHI local voice red-team harness are built behind off-by-default flags. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, and live voice preflight command are built behind off-by-default flags. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -50,13 +50,18 @@
         "server/voice-red-team.ts",
         "server/voice-red-team.test.ts",
         "scripts/rhtp-voice-red-team.ts",
+        "server/live-voice-drill.ts",
+        "server/live-voice-drill.test.ts",
+        "scripts/rhtp-live-voice-drill.ts",
         "npm run voice:redteam",
+        "npm run voice:live:preflight",
         "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-session-gate.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-browser-attach.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-transcript-persistence.md",
         "docs/ops/red-team-results/2026-07-04-real-voice-tool-gateway.md",
-        "docs/ops/red-team-results/2026-07-04-real-voice-local-red-team.md"
+        "docs/ops/red-team-results/2026-07-04-real-voice-local-red-team.md",
+        "docs/ops/red-team-results/2026-07-04-live-voice-preflight.md"
       ],
       "blockers": []
     },
@@ -189,9 +194,12 @@
         "src/lib/sandy-tools.ts",
         "server/voice-red-team.ts",
         "server/voice-red-team.test.ts",
-        "scripts/rhtp-voice-red-team.ts"
+        "scripts/rhtp-voice-red-team.ts",
+        "server/live-voice-drill.ts",
+        "server/live-voice-drill.test.ts",
+        "scripts/rhtp-live-voice-drill.ts"
       ],
-      "notes": "Safety gate is verified. Server-minted OpenAI Realtime client-secret route exists behind RHTP_REAL_VOICE. Browser WebRTC attach code exists behind NEXT_PUBLIC_RHTP_REAL_VOICE/VITE_RHTP_REAL_VOICE and cleans up microphone tracks on failed SDP exchange. Successful Realtime session mints create voice_sessions rows, completed transcript events persist as transcript_segments, and Realtime function calls route through the server-gated Sandy tool gateway into tool_calls plus audit_events with model/version/session/tool/pack provenance. The no-PHI local voice red-team harness proves the why-me to confirmed-plan journey, five P2 adversarial cases, gateway mutation coverage, audit provenance coverage, and local synthetic latency. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Flags remain off."
+      "notes": "Safety gate is verified. Server-minted OpenAI Realtime client-secret route exists behind RHTP_REAL_VOICE. Browser WebRTC attach code exists behind NEXT_PUBLIC_RHTP_REAL_VOICE/VITE_RHTP_REAL_VOICE and cleans up microphone tracks on failed SDP exchange. Successful Realtime session mints create voice_sessions rows, completed transcript events persist as transcript_segments, and Realtime function calls route through the server-gated Sandy tool gateway into tool_calls plus audit_events with model/version/session/tool/pack provenance. The no-PHI local voice red-team harness proves the why-me to confirmed-plan journey, five P2 adversarial cases, gateway mutation coverage, audit provenance coverage, and local synthetic latency. The live preflight command checks flags and credentials and can time the provider client-secret mint only when RHTP_LIVE_VOICE_PROVIDER_MINT=1 is explicitly set. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Flags remain off."
     },
     {
       "id": "fhir_ingestion",
@@ -473,7 +481,8 @@
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
-    "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI environment.",
+    "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
+    "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",
     "Close E2 before any real-PHI pilot claim.",
     "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."

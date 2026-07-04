@@ -32,6 +32,28 @@ npm run ops:status -- --flags
 
 Use this before and after deploy work. The output is only as current as `docs/ops/rhtp-release-ledger.json`.
 
+## P2 Live Voice Drill
+
+The local no-PHI red-team gate is:
+
+```bash
+npm run voice:redteam
+```
+
+The live Realtime drill preflight is safe by default and does not call OpenAI unless provider timing is explicitly enabled:
+
+```bash
+npm run voice:live:preflight
+```
+
+Required no-PHI live drill environment:
+
+- `RHTP_REAL_VOICE=1`
+- `NEXT_PUBLIC_RHTP_REAL_VOICE=1` or `VITE_RHTP_REAL_VOICE=1`
+- `OPENAI_API_KEY`
+
+To measure the server-side OpenAI client-secret mint only, set `RHTP_LIVE_VOICE_PROVIDER_MINT=1` before running `npm run voice:live:preflight`. This still does not prove live browser audio; the final P2 exit needs a no-PHI browser/microphone Realtime journey and p95/p99 audio latency record.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:
