@@ -30,6 +30,22 @@ export interface RecordModelBackstopHealthInput {
   detail: string
 }
 
+export type RealVoiceSessionIssueReason =
+  | 'missing_api_key'
+  | 'provider_error'
+  | 'invalid_provider_response'
+
+export interface RecordRealVoiceSessionIssueInput {
+  patientId: string
+  reason: RealVoiceSessionIssueReason
+  detail: string
+}
+
+export interface RecordRealtimeVoiceSessionStartedInput {
+  patientId: string
+  model: string
+}
+
 let actionCounter = 0
 
 const now = (): string => '2026-07-04T09:00:00'
@@ -127,6 +143,21 @@ function opsAlert(input: RecordModelBackstopHealthInput): OpsAlert {
     message: `Model backstop is ${input.status}; deterministic crisis recall is ${recallReport.recall.toFixed(
       2,
     )} against floor ${CRISIS_RECALL_FLOOR}.`,
+    detail: input.detail,
+    createdAt: now(),
+  }
+}
+
+function realVoiceOpsAlert(input: RecordRealVoiceSessionIssueInput): OpsAlert {
+  return {
+    id: nextId('ops'),
+    type: input.reason === 'missing_api_key' ? 'real_voice_config_blocked' : 'real_voice_provider_error',
+    severity: 'critical',
+    status: 'open',
+    message:
+      input.reason === 'missing_api_key'
+        ? 'Real voice flag is enabled but server credentials are missing.'
+        : 'Real voice provider session mint failed.',
     detail: input.detail,
     createdAt: now(),
   }
@@ -451,6 +482,50 @@ export function recordModelBackstopHealth(
         ? 'Model backstop reported available.'
         : `Model backstop reported ${input.status}: ${input.detail}`,
   })
+}
+
+export function recordRealVoiceSessionIssue(
+  state: BackendState,
+  input: RecordRealVoiceSessionIssueInput,
+): BackendState {
+  const alert = realVoiceOpsAlert(input)
+  const updated = {
+    ...state,
+    updatedAt: now(),
+    data: {
+      ...state.data,
+      opsAlerts: [...state.data.opsAlerts, alert],
+    },
+  }
+
+  return appendAuditEvent(updated, {
+    actor: 'system',
+    action: 'realtime_voice_session_blocked',
+    outcome: 'blocked',
+    patientId: input.patientId,
+    sourceIds: patientSourceFactIds(state, input.patientId),
+    detail: input.detail,
+  })
+}
+
+export function recordRealtimeVoiceSessionStarted(
+  state: BackendState,
+  input: RecordRealtimeVoiceSessionStartedInput,
+): BackendState {
+  return appendAuditEvent(
+    {
+      ...state,
+      updatedAt: now(),
+    },
+    {
+      actor: 'system',
+      action: 'realtime_voice_client_secret_minted',
+      outcome: 'allowed',
+      patientId: input.patientId,
+      sourceIds: patientSourceFactIds(state, input.patientId),
+      detail: `Realtime voice client secret minted for ${input.model}. Secret value was not persisted.`,
+    },
+  )
 }
 
 export function completeNavigatorTask(

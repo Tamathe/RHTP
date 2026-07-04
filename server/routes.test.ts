@@ -105,6 +105,92 @@ describe('handleApiRequest', () => {
     )
   })
 
+  it('refuses realtime voice sessions while the server flag is off', async () => {
+    const response = await handleApiRequest(
+      createMemoryStore(),
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session`,
+      undefined,
+      { env: { RHTP_REAL_VOICE: '0' } },
+    )
+
+    expect(response).toEqual({
+      status: 403,
+      body: {
+        error: 'Real voice is disabled by RHTP_REAL_VOICE',
+        reason: 'flag_off',
+      },
+    })
+  })
+
+  it('records an ops alert when realtime voice is enabled without server credentials', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session`,
+      undefined,
+      { env: { RHTP_REAL_VOICE: '1' } },
+    )
+    const alerts = await handleApiRequest(store, 'GET', '/api/ops/alerts')
+
+    expect(response).toEqual({
+      status: 503,
+      body: {
+        error: 'Real voice cannot start until OPENAI_API_KEY is configured on the server',
+        reason: 'missing_api_key',
+      },
+    })
+    expect(alerts.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'real_voice_config_blocked',
+          severity: 'critical',
+          status: 'open',
+        }),
+      ]),
+    )
+  })
+
+  it('returns a sanitized realtime voice client secret when the flag and server key are present', async () => {
+    const store = createMemoryStore()
+    const fetcher: typeof fetch = async () =>
+      new Response(JSON.stringify({ client_secret: { value: 'ek_route_test', expires_at: 98765 } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+
+    const response = await handleApiRequest(
+      store,
+      'POST',
+      `/api/voice/${HERO_ID}/realtime-session`,
+      undefined,
+      {
+        env: {
+          OPENAI_API_KEY: 'sk_route_secret',
+          RHTP_REAL_VOICE: '1',
+        },
+        fetch: fetcher,
+      },
+    )
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: true,
+        provider: 'openai_realtime',
+        clientSecret: { value: 'ek_route_test', expiresAt: 98765 },
+      }),
+    )
+    expect(JSON.stringify(response.body)).not.toContain('sk_route_secret')
+    expect(audit.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: 'realtime_voice_client_secret_minted', outcome: 'allowed' }),
+      ]),
+    )
+  })
+
   it('completes navigator queue work and exposes audit events', async () => {
     const store = createMemoryStore()
     const reply = await handleApiRequest(store, 'POST', `/api/voice/${HERO_ID}/reply`, {

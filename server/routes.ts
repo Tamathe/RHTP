@@ -12,10 +12,13 @@ import type {
 import {
   completeNavigatorTask,
   recordModelBackstopHealth,
+  recordRealtimeVoiceSessionStarted,
+  recordRealVoiceSessionIssue,
   recordVoiceReply,
   startVoiceSession,
   type ModelBackstopStatus,
 } from './actions'
+import { createRealtimeVoiceClientSecret, type RealtimeVoiceRuntimeOptions } from './realtime-voice'
 import type { BackendState, RouteResponse, StateStore } from './types'
 
 interface PatientContextResponse {
@@ -98,6 +101,7 @@ export async function handleApiRequest(
   method: string,
   path: string,
   body: unknown = undefined,
+  options: RealtimeVoiceRuntimeOptions = {},
 ): Promise<RouteResponse<unknown>> {
   const url = new URL(path, 'http://localhost')
   const segments = url.pathname.split('/').filter(Boolean)
@@ -144,6 +148,40 @@ export async function handleApiRequest(
     })
     await store.save(updated)
     return patientContext(updated, patientId)
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'voice' &&
+    segments[3] === 'realtime-session'
+  ) {
+    const patientId = segments[2] ?? ''
+    const result = await createRealtimeVoiceClientSecret(state, patientId, options)
+
+    if (result.ok) {
+      const updated = recordRealtimeVoiceSessionStarted(state, {
+        patientId,
+        model: result.model,
+      })
+      await store.save(updated)
+      return { status: 200, body: result }
+    }
+
+    if (
+      result.reason === 'missing_api_key' ||
+      result.reason === 'provider_error' ||
+      result.reason === 'invalid_provider_response'
+    ) {
+      const updated = recordRealVoiceSessionIssue(state, {
+        patientId,
+        reason: result.reason,
+        detail: result.error,
+      })
+      await store.save(updated)
+    }
+
+    return { status: result.status, body: { error: result.error, reason: result.reason } }
   }
 
   if (method === 'POST' && url.pathname === '/api/safety/model-backstop/status') {

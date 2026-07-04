@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice plumbing is not built and flags remain off. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing is built behind off-by-default flags. Browser WebRTC attach, transcript storage, and the Sandy tool gateway remain pending. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -35,14 +35,16 @@
     {
       "id": "P2",
       "name": "Real voice",
-      "status": "safety_gate_verified",
+      "status": "session_plumbing_verified",
       "proof": [
         "npm run safety:gate",
         "src/lib/grounding.test.ts",
         "src/lib/crisis-red-flags.test.ts",
+        "server/realtime-voice.test.ts",
         "server/actions.test.ts",
         "server/routes.test.ts",
-        "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md"
+        "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md",
+        "docs/ops/red-team-results/2026-07-04-real-voice-session-gate.md"
       ],
       "blockers": []
     },
@@ -157,10 +159,10 @@
     {
       "id": "real_voice_gateway",
       "name": "Real voice and tool gateway",
-      "status": "not_built",
+      "status": "session_gate_built",
       "phase": "P2",
-      "proof": [],
-      "notes": "Safety gate is verified. Realtime/WebRTC sessions, transcript storage, and live tool gateway are not built. Flags remain off."
+      "proof": ["server/realtime-voice.ts", "server/realtime-voice.test.ts", "server/routes.ts", "server/routes.test.ts"],
+      "notes": "Safety gate is verified. Server-minted OpenAI Realtime client-secret route exists behind RHTP_REAL_VOICE, with missing-config ops alerts and success audit receipts that do not persist secrets. Browser WebRTC attach, transcript storage, live tool gateway, latency proof, and red-team voice journey remain pending. Flags remain off."
     },
     {
       "id": "fhir_ingestion",
@@ -316,7 +318,7 @@
       "phase": "P2",
       "exposure": "server",
       "defaultValue": "0",
-      "currentValue": "not_created",
+      "currentValue": "runtime_env_default_off",
       "status": "off",
       "flipCondition": "Real voice tool gateway, transcript storage, grounding verifier, and red-team gate pass."
     },
@@ -442,7 +444,8 @@
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
-    "Build real voice Realtime/WebRTC session plumbing behind RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE.",
+    "Attach browser WebRTC client flow behind NEXT_PUBLIC_RHTP_REAL_VOICE after server route proof is reviewed.",
+    "Add transcript segment persistence and Sandy tool gateway before claiming P2 real voice exit.",
     "Close E2 before any real-PHI pilot claim.",
     "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."
   ]

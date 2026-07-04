@@ -225,7 +225,7 @@ export interface RuleGapTicket {
   sourceEventIds: string[]
 }
 
-export type OpsAlertType = 'model_backstop_degraded'
+export type OpsAlertType = 'model_backstop_degraded' | 'real_voice_config_blocked' | 'real_voice_provider_error'
 export type OpsAlertSeverity = 'warning' | 'critical'
 export type OpsAlertStatus = 'open' | 'resolved'
 

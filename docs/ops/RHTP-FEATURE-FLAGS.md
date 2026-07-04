@@ -4,13 +4,13 @@
 **Source of truth:** `docs/ops/rhtp-release-ledger.json`
 **Status command:** `npm run ops:status -- --flags`
 
-The current repo does not have a feature-flag service wired into runtime code. The table below is the deployment registry for planned flags so future work has a known set of switches and cannot quietly expose unfinished rails.
+The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. Client-exposed flags and the other phase flags are still registry entries until runtime code is added. The table below is the deployment registry so future work has a known set of switches and cannot quietly expose unfinished rails.
 
 ## Registry
 
 | Flag | Exposure | Default | Current | Phase | Flip condition |
 |---|---|---|---|---|---|
-| `RHTP_REAL_VOICE` | Server | Off | Not created | P2 | Real voice tool gateway, transcript storage, grounding verifier, and red-team gate pass. |
+| `RHTP_REAL_VOICE` | Server | Off | Runtime env default off | P2 | Real voice tool gateway, transcript storage, grounding verifier, and red-team gate pass. |
 | `NEXT_PUBLIC_RHTP_REAL_VOICE` | Client | Off | Not created | P2 | Server flag is on and a browser bundle redeploy has happened. |
 | `RHTP_FHIR_INGEST` | Server | Off | Not created | P3 | Patient-authorized claims/FHIR ingest, provenance, identity, consent, and RLS controls pass. |
 | `RHTP_SMS_OUTREACH` | Server | Off | Not created | P4 | A2P path, disclosure-safe template library, opt-out, and delivery telemetry pass. |
