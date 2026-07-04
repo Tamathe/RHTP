@@ -14,7 +14,7 @@ This is the operational wrapper around the production technical spec. The spec s
 | Local app | Ready | Vite app can run from the repo with seed/demo data. |
 | Local backend | Ready | P1 backend can run locally with file-backed demo state. |
 | Stakeholder demo | Ready | Synthetic/local seed data only; real-PHI flags stay off. |
-| Static preview deploy | Ready for demo attempt | Vercel is configured for the Vite app, but no deploy was run in this pass. |
+| Static preview deploy | Local static preview verified | `npm run preview:gate` builds, serves the static bundle locally, fetches `/`, and verifies the no-PHI app shell plus Vercel SPA rewrite. No public deploy was run in this pass. |
 | Real-PHI pilot | Blocked | Appendix B hard gates and high-severity controls are not closed. |
 
 Do not describe the platform as PHI-ready, pilot-ready, or production clinical infrastructure until the hard gates in `docs/ops/RHTP-REAL-PHI-GATES.md` are closed and recorded in the ledger. For stakeholder review, describe it as a no-PHI prototype demo.
@@ -67,6 +67,7 @@ Every phase change updates the ledger first, then the docs:
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Stakeholder demo ready | `npm run demo:gate` passes: no open demo blockers, `RHTP_REAL_PHI` off/unset, stakeholder target no-PHI, open E/H gates real-PHI-only, and build passes. |
+| Local static preview works | `npm run preview:gate` passes: stakeholder demo gate, build, local Vite preview HTTP 200, app-shell markers, SPA rewrite, and no-PHI checks. |
 | Preview deployed | Deployment URL, deployment id, and smoke result are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |
