@@ -44,7 +44,7 @@ Every phase change updates the ledger first, then the docs:
 | P0 | Built and verified | Production-shaped retinopathy prototype exists in the React app. |
 | P1 | Built and verified | Backend persistence, audit, route handler, and local API server exist. |
 | P2 | Local voice red-team verified | Grounding verifier, crisis recall floor, model-backstop rule-gap ticketing, degraded-model ops alert state, server-gated Realtime client-secret minting, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook exist locally behind off-by-default flags. Live Realtime audio red-team and live p95/p99 latency proof remain pending. |
-| P3 | Not built, blocked | FHIR/claims/HIE ingestion requires production identity, consent repository, database RLS, and Part 2 controls. Local E2 claims-ingest identity control and local H2 async token control are verified but not production real-PHI controls. |
+| P3 | Not built, blocked | FHIR/claims/HIE ingestion requires production identity, consent repository, database RLS, and Part 2 controls. Local E2 claims-ingest identity, local H2 async token, and local H3 Part 2 suppression controls are verified but not production real-PHI controls. |
 | P4 | Not built, blocked | Retinopathy pilot cannot start until P2/P3 gates and SMS disclosure controls close. |
 | P5 | Not built | Device rail, native shell, and insight engine remain future work. |
 | P6 | Not built | Protocol-pack platform proof remains future work. |

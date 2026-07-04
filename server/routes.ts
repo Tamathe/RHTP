@@ -35,6 +35,7 @@ import {
   readAsyncPatientContext,
   revokeAsyncAccessToken,
 } from './async-access'
+import { ingestHieDischargeEvent } from './part2-suppression'
 
 interface PatientContextResponse {
   patient: Patient
@@ -344,6 +345,51 @@ export async function handleApiRequest(
         identityDecision: result.identityDecision,
         acceptedSourceFactIds: result.acceptedSourceFacts.map((fact) => fact.id),
         autonomousOutreachAllowed: result.autonomousOutreachAllowed,
+      },
+    }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'ingest' &&
+    segments[2] === 'hie' &&
+    segments[3] === 'discharge'
+  ) {
+    if (
+      !isRecord(body) ||
+      typeof body.patientId !== 'string' ||
+      typeof body.sourceName !== 'string' ||
+      typeof body.facilityName !== 'string' ||
+      typeof body.dischargeDisposition !== 'string' ||
+      typeof body.effectiveDate !== 'string' ||
+      typeof body.retrievedAt !== 'string' ||
+      (body.fhirRef !== undefined && typeof body.fhirRef !== 'string')
+    ) {
+      return { status: 400, body: { error: 'HIE discharge ingest requires typed encounter evidence' } }
+    }
+
+    if (!state.data.patients.some((patient) => patient.id === body.patientId)) {
+      return { status: 404, body: { error: 'Patient not found' } }
+    }
+
+    const result = ingestHieDischargeEvent(state, {
+      patientId: body.patientId,
+      sourceName: body.sourceName,
+      facilityName: body.facilityName,
+      dischargeDisposition: body.dischargeDisposition,
+      effectiveDate: body.effectiveDate,
+      retrievedAt: body.retrievedAt,
+      fhirRef: body.fhirRef,
+    })
+    await store.save(result.state)
+
+    return {
+      status: result.decision === 'accepted' ? 200 : 202,
+      body: {
+        ok: result.decision === 'accepted',
+        decision: result.decision,
+        acceptedSourceFactId: result.acceptedSourceFact?.id ?? null,
       },
     }
   }

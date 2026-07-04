@@ -13,6 +13,7 @@
     "safety:gate": "tsx scripts/rhtp-safety-gate.ts",
     "identity:gate": "tsx scripts/rhtp-identity-gate.ts",
     "async:gate": "tsx scripts/rhtp-async-access-gate.ts",
+    "part2:gate": "tsx scripts/rhtp-part2-gate.ts",
     "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "voice:live:preflight": "tsx scripts/rhtp-live-voice-drill.ts",
     "server:dev": "tsx server/index.ts",

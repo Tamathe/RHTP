@@ -516,6 +516,41 @@ describe('handleApiRequest', () => {
     )
   })
 
+  it('suppresses Part 2 facility identity through HIE discharge ingest', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', '/api/ingest/hie/discharge', {
+      patientId: HERO_ID,
+      sourceName: 'KHIE ADT feed',
+      facilityName: 'Appalachian Recovery Center',
+      dischargeDisposition: 'substance_use_treatment_discharge',
+      effectiveDate: '2026-07-03',
+      retrievedAt: '2026-07-04',
+      fhirRef: 'Encounter/part2-sensitive',
+    })
+    const context = await handleApiRequest(store, 'GET', `/api/patients/${HERO_ID}/context`)
+    const queue = await handleApiRequest(store, 'GET', '/api/navigator/queue')
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+    const exposed = JSON.stringify({ response: response.body, context: context.body, queue: queue.body, audit: audit.body })
+
+    expect(response.status).toBe(202)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: false,
+        decision: 'navigator_review',
+        acceptedSourceFactId: expect.stringMatching(/^fact_/),
+      }),
+    )
+    expect(queue.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reason: 'segmented_data_review',
+          summary: 'Restricted HIE discharge evidence requires privacy review before protocol use.',
+        }),
+      ]),
+    )
+    expect(exposed).not.toMatch(/appalachian recovery|recovery center|substance|sud|opioid|methadone|detox/i)
+  })
+
   it('returns typed errors for unknown routes and invalid payloads', async () => {
     expect(await handleApiRequest(createMemoryStore(), 'GET', '/api/nope')).toEqual({
       status: 404,

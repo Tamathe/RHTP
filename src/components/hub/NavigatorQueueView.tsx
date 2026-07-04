@@ -28,6 +28,7 @@ const reasonLabel: Record<NavigatorQueueReason, string> = {
   ungradable_repeat_needed: 'Ungradable repeat needed',
   nonresponse: 'Nonresponse',
   identity_match_review: 'Identity match review',
+  segmented_data_review: 'Segmented data review',
   low_confidence_identity_or_gap_match: 'Low confidence identity or gap match',
 }
 
