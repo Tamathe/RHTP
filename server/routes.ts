@@ -30,12 +30,14 @@ import {
 import type { IdentityMatchMethod, StrongIdentifier, StrongIdentifierKind } from '../src/lib/identity-corroboration'
 import { createRealtimeVoiceClientSecret, type RealtimeVoiceRuntimeOptions } from './realtime-voice'
 import type { BackendState, RouteResponse, StateStore } from './types'
+import { appendAuditEvent } from './audit'
 import {
   mintAsyncAccessToken,
   readAsyncPatientContext,
   revokeAsyncAccessToken,
 } from './async-access'
 import { ingestHieDischargeEvent } from './part2-suppression'
+import { renderSmsMessage } from './sms-disclosure'
 
 interface PatientContextResponse {
   patient: Patient
@@ -127,6 +129,10 @@ function isConcretePackIds(value: unknown): value is string[] {
     value.length > 0 &&
     value.every((packId) => typeof packId === 'string' && packId.trim().length > 0 && packId !== '*')
   )
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((item) => typeof item === 'string')
 }
 
 function asyncDeniedStatus(reason: string): 403 | 404 {
@@ -450,6 +456,48 @@ export async function handleApiRequest(
 
   if (method === 'GET' && url.pathname === '/api/navigator/queue') {
     return { status: 200, body: navigatorQueue(state) }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'outreach' &&
+    segments[2] === 'sms' &&
+    segments[3] === 'render'
+  ) {
+    if (
+      !isRecord(body) ||
+      typeof body.patientId !== 'string' ||
+      typeof body.templateId !== 'string' ||
+      typeof body.language !== 'string' ||
+      typeof body.category !== 'string' ||
+      !isStringRecord(body.slots)
+    ) {
+      return { status: 400, body: { error: 'SMS render requires patientId, templateId, language, category, and slots' } }
+    }
+
+    if (!state.data.patients.some((patient) => patient.id === body.patientId)) {
+      return { status: 404, body: { error: 'Patient not found' } }
+    }
+
+    const result = renderSmsMessage({
+      templateId: body.templateId,
+      language: body.language,
+      category: body.category,
+      slots: body.slots,
+    })
+    const audited = appendAuditEvent(state, {
+      actor: 'system',
+      action: 'sms_template_rendered',
+      outcome: result.ok ? 'allowed' : 'blocked',
+      patientId: body.patientId,
+      detail: result.ok
+        ? 'Approved disclosure-safe SMS template rendered.'
+        : 'SMS render blocked by disclosure gate.',
+    })
+    await store.save(audited)
+
+    return { status: result.ok ? 200 : 403, body: result }
   }
 
   if (method === 'POST' && segments[0] === 'api' && segments[1] === 'voice' && segments[3] === 'start') {

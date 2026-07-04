@@ -551,6 +551,47 @@ describe('handleApiRequest', () => {
     expect(exposed).not.toMatch(/appalachian recovery|recovery center|substance|sud|opioid|methadone|detox/i)
   })
 
+  it('renders SMS only through approved disclosure-safe templates', async () => {
+    const store = createMemoryStore()
+    const allowed = await handleApiRequest(store, 'POST', '/api/outreach/sms/render', {
+      patientId: HERO_ID,
+      templateId: 'care_task_ready_v1',
+      language: 'en',
+      category: 'retinopathy_screening',
+      slots: { programName: 'RHTP' },
+    })
+    const blocked = await handleApiRequest(store, 'POST', '/api/outreach/sms/render', {
+      patientId: HERO_ID,
+      templateId: 'care_task_ready_v1',
+      language: 'en',
+      category: 'sud',
+      slots: { programName: 'RHTP' },
+    })
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+
+    expect(allowed).toEqual({
+      status: 200,
+      body: {
+        ok: true,
+        message: 'RHTP has a care task ready for you. Call your care team or open the app. Reply STOP to opt out.',
+      },
+    })
+    expect(blocked).toEqual({
+      status: 403,
+      body: {
+        ok: false,
+        reason: 'category_excluded',
+        message: 'SMS category is excluded from lock-screen outreach.',
+      },
+    })
+    expect(audit.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: 'sms_template_rendered', outcome: 'allowed' }),
+        expect.objectContaining({ action: 'sms_template_rendered', outcome: 'blocked' }),
+      ]),
+    )
+  })
+
   it('returns typed errors for unknown routes and invalid payloads', async () => {
     expect(await handleApiRequest(createMemoryStore(), 'GET', '/api/nope')).toEqual({
       status: 404,
