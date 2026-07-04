@@ -45,6 +45,32 @@ describe('reportBarrier', () => {
   })
 })
 
+describe('requestSdohResourceHelp', () => {
+  it('creates navigator work for a Kentucky resource connection request', () => {
+    s().requestSdohResourceHelp(HERO_ID, 'lklp_transportation_region_13', 'transportation')
+
+    expect(s().navigatorQueue).toEqual([
+      expect.objectContaining({
+        patientId: HERO_ID,
+        reason: 'sdoh_resource_connection',
+        priority: 'routine',
+        status: 'open',
+        summary: expect.stringContaining('LKLP Community Action Council transportation'),
+        suggestedAction: expect.stringMatching(/confirm availability/i),
+      }),
+    ])
+    expect(s().protocolEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          patientId: HERO_ID,
+          type: 'sdoh_resource_requested',
+          status: 'navigator_review',
+        }),
+      ]),
+    )
+  })
+})
+
 describe('scheduleScreening', () => {
   it('sets scheduled, adds a care-plan task, ticks the scheduled counter', () => {
     s().reportBarrier(HERO_ID, 'transportation', 'No ride')

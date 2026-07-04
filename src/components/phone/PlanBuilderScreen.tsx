@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import { HERO_ID } from '../../data/seed'
 import { useStore } from '../../store/useStore'
 import type { BarrierType } from '../../types'
+import { KentuckyResourceFinder } from './KentuckyResourceFinder'
 
 const BARRIERS: { type: BarrierType; label: string; detail: string }[] = [
   { type: 'transportation', label: 'Need a ride', detail: 'No weekday ride; family works' },
@@ -15,6 +16,7 @@ export function PlanBuilderScreen({ onDone }: { onDone: () => void }) {
   const reportBarrier = useStore((state) => state.reportBarrier)
   const reportAlreadyCompleted = useStore((state) => state.reportAlreadyCompleted)
   const scheduleScreening = useStore((state) => state.scheduleScreening)
+  const patient = useStore((state) => state.patients.find((candidate) => candidate.id === HERO_ID))
   const [flash, setFlash] = useState<string | null>(null)
 
   return (
@@ -62,6 +64,8 @@ export function PlanBuilderScreen({ onDone }: { onDone: () => void }) {
           </button>
         </div>
       </div>
+
+      <KentuckyResourceFinder patientId={HERO_ID} county={patient?.county ?? 'Perry'} />
 
       {flash && (
         <div className="rounded-lg bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">

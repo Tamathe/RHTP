@@ -32,4 +32,16 @@ describe('NavigatorQueueView', () => {
 
     expect(screen.getByText(/No open navigator work/i)).toBeInTheDocument()
   })
+
+  it('labels SDOH resource connection work for the navigator', () => {
+    useStore
+      .getState()
+      .requestSdohResourceHelp(HERO_ID, 'lklp_transportation_region_13', 'transportation')
+
+    render(<NavigatorQueueView />)
+
+    expect(screen.getAllByText(/SDOH resource connection/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/LKLP Community Action Council transportation/i)).toBeInTheDocument()
+    expect(screen.getByText(/confirm availability/i)).toBeInTheDocument()
+  })
 })

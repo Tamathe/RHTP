@@ -2,6 +2,11 @@ import { create } from 'zustand'
 import { seed, type SeedState } from '../data/seed'
 import { incrementMetric } from '../lib/metrics'
 import {
+  getKentuckyResourceById,
+  sdohNeedLabel,
+  type SdohNeedType,
+} from '../lib/kentucky-sdoh-resources'
+import {
   nextProtocolStatus,
   priorityForQueueReason,
   queueReasonForBarrier,
@@ -23,6 +28,7 @@ interface StoreState extends SeedState {
   enterResult: (patientId: string, outcome: ResultOutcome) => void
   startAutonomousOutreach: (patientId: string) => void
   recordPatientVoiceReply: (patientId: string, text: string) => void
+  requestSdohResourceHelp: (patientId: string, resourceId: string, needType: SdohNeedType) => void
   completeNavigatorQueueItem: (itemId: string) => void
   reset: () => void
 }
@@ -186,6 +192,38 @@ export const useStore = create<StoreState>((set) => ({
           { id: nextId('tl'), patientId, label: 'Navigator task created', seq: seq + 1 },
         ],
         protocolEvents: [...state.protocolEvents, event],
+      }
+    }),
+
+  requestSdohResourceHelp: (patientId, resourceId, needType) =>
+    set((state) => {
+      const resource = getKentuckyResourceById(resourceId)
+      if (!resource) return {}
+
+      const patient = state.patients.find((candidate) => candidate.id === patientId)
+      const county = patient?.county ?? 'Kentucky'
+      const event = protocolEvent(
+        state,
+        patientId,
+        'sdoh_resource_requested',
+        'SDOH resource connection requested',
+        'patient',
+      )
+
+      return {
+        protocolEvents: [...state.protocolEvents, event],
+        navigatorQueue: [
+          ...state.navigatorQueue,
+          queueItem(
+            patientId,
+            'sdoh_resource_connection',
+            `Patient requested help connecting to ${resource.name} for ${sdohNeedLabel(
+              needType,
+            ).toLowerCase()} support in ${county} County. Source: ${resource.sourceName}.`,
+            `Confirm availability and eligibility through kynect/211 or the listed source before sharing next steps. Contact path: ${resource.contact}.`,
+            [event.id],
+          ),
+        ],
       }
     }),
 

@@ -23,6 +23,7 @@ const reasonLabel: Record<NavigatorQueueReason, string> = {
   patient_not_ready: 'Patient not ready',
   already_completed_needs_reconciliation: 'Already completed needs reconciliation',
   red_flag_symptom: 'Red flag symptom',
+  sdoh_resource_connection: 'SDOH resource connection',
   abnormal_result_referral: 'Abnormal result referral',
   ungradable_repeat_needed: 'Ungradable repeat needed',
   nonresponse: 'Nonresponse',

@@ -13,6 +13,7 @@ const EVENT_TRANSITIONS: Partial<Record<ProtocolEventType, ProtocolStatus>> = {
   sandy_explained_gap: 'explained',
   question_answered: 'explained',
   barrier_reported: 'barrier_collected',
+  sdoh_resource_requested: 'navigator_review',
   red_flag_reported: 'navigator_review',
   site_matched: 'site_matched',
   appointment_confirmed: 'scheduled',

@@ -26,13 +26,33 @@ describe('PlanBuilderScreen', () => {
   it('already completed sends reconciliation work to the navigator queue', async () => {
     render(<PlanBuilderScreen onDone={() => {}} />)
     await userEvent.click(screen.getByRole('button', { name: /already completed/i }))
-    expect(screen.getByText(/navigator.*confirm/i)).toBeInTheDocument()
+    expect(screen.getByText(/will confirm this screening/i)).toBeInTheDocument()
     expect(screen.queryByText(/marked this screening complete/i)).not.toBeInTheDocument()
     expect(heroGap().status).toBe('overdue')
     expect(useStore.getState().navigatorQueue).toEqual([
       expect.objectContaining({
         patientId: HERO_ID,
         reason: 'already_completed_needs_reconciliation',
+        status: 'open',
+      }),
+    ])
+  })
+
+  it('includes Kentucky SDOH resource matching on the plan screen', async () => {
+    render(<PlanBuilderScreen onDone={() => {}} />)
+
+    expect(screen.getByText(/Kentucky resource matches/i)).toBeInTheDocument()
+    expect(screen.getByText(/LKLP Community Action Council transportation/i)).toBeInTheDocument()
+
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: /Ask navigator to connect with LKLP Community Action Council transportation/i,
+      }),
+    )
+
+    expect(useStore.getState().navigatorQueue).toEqual([
+      expect.objectContaining({
+        reason: 'sdoh_resource_connection',
         status: 'open',
       }),
     ])
