@@ -127,6 +127,16 @@ export type SourceKind =
 
 export type SourceConfidence = 'confirmed' | 'probable' | 'patient_reported' | 'needs_review'
 
+export interface DataSource {
+  id: string
+  name: string
+  kind: SourceKind
+  trustTier: number
+  mode: 'poll' | 'subscription' | 'manual'
+  consentPath: 'patient_oauth' | 'participation_agreement' | 'public_directory' | 'navigator_attested'
+  status: 'planned' | 'active' | 'blocked'
+}
+
 export type IdentityProofingStatus = 'unproofed' | 'proofed_in_person' | 'proofed_remote' | 'proofed_delegated'
 export type PatientIdentityMatchMethod = 'deterministic' | 'probabilistic'
 

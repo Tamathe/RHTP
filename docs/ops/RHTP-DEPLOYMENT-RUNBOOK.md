@@ -65,6 +65,16 @@ During the no-PHI browser/microphone journey, the connected Realtime session exp
 
 The voice latency target is p95 <= 1200 ms and p99 <= 2000 ms. Tool gateway p95 must be <= 400 ms.
 
+## P3 Local Ingestion Boundary
+
+The local no-PHI P3 gate is:
+
+```bash
+npm run p3:gate
+```
+
+This proves only the local boundary: registered source vocabulary, patient-access claims consent, FHIR provenance, E2 identity handling, H2 async composition, and H3 Part 2 composition. It does not call Medicare Blue Button, a Kentucky Medicaid MCO, KHIE, TEFCA, or a FHIR store.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:

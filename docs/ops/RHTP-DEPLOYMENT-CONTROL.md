@@ -44,7 +44,7 @@ Every phase change updates the ledger first, then the docs:
 | P0 | Built and verified | Production-shaped retinopathy prototype exists in the React app. |
 | P1 | Built and verified | Backend persistence, audit, route handler, and local API server exist. |
 | P2 | Local voice red-team verified | Grounding verifier, crisis recall floor, model-backstop rule-gap ticketing, degraded-model ops alert state, server-gated Realtime client-secret minting, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook exist locally behind off-by-default flags. Live Realtime audio red-team and live p95/p99 latency proof remain pending. |
-| P3 | Not built, blocked | FHIR/claims/HIE ingestion requires production identity, consent repository, database RLS, and Part 2 controls. Local E2 claims-ingest identity, local H2 async token, and local H3 Part 2 suppression controls are verified but not production real-PHI controls. |
+| P3 | Local ingestion boundary verified, real-PHI blocked | P3 source registry and patient-access claims boundary are verified locally with consent checks, FHIR provenance, E2 identity corroboration, H2 async access composition, and H3 Part 2 composition. Real Blue Button/MCO/KHIE/FHIR-store adapters and production MPI/consent/RLS/Part 2 controls are not built. |
 | P4 | Not built, blocked | Retinopathy pilot cannot start until P2/P3 gates and production SMS controls close. Local H5 SMS template/lint control is verified, but SMS outreach is not production-ready. |
 | P5 | Not built | Device rail, native shell, and insight engine remain future work. |
 | P6 | Not built | Protocol-pack platform proof remains future work. |
@@ -57,6 +57,7 @@ Every phase change updates the ledger first, then the docs:
 |---|---|
 | Local app works | `npm run build` passes, or a named local browser check passes. |
 | Local backend works | `npm run server:test` passes, or named API route checks pass. |
+| Local P3 ingestion boundary works | `npm run p3:gate` passes and the P3 result note is recorded. |
 | Preview deployed | Deployment URL, deployment id, and smoke result are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |

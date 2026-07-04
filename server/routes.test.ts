@@ -405,6 +405,51 @@ describe('handleApiRequest', () => {
     expect(queue.body).toEqual(expect.arrayContaining([expect.objectContaining({ reason: 'identity_match_review' })]))
   })
 
+  it('routes source-registered P3 claims through consent and identity gates', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', '/api/ingest/claims', {
+      sourceId: 'kentucky_mco_patient_access',
+      patientId: HERO_ID,
+      candidateDateOfBirth: '1974-03-14',
+      candidateStrongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalRecordId: 'ext_ruth_mco_claims',
+      matchMethod: 'deterministic',
+      matchConfidence: 1,
+      strongIdentifier: { kind: 'payer_member_id', value: 'KY-MCO-123' },
+      externalName: 'Ruth A. Caldwell',
+      externalDateOfBirth: '1974-03-14',
+      patientConfirmed: false,
+      facts: [
+        {
+          label: 'Medication fill',
+          value: 'Metformin 500 mg filled for 30 days',
+          effectiveDate: '2026-06-15',
+          fhirRef: 'MedicationDispense/ext_ruth_metformin_fill',
+        },
+      ],
+    })
+    const context = await handleApiRequest(store, 'GET', `/api/patients/${HERO_ID}/context`)
+    const contextBody = context.body as ContextResponseBody
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: 'accepted',
+        identityDecision: 'auto_link',
+        acceptedSourceFactIds: expect.arrayContaining([expect.stringMatching(/^fact_/)]),
+      }),
+    )
+    expect(contextBody.sourceFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceName: 'Kentucky Medicaid MCO Patient Access API',
+          fhirRef: 'MedicationDispense/ext_ruth_metformin_fill',
+        }),
+      ]),
+    )
+  })
+
   it('lands corroborated claims ingest facts as unconfirmed patient context', async () => {
     const store = createMemoryStore()
     const response = await handleApiRequest(store, 'POST', '/api/ingest/claims', {

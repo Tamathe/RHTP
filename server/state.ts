@@ -17,6 +17,7 @@ export function createInitialBackendState(): BackendState {
 function normalizeSeedState(data: SeedState): SeedState {
   return {
     ...data,
+    dataSources: data.dataSources ?? seed.dataSources,
     sourceFacts: data.sourceFacts.map((fact) => ({
       ...fact,
       patientConfirmed: fact.patientConfirmed ?? false,

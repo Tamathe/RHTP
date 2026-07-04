@@ -2,6 +2,7 @@ import type {
   Barrier,
   AsyncAccessToken,
   CarePlanTask,
+  DataSource,
   GapStatus,
   HubMetric,
   NavigatorTask,
@@ -31,6 +32,7 @@ export const HERO_ID = 'pat_ruthann'
 
 export interface SeedState {
   patients: Patient[]
+  dataSources: DataSource[]
   sites: ScreeningSite[]
   gaps: ScreeningGap[]
   barriers: Barrier[]
@@ -277,6 +279,36 @@ const sites: ScreeningSite[] = [
   },
 ]
 
+export const P3_DATA_SOURCES: DataSource[] = [
+  {
+    id: 'medicare_blue_button_2',
+    name: 'Medicare Blue Button 2.0',
+    kind: 'claims',
+    trustTier: 2,
+    mode: 'poll',
+    consentPath: 'patient_oauth',
+    status: 'planned',
+  },
+  {
+    id: 'kentucky_mco_patient_access',
+    name: 'Kentucky Medicaid MCO Patient Access API',
+    kind: 'claims',
+    trustTier: 2,
+    mode: 'poll',
+    consentPath: 'patient_oauth',
+    status: 'planned',
+  },
+  {
+    id: 'khie_adt_subscription',
+    name: 'KHIE ADT subscription',
+    kind: 'hie',
+    trustTier: 4,
+    mode: 'subscription',
+    consentPath: 'participation_agreement',
+    status: 'planned',
+  },
+]
+
 const metrics: HubMetric[] = [
   {
     id: 'contacted',
@@ -342,6 +374,7 @@ const referrals: Referral[] = [
 
 export const seed: SeedState = {
   patients: [hero, ...backgroundPatients],
+  dataSources: P3_DATA_SOURCES,
   sites,
   gaps: [heroGap, ...backgroundGaps],
   barriers: [],

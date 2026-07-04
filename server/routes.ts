@@ -38,6 +38,7 @@ import {
 } from './async-access'
 import { ingestHieDischargeEvent } from './part2-suppression'
 import { renderSmsMessage } from './sms-disclosure'
+import { ingestPatientAccessClaims } from './p3-ingestion-rail'
 
 interface PatientContextResponse {
   patient: Patient
@@ -301,14 +302,16 @@ export async function handleApiRequest(
   }
 
   if (method === 'POST' && segments[0] === 'api' && segments[1] === 'ingest' && segments[2] === 'claims') {
+    const usesRegisteredSource = isRecord(body) && typeof body.sourceId === 'string'
     if (
       !isRecord(body) ||
       typeof body.patientId !== 'string' ||
-      typeof body.externalSystem !== 'string' ||
       typeof body.externalRecordId !== 'string' ||
       !isIdentityMatchMethod(body.matchMethod) ||
       typeof body.matchConfidence !== 'number' ||
-      typeof body.sourceName !== 'string' ||
+      (usesRegisteredSource
+        ? typeof body.sourceId !== 'string'
+        : typeof body.externalSystem !== 'string' || typeof body.sourceName !== 'string') ||
       !Array.isArray(body.facts) ||
       body.facts.some((fact) => !isClaimsFact(fact)) ||
       (body.retrievedAt !== undefined && typeof body.retrievedAt !== 'string') ||
@@ -324,6 +327,40 @@ export async function handleApiRequest(
 
     if (!state.data.patients.some((patient) => patient.id === body.patientId)) {
       return { status: 404, body: { error: 'Patient not found' } }
+    }
+
+    if (usesRegisteredSource && typeof body.sourceId === 'string') {
+      const result = ingestPatientAccessClaims(state, {
+        sourceId: body.sourceId,
+        patientId: body.patientId,
+        candidateDateOfBirth: body.candidateDateOfBirth,
+        candidateStrongIdentifier: body.candidateStrongIdentifier,
+        externalRecordId: body.externalRecordId,
+        matchMethod: body.matchMethod,
+        matchConfidence: body.matchConfidence,
+        strongIdentifier: body.strongIdentifier,
+        externalName: body.externalName,
+        externalDateOfBirth: body.externalDateOfBirth,
+        patientConfirmed: body.patientConfirmed,
+        retrievedAt: body.retrievedAt,
+        facts: body.facts,
+      })
+      await store.save(result.state)
+
+      return {
+        status: result.status === 'accepted' ? 200 : result.status === 'identity_review' ? 202 : 403,
+        body: {
+          ok: result.status === 'accepted',
+          status: result.status,
+          identityDecision: result.identityDecision,
+          acceptedSourceFactIds: result.acceptedSourceFacts.map((fact) => fact.id),
+          autonomousOutreachAllowed: result.autonomousOutreachAllowed,
+        },
+      }
+    }
+
+    if (typeof body.externalSystem !== 'string' || typeof body.sourceName !== 'string') {
+      return { status: 400, body: { error: 'Claims ingest requires source system and source name' } }
     }
 
     const result = ingestClaimsFacts(state, {

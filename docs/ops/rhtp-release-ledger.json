@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -70,9 +70,23 @@
     {
       "id": "P3",
       "name": "Ingestion rail",
-      "status": "blocked",
-      "proof": [],
-      "blockers": ["E2", "H2", "H3", "D1"]
+      "status": "local_ingestion_boundary_verified_real_phi_blocked",
+      "proof": [
+        "npm run p3:gate",
+        "server/p3-ingestion-rail.ts",
+        "server/p3-ingestion-rail.test.ts",
+        "server/p3-ingestion-gate.ts",
+        "server/p3-ingestion-gate.test.ts",
+        "scripts/rhtp-p3-ingestion-gate.ts",
+        "src/data/seed.ts",
+        "src/data/seed.test.ts",
+        "server/routes.ts",
+        "server/routes.test.ts",
+        "docs/superpowers/plans/2026-07-04-p3-ingestion-rail-boundary-plan.md",
+        "docs/ops/red-team-results/2026-07-04-p3-ingestion-rail-gate.md",
+        "docs/ops/RHTP-P3-DECISIONS.md"
+      ],
+      "blockers": ["E2", "H2", "H3"]
     },
     {
       "id": "P4",
@@ -86,7 +100,7 @@
       "name": "Device rail",
       "status": "not_built",
       "proof": [],
-      "blockers": ["D3", "D5", "D6"]
+      "blockers": ["D3", "D5"]
     },
     {
       "id": "P6",
@@ -208,10 +222,19 @@
     {
       "id": "fhir_ingestion",
       "name": "FHIR/claims/HIE ingestion",
-      "status": "blocked",
+      "status": "local_ingestion_boundary_verified_real_phi_blocked",
       "phase": "P3",
-      "proof": [],
-      "notes": "Requires FHIR store choice, production MPI/identity integration, consent repository, database RLS, and Part 2 controls. Local claims ingest now calls the E2 identity gate, local async reads now require H2 patient/pack-scoped tokens, and local HIE discharge ingest now runs H3 Part 2 suppression, but none are production real-PHI controls yet."
+      "proof": [
+        "npm run p3:gate",
+        "server/p3-ingestion-rail.ts",
+        "server/p3-ingestion-rail.test.ts",
+        "server/p3-ingestion-gate.ts",
+        "server/p3-ingestion-gate.test.ts",
+        "scripts/rhtp-p3-ingestion-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-p3-ingestion-rail-gate.md",
+        "docs/ops/RHTP-P3-DECISIONS.md"
+      ],
+      "notes": "Local P3 source registry and patient-access claims boundary are verified. Registered-source claims require active consent and FHIR references, route through the E2 identity gate, hold wrong-patient claims for review, and compose the local H2/H3 gates. This is still not a real Blue Button, MCO, KHIE, TEFCA, or Medplum integration."
     },
     {
       "id": "identity_corroboration_gate",
@@ -324,13 +347,15 @@
       "source": "Appendix B.1",
       "evidence": [
         "npm run identity:gate",
+        "npm run p3:gate",
         "src/lib/identity-corroboration.test.ts",
         "server/actions.test.ts",
         "server/routes.test.ts",
         "server/identity-gate.test.ts",
-        "docs/ops/red-team-results/2026-07-04-e2-identity-gate.md"
+        "docs/ops/red-team-results/2026-07-04-e2-identity-gate.md",
+        "docs/ops/red-team-results/2026-07-04-p3-ingestion-rail-gate.md"
       ],
-      "residual": "Local claims ingest seam is verified. Still blocks real-PHI until MPI ownership is chosen, real FHIR/claims/HIE adapters exist, and production storage/RLS/Part 2 controls prove the same downgrade/no-outreach behavior."
+      "residual": "Local claims ingest seam and P3 patient-access claims boundary are verified. MPI ownership is locally decided as own MPI plus multi-field corroboration. E2 still blocks real-PHI until production MPI/FHIR/claims/HIE adapters and production storage/RLS/Part 2 controls prove the same downgrade/no-outreach behavior."
     },
     {
       "id": "H1",
@@ -411,9 +436,13 @@
       "severity": "decision",
       "title": "MPI ownership",
       "phaseGate": "P3",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Choose own MPI, KHIE MPI, or payer member-id approach; default is own MPI plus multi-field corroboration.",
-      "source": "Appendix C.1"
+      "source": "Appendix C.1",
+      "evidence": [
+        "docs/ops/RHTP-P3-DECISIONS.md"
+      ],
+      "residual": "Closed as a local operating decision: own MPI plus multi-field corroboration. Production MPI implementation remains future work."
     },
     {
       "id": "D2",
@@ -456,9 +485,13 @@
       "severity": "decision",
       "title": "Native shell timing",
       "phaseGate": "P5",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Confirm Capacitor shell ships with the device rail, not earlier.",
-      "source": "Appendix C.2"
+      "source": "Appendix C.2",
+      "evidence": [
+        "docs/ops/RHTP-P3-DECISIONS.md"
+      ],
+      "residual": "Closed as a local operating decision: native shell starts at P5 with the device rail. Device rail implementation remains future work."
     }
   ],
   "featureFlags": [
@@ -566,7 +599,7 @@
       "title": "FHIR store",
       "default": "Medplum self-hosted",
       "phaseGate": "P3",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "FIRST_MEDICAID_MCO",
@@ -597,6 +630,7 @@
     "Run npm run async:gate before claiming local H2 async access proof.",
     "Run npm run part2:gate before claiming local H3 Part 2 suppression proof.",
     "Run npm run sms:gate before claiming local H5 SMS disclosure proof.",
+    "Run npm run p3:gate before claiming local P3 ingestion-boundary proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",
@@ -604,6 +638,7 @@
     "Extend the H2 async token gate into production consent repository claims, database RLS policies, and async job workers before closing H2 for real-PHI.",
     "Extend the H3 Part 2 suppression gate into production HIE/FHIR adapters, storage policies, and outbound surfaces before closing H3 for real-PHI.",
     "Extend the H5 SMS disclosure gate into production A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging before closing H5 for production SMS.",
-    "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."
+    "Build real Blue Button, Kentucky MCO Patient Access, KHIE, and Medplum adapter proof before claiming P3 production readiness.",
+    "Assign owners for KHIE engagement, first Medicaid MCO, and model BAAs before real P3 execution."
   ]
 }

@@ -10,7 +10,7 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 | ID | Gate | Required control | Current state |
 |---|---|---|---|
 | E1 | Model-in-the-crisis-path | Versioned deterministic recall floor, maintained adversarial corpus, model-net-only hits hard-lock and create rule-gap tickets, fail-safe alerting when model net degrades. | Closed for local P2 gate: safety gate, rule-gap tickets, and degraded-model ops alert state pass. Production alert transport still belongs to deployment-substrate work before real PHI. |
-| E2 | Silent wrong-patient linkage | Deterministic strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until first patient confirmation. | Local claims-ingest seam verified: `npm run identity:gate` proves strong-ID-only matches downgrade to `identity_match_review`, claims facts are held on identity review, and corroborated pre-confirmation claims facts land as non-outreach-driving `patientConfirmed=false` facts. Still open for real-PHI until production MPI/FHIR/HIE adapters, storage, RLS, and Part 2 controls prove the same behavior. |
+| E2 | Silent wrong-patient linkage | Deterministic strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until first patient confirmation. | Local claims-ingest seam and local P3 patient-access claims boundary verified: `npm run identity:gate` and `npm run p3:gate` prove strong-ID-only matches downgrade to `identity_match_review`, wrong-patient P3 claims are held, and corroborated pre-confirmation claims facts land as non-outreach-driving `patientConfirmed=false` facts. Still open for real-PHI until production MPI/FHIR/claims/HIE adapters, storage, RLS, and Part 2 controls prove the same behavior. |
 
 ## High-Severity Phase Gates
 
@@ -21,6 +21,12 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 | H3 | Part 2 leakage through facility identity | Before P3 HIE and P7 BH packs | Deterministic code-set stripping plus facility-identity suppression before pack, insight, navigator, or outbound exposure. | Local control verified: `npm run part2:gate` proves sensitive facility/category suppression, generic segmented-data review, fail-closed unknown dispositions, and safe non-sensitive ingestion. Still open for real-PHI until production HIE/FHIR adapters, storage policies, and outbound surfaces enforce the same rule. |
 | H4 | Break-glass is not Part 2 consent | P7 | Break-glass issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent. | Open |
 | H5 | SMS condition-name leakage | P4 first SMS | Approved template library, deterministic slotting, disclosure linting in every shipped language, and category exclusion. | Local control verified: `npm run sms:gate` proves approved EN/ES templates, deterministic slots, category exclusion, and disclosure lint blocking condition names/unsafe slot values. Still open for production SMS until A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging are complete. |
+
+## P3 Local Boundary
+
+`npm run p3:gate` now proves a local P3 ingestion boundary: registered P3 source vocabulary, active-consent enforcement for patient-access claims, FHIR-reference requirements on accepted facts, wrong-patient hold for identity review, H2 async access composition, and H3 Part 2 composition.
+
+This is still not real-PHI proof. The real-PHI gate remains closed until the same controls are enforced by production MPI, FHIR/claims/HIE adapters, consent repository claims, database RLS, Part 2 storage/outbound controls, and signed deployment ownership.
 
 ## Medium Controls That Must Not Disappear
 

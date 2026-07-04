@@ -75,4 +75,14 @@ describe('production-shaped seed rails', () => {
     expect(seed.redFlagEvents).toHaveLength(0)
     expect(seed.asyncAccessTokens).toHaveLength(0)
   })
+
+  it('registers production-shaped P3 ingestion sources', () => {
+    expect(seed.dataSources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'medicare_blue_button_2', kind: 'claims', trustTier: 2 }),
+        expect.objectContaining({ id: 'kentucky_mco_patient_access', kind: 'claims', trustTier: 2 }),
+        expect.objectContaining({ id: 'khie_adt_subscription', kind: 'hie', trustTier: 4 }),
+      ]),
+    )
+  })
 })
