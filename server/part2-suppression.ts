@@ -82,6 +82,8 @@ function restrictedFact(input: IngestHieDischargeEventInput): SourceFact {
     confidence: 'needs_review',
     patientConfirmed: false,
     navigatorOverridden: false,
+    fhirRef: input.fhirRef,
+    aiContextSuppressed: true,
   }
 }
 

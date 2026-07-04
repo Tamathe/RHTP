@@ -85,6 +85,16 @@ npm run p5:gate
 
 This proves only the local boundary: registered device source vocabulary, canonical unit enforcement, FHIR provenance, non-diagnostic insight text, unsafe-action blocking, and web/native gating. It does not call HealthKit, Health Connect, Dexcom, pharmacy claims APIs, Timescale, or a production FHIR store.
 
+## H4 Local Break-Glass Boundary
+
+The local no-PHI H4 gate is:
+
+```bash
+npm run h4:gate
+```
+
+This proves only the local boundary: break-glass request/approval, short TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. It does not prove production consent repository enforcement, legal approval, segmented FHIR/storage, RBAC/RLS, or real-PHI readiness.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:

@@ -30,6 +30,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     ruleGapTickets: data.ruleGapTickets ?? [],
     opsAlerts: data.opsAlerts ?? [],
     asyncAccessTokens: data.asyncAccessTokens ?? [],
+    breakGlassAccesses: data.breakGlassAccesses ?? [],
   }
 }
 

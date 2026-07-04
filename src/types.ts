@@ -127,6 +127,7 @@ export type SourceKind =
   | 'prototype_seed'
 
 export type SourceConfidence = 'confirmed' | 'probable' | 'patient_reported' | 'needs_review'
+export type SensitiveCategory = 'part2_sud' | 'adolescent' | 'behavioral' | 'reproductive' | 'hiv'
 
 export interface DataSource {
   id: string
@@ -167,9 +168,12 @@ export interface SourceFact {
   patientConfirmed: boolean
   navigatorOverridden: boolean
   fhirRef?: string
+  sensitiveCategory?: SensitiveCategory
+  aiContextSuppressed?: boolean
 }
 
 export type ConsentStatus = 'active' | 'missing' | 'revoked'
+export type ConsentCategory = 'general' | 'part2_sud' | 'adolescent'
 
 export interface PatientConsent {
   id: string
@@ -177,6 +181,8 @@ export interface PatientConsent {
   status: ConsentStatus
   scope: string
   updatedAt: string
+  category?: ConsentCategory
+  version?: string
 }
 
 export type ProtocolStatus =
@@ -225,6 +231,26 @@ export interface AsyncAccessToken {
   expiresAt: string
   revokedAt?: string
   revokedReason?: string
+}
+
+export type BreakGlassAccessStatus = 'requested' | 'active' | 'expired' | 'denied' | 'reviewed'
+export type BreakGlassReviewOutcome = 'confirmed_appropriate' | 'inappropriate_access'
+
+export interface BreakGlassAccess {
+  id: string
+  patientId: string
+  category: SensitiveCategory
+  purpose: string
+  requestedBy: string
+  approvedBy?: string
+  status: BreakGlassAccessStatus
+  issuedAt: string
+  expiresAt?: string
+  reviewedAt?: string
+  reviewer?: string
+  reviewOutcome?: BreakGlassReviewOutcome
+  reviewRequired: boolean
+  sourceFactIds: string[]
 }
 
 export interface ProtocolEvent {

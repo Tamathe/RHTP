@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, and web/native gating. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, and web/native gating. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -341,6 +341,22 @@
       "notes": "Local SMS render path uses approved EN/ES templates, deterministic slots, category exclusion, disclosure linting, and audit events. H5 remains open for production SMS until A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging are complete."
     },
     {
+      "id": "break_glass_consent_gate",
+      "name": "H4 break-glass consent gate",
+      "status": "local_control_verified",
+      "phase": "P7 real-PHI gate",
+      "proof": [
+        "server/break-glass-access.ts",
+        "server/break-glass-access.test.ts",
+        "server/h4-break-glass-gate.ts",
+        "server/h4-break-glass-gate.test.ts",
+        "scripts/rhtp-h4-break-glass-gate.ts",
+        "npm run h4:gate",
+        "docs/ops/red-team-results/2026-07-04-h4-break-glass-gate.md"
+      ],
+      "notes": "Local rail proves request, approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. H4 remains open for real-PHI until production consent repository, segmented storage/RBAC/RLS, and Kentucky adolescent legal-policy approval are complete."
+    },
+    {
       "id": "deployment_substrate",
       "name": "Deployment substrate",
       "status": "scaffolded",
@@ -439,9 +455,16 @@
       "severity": "high",
       "title": "Break-glass is not Part 2 consent",
       "phaseGate": "P7",
-      "status": "open",
+      "status": "local_control_verified",
       "requiredControl": "Define issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent.",
-      "source": "Appendix B.2"
+      "source": "Appendix B.2",
+      "evidence": [
+        "npm run h4:gate",
+        "server/break-glass-access.test.ts",
+        "server/h4-break-glass-gate.test.ts",
+        "docs/ops/red-team-results/2026-07-04-h4-break-glass-gate.md"
+      ],
+      "residual": "Local break-glass control is verified. Still blocks real-PHI/P7 until production consent repository, segmented storage/RBAC/RLS, review workflow, and Kentucky adolescent legal-policy approval are complete."
     },
     {
       "id": "H5",
@@ -669,12 +692,14 @@
     "Run npm run sms:gate before claiming local H5 SMS disclosure proof.",
     "Run npm run p3:gate before claiming local P3 ingestion-boundary proof.",
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
+    "Run npm run h4:gate before claiming local H4 break-glass proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",
     "Extend the E2 identity gate from the local claims ingest seam into production MPI/FHIR/HIE adapters before closing E2 for real-PHI.",
     "Extend the H2 async token gate into production consent repository claims, database RLS policies, and async job workers before closing H2 for real-PHI.",
     "Extend the H3 Part 2 suppression gate into production HIE/FHIR adapters, storage policies, and outbound surfaces before closing H3 for real-PHI.",
+    "Extend the H4 break-glass gate into production consent repository, segmented storage/RBAC/RLS, post-hoc review workflow, and Kentucky adolescent legal-policy approval before closing H4 for real-PHI.",
     "Extend the H5 SMS disclosure gate into production A2P registration, opt-out handling, sender controls, delivery telemetry, and live flagging before closing H5 for production SMS.",
     "Build real Blue Button, Kentucky MCO Patient Access, KHIE, and Medplum adapter proof before claiming P3 production readiness.",
     "Build real native shell, HealthKit/Health Connect, Dexcom OAuth/API, pharmacy PDC calculation, stream storage, and FHIR-store writes before claiming P5 production readiness.",

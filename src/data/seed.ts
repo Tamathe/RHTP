@@ -1,6 +1,7 @@
 import type {
   Barrier,
   AsyncAccessToken,
+  BreakGlassAccess,
   CarePlanTask,
   DataSource,
   GapStatus,
@@ -56,6 +57,7 @@ export interface SeedState {
   opsAlerts: OpsAlert[]
   navigatorQueue: NavigatorQueueItem[]
   asyncAccessTokens: AsyncAccessToken[]
+  breakGlassAccesses: BreakGlassAccess[]
 }
 
 const counties = ['Perry', 'Leslie', 'Knott', 'Letcher', 'Breathitt', 'Harlan']
@@ -210,6 +212,8 @@ const HERO_CONSENT: PatientConsent = {
   patientId: HERO_ID,
   status: 'active',
   scope: 'Use diabetes screening gap, site, barrier, and outreach data for the retinopathy care plan',
+  category: 'general',
+  version: 'v1',
   updatedAt: '2026-07-01',
 }
 
@@ -428,4 +432,5 @@ export const seed: SeedState = {
   opsAlerts: [],
   navigatorQueue: [],
   asyncAccessTokens: [],
+  breakGlassAccesses: [],
 }
