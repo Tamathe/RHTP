@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "ops:status": "tsx scripts/rhtp-status.ts",
     "safety:gate": "tsx scripts/rhtp-safety-gate.ts",
+    "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "server:dev": "tsx server/index.ts",
     "server:test": "vitest run server"
   },
