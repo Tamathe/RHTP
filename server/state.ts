@@ -28,6 +28,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     toolCalls: data.toolCalls ?? [],
     ruleGapTickets: data.ruleGapTickets ?? [],
     opsAlerts: data.opsAlerts ?? [],
+    asyncAccessTokens: data.asyncAccessTokens ?? [],
   }
 }
 

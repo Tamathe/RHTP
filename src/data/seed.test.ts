@@ -73,5 +73,6 @@ describe('production-shaped seed rails', () => {
   it('starts without navigator queue noise for the hero patient', () => {
     expect(seed.navigatorQueue.filter((item) => item.patientId === HERO_ID)).toHaveLength(0)
     expect(seed.redFlagEvents).toHaveLength(0)
+    expect(seed.asyncAccessTokens).toHaveLength(0)
   })
 })

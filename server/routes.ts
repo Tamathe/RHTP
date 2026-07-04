@@ -30,6 +30,11 @@ import {
 import type { IdentityMatchMethod, StrongIdentifier, StrongIdentifierKind } from '../src/lib/identity-corroboration'
 import { createRealtimeVoiceClientSecret, type RealtimeVoiceRuntimeOptions } from './realtime-voice'
 import type { BackendState, RouteResponse, StateStore } from './types'
+import {
+  mintAsyncAccessToken,
+  readAsyncPatientContext,
+  revokeAsyncAccessToken,
+} from './async-access'
 
 interface PatientContextResponse {
   patient: Patient
@@ -115,6 +120,18 @@ function isClaimsFact(value: unknown): value is { label: string; value: string; 
   )
 }
 
+function isConcretePackIds(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((packId) => typeof packId === 'string' && packId.trim().length > 0 && packId !== '*')
+  )
+}
+
+function asyncDeniedStatus(reason: string): 403 | 404 {
+  return reason === 'patient_not_found' ? 404 : 403
+}
+
 function statusForToolResult(result: ToolResult): 200 | 400 | 403 | 404 | 409 {
   if (result.ok) return 200
   if (result.refusalReason === 'invalid_input') return 400
@@ -192,6 +209,85 @@ export async function handleApiRequest(
   }
 
   const state = await store.load()
+
+  if (method === 'POST' && segments[0] === 'api' && segments[1] === 'async' && segments[2] === 'access-token' && segments.length === 3) {
+    if (
+      !isRecord(body) ||
+      typeof body.patientId !== 'string' ||
+      body.patientId.trim().length === 0 ||
+      body.patientId === '*' ||
+      !isConcretePackIds(body.packIds) ||
+      typeof body.purpose !== 'string' ||
+      body.purpose.trim().length === 0 ||
+      typeof body.ttlSeconds !== 'number' ||
+      body.ttlSeconds <= 0 ||
+      body.ttlSeconds > 900
+    ) {
+      return { status: 400, body: { error: 'Async access token requires one patient, concrete pack ids, purpose, and ttlSeconds <= 900' } }
+    }
+
+    if (!state.data.patients.some((patient) => patient.id === body.patientId)) {
+      return { status: 404, body: { error: 'Patient not found' } }
+    }
+
+    const result = mintAsyncAccessToken(state, {
+      patientId: body.patientId,
+      packIds: body.packIds,
+      purpose: body.purpose,
+      ttlSeconds: body.ttlSeconds,
+    })
+    await store.save(result.state)
+
+    return { status: 200, body: { ok: true, token: result.token } }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'async' &&
+    segments[2] === 'access-token' &&
+    segments[3] === 'revoke'
+  ) {
+    if (!isRecord(body) || typeof body.token !== 'string' || typeof body.reason !== 'string') {
+      return { status: 400, body: { error: 'Async access token revoke requires token and reason' } }
+    }
+
+    const result = revokeAsyncAccessToken(state, {
+      token: body.token,
+      reason: body.reason,
+    })
+    await store.save(result.state)
+
+    return result.ok
+      ? { status: 200, body: { ok: true } }
+      : { status: 404, body: { error: result.message, reason: result.reason } }
+  }
+
+  if (
+    method === 'POST' &&
+    segments[0] === 'api' &&
+    segments[1] === 'async' &&
+    segments[2] === 'patients' &&
+    segments[4] === 'context'
+  ) {
+    if (!isRecord(body) || typeof body.token !== 'string' || typeof body.packId !== 'string') {
+      return { status: 400, body: { error: 'Async patient context requires token and packId' } }
+    }
+
+    const result = readAsyncPatientContext(state, {
+      token: body.token,
+      patientId: segments[3] ?? '',
+      packId: body.packId,
+    })
+    await store.save(result.state)
+
+    return result.ok
+      ? { status: 200, body: result.context }
+      : {
+          status: asyncDeniedStatus(result.reason),
+          body: { error: result.message, reason: result.reason },
+        }
+  }
 
   if (method === 'GET' && segments[0] === 'api' && segments[1] === 'patients' && segments[3] === 'context') {
     return patientContext(state, segments[2] ?? '')

@@ -17,7 +17,7 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 | ID | Gate | Phase | Required control | Current state |
 |---|---|---|---|---|
 | H1 | Grounding verifier is a stub | P2 exit | Deterministic verifier for clinical-adjacent claims using regex, lexicon, numeric normalization, and store-diff; model judge can add blocks only. | Closed locally: `npm run safety:gate` passes. |
-| H2 | Async lane RLS bypass | P3 | Gateway-minted, single-patient, pack-scoped, short-lived token for every async job; no standing broad grant. | Open |
+| H2 | Async lane RLS bypass | P3 | Gateway-minted, single-patient, pack-scoped, short-lived token for every async job; no standing broad grant. | Local control verified: `npm run async:gate` proves patient/pack-scoped token minting, matching reads, cross-patient/cross-pack blocks, expiry, revocation, audit events, and wildcard broad-grant rejection. Still open for real-PHI until production consent repository claims and database RLS policies enforce the same contract. |
 | H3 | Part 2 leakage through facility identity | Before P3 HIE and P7 BH packs | Deterministic code-set stripping plus facility-identity suppression before pack, insight, navigator, or outbound exposure. | Open |
 | H4 | Break-glass is not Part 2 consent | P7 | Break-glass issuance, approval, TTL, mandatory review, audit event, and purpose-specific Part 2 consent. | Open |
 | H5 | SMS condition-name leakage | P4 first SMS | Approved template library, deterministic slotting, disclosure linting in every shipped language, and category exclusion. | Open |

@@ -454,6 +454,68 @@ describe('handleApiRequest', () => {
     )
   })
 
+  it('mints and enforces async patient-context tokens through the gateway', async () => {
+    const store = createMemoryStore()
+    const minted = await handleApiRequest(store, 'POST', '/api/async/access-token', {
+      patientId: HERO_ID,
+      packIds: ['retinopathy'],
+      purpose: 'async_summary',
+      ttlSeconds: 300,
+    })
+    const tokenBody = minted.body as { token?: { value: string; expiresAt: string } }
+    if (!tokenBody.token) throw new Error('Expected async token')
+
+    const allowed = await handleApiRequest(store, 'POST', `/api/async/patients/${HERO_ID}/context`, {
+      token: tokenBody.token.value,
+      packId: 'retinopathy',
+    })
+    const crossPatient = await handleApiRequest(store, 'POST', '/api/async/patients/pat_bg_1/context', {
+      token: tokenBody.token.value,
+      packId: 'retinopathy',
+    })
+    const revoked = await handleApiRequest(store, 'POST', '/api/async/access-token/revoke', {
+      token: tokenBody.token.value,
+      reason: 'job_complete',
+    })
+    const afterRevoke = await handleApiRequest(store, 'POST', `/api/async/patients/${HERO_ID}/context`, {
+      token: tokenBody.token.value,
+      packId: 'retinopathy',
+    })
+    const audit = await handleApiRequest(store, 'GET', '/api/audit')
+
+    expect(minted.status).toBe(200)
+    expect(tokenBody.token.expiresAt).toBe('2026-07-04T09:05:00')
+    expect(allowed.status).toBe(200)
+    expect(allowed.body).toEqual(
+      expect.objectContaining({
+        patient: expect.objectContaining({ id: HERO_ID }),
+        sourceFacts: expect.arrayContaining([expect.objectContaining({ patientId: HERO_ID })]),
+      }),
+    )
+    expect(crossPatient).toEqual({
+      status: 403,
+      body: {
+        error: 'Async access token is scoped to a different patient.',
+        reason: 'patient_scope_mismatch',
+      },
+    })
+    expect(revoked.status).toBe(200)
+    expect(afterRevoke).toEqual({
+      status: 403,
+      body: {
+        error: 'Async access token has been revoked.',
+        reason: 'token_revoked',
+      },
+    })
+    expect(audit.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: 'async_access_token_minted', outcome: 'allowed' }),
+        expect.objectContaining({ action: 'async_patient_context_read', outcome: 'blocked' }),
+        expect.objectContaining({ action: 'async_access_token_revoked', outcome: 'allowed' }),
+      ]),
+    )
+  })
+
   it('returns typed errors for unknown routes and invalid payloads', async () => {
     expect(await handleApiRequest(createMemoryStore(), 'GET', '/api/nope')).toEqual({
       status: 404,

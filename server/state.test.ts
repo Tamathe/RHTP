@@ -57,6 +57,7 @@ describe('backend state persistence', () => {
     delete legacyState.data.voiceSessions
     delete legacyState.data.transcriptSegments
     delete legacyState.data.toolCalls
+    delete legacyState.data.asyncAccessTokens
 
     await writeFile(filePath, JSON.stringify(legacyState, null, 2), 'utf8')
     const loaded = await store.load()
@@ -64,6 +65,7 @@ describe('backend state persistence', () => {
     expect(loaded.data.voiceSessions).toEqual([])
     expect(loaded.data.transcriptSegments).toEqual([])
     expect(loaded.data.toolCalls).toEqual([])
+    expect(loaded.data.asyncAccessTokens).toEqual([])
   })
 
   it('hydrates older persisted demo state with identity rows and source fact confirmation fields', async () => {

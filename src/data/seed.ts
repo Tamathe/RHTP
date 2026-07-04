@@ -1,5 +1,6 @@
 import type {
   Barrier,
+  AsyncAccessToken,
   CarePlanTask,
   GapStatus,
   HubMetric,
@@ -52,6 +53,7 @@ export interface SeedState {
   ruleGapTickets: RuleGapTicket[]
   opsAlerts: OpsAlert[]
   navigatorQueue: NavigatorQueueItem[]
+  asyncAccessTokens: AsyncAccessToken[]
 }
 
 const counties = ['Perry', 'Leslie', 'Knott', 'Letcher', 'Breathitt', 'Harlan']
@@ -362,4 +364,5 @@ export const seed: SeedState = {
   ruleGapTickets: [],
   opsAlerts: [],
   navigatorQueue: [],
+  asyncAccessTokens: [],
 }

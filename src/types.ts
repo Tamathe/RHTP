@@ -201,6 +201,21 @@ export type ProtocolEventType =
 export type ProtocolActor = 'sandy' | 'patient' | 'navigator' | 'system'
 export type PackId = string
 
+export type AsyncAccessTokenStatus = 'active' | 'revoked'
+
+export interface AsyncAccessToken {
+  id: string
+  patientId: string
+  packIds: PackId[]
+  purpose: string
+  tokenHash: string
+  status: AsyncAccessTokenStatus
+  issuedAt: string
+  expiresAt: string
+  revokedAt?: string
+  revokedReason?: string
+}
+
 export interface ProtocolEvent {
   id: string
   patientId: string
