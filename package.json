@@ -15,6 +15,7 @@
     "async:gate": "tsx scripts/rhtp-async-access-gate.ts",
     "part2:gate": "tsx scripts/rhtp-part2-gate.ts",
     "sms:gate": "tsx scripts/rhtp-sms-gate.ts",
+    "d2:gate": "tsx scripts/rhtp-d2-adolescent-consent-gate.ts",
     "p3:gate": "tsx scripts/rhtp-p3-ingestion-gate.ts",
     "d4:gate": "tsx scripts/rhtp-d4-pdc-gate.ts",
     "p5:gate": "tsx scripts/rhtp-p5-device-gate.ts",

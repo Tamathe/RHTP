@@ -105,6 +105,16 @@ npm run h4:gate
 
 This proves only the local boundary: break-glass request/approval, short TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. It does not prove production consent repository enforcement, legal approval, segmented FHIR/storage, RBAC/RLS, or real-PHI readiness.
 
+## D2 Local Adolescent Consent Boundary
+
+The local no-PHI D2 gate is:
+
+```bash
+npm run d2:gate
+```
+
+This proves only the local policy boundary: Kentucky PHQ/GAD self-consent floor, unaccompanied-youth QMHP verification, under-16 fail-closed behavior, substance-use self-consent handling, guardian proxy suppression for minor-consented confidential results, clinician health-benefit parent-notice override, and general SDOH guardian-proxy behavior. It does not prove production counsel approval, clinical owner approval, proxy-portal suppression, consent repository enforcement, RBAC/RLS, segmented storage, or real-PHI readiness.
+
 ## Preview Deployment
 
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:

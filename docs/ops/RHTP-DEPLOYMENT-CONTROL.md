@@ -48,7 +48,7 @@ Every phase change updates the ledger first, then the docs:
 | P4 | Not built, blocked | Retinopathy pilot cannot start until P2/P3 gates and production SMS controls close. Local H5 SMS template/lint control is verified, but SMS outreach is not production-ready. |
 | P5 | Local device boundary verified, real device rail blocked | Device source registry, canonical unit checks, FHIR provenance, non-diagnostic local insight summaries, unsafe device-action blocking, web/native gating, and local D4 PDC diabetes adherence policy/math are verified locally. Native shell, HealthKit/Health Connect, Dexcom API, production pharmacy claims feeds, stream storage, and production FHIR writes are not built. |
 | P6 | Not built | Protocol-pack platform proof remains future work; D4 no longer blocks the local pack-metrics policy, but P6 still needs actual zero-rail-code pack delivery. |
-| P7 | Blocked with local H4 gate verified | Break-glass request/approval, TTL, post-hoc review, and Part 2 purpose-consent behavior are verified locally. Screenings/campaigns still require adolescent-confidentiality legal/policy decisions and production consent/RLS controls. |
+| P7 | Blocked with local H4 and D2 gates verified | Break-glass request/approval, TTL, post-hoc review, Part 2 purpose-consent behavior, and Kentucky adolescent consent/proxy policy are verified locally. Screenings/campaigns still require production consent/RLS/proxy-portal controls and legal/clinical owner sign-off before real PHI. |
 | P8 | Not built | Scale/writeback remains future work. |
 
 ## Deploy Discipline
@@ -61,6 +61,7 @@ Every phase change updates the ledger first, then the docs:
 | Local D4 PDC adherence boundary works | `npm run d4:gate` passes and the D4 result note is recorded. |
 | Local P5 device boundary works | `npm run p5:gate` passes and the P5 result note is recorded. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
+| Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Preview deployed | Deployment URL, deployment id, and smoke result are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |

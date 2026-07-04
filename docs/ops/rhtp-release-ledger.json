@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The D4 local PDC diabetes adherence gate is verified with PDC-DR treatment-period math, diabetes all-class grouping, same-drug overlap carry-forward, insulin exclusion, unknown-drug review, and claims-floor refill-gap separation. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, web/native gating, and the local D4 PDC policy. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The D2 local adolescent consent gate is verified with Kentucky PHQ/GAD minor-consent floors, QMHP unaccompanied-youth verification, under-16 fail-closed behavior, substance-use self-consent, guardian proxy suppression, and clinician health-benefit override. The D4 local PDC diabetes adherence gate is verified with PDC-DR treatment-period math, diabetes all-class grouping, same-drug overlap carry-forward, insulin exclusion, unknown-drug review, and claims-floor refill-gap separation. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, web/native gating, and the local D4 PDC policy. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -133,8 +133,17 @@
       "id": "P7",
       "name": "Screenings and campaigns",
       "status": "blocked",
-      "proof": [],
-      "blockers": ["H4", "D2"]
+      "proof": [
+        "npm run d2:gate",
+        "server/adolescent-consent-policy.ts",
+        "server/adolescent-consent-policy.test.ts",
+        "server/d2-adolescent-consent-gate.ts",
+        "server/d2-adolescent-consent-gate.test.ts",
+        "scripts/rhtp-d2-adolescent-consent-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-d2-adolescent-consent-gate.md",
+        "docs/ops/RHTP-D2-ADOLESCENT-CONSENT-DECISION.md"
+      ],
+      "blockers": ["H4"]
     },
     {
       "id": "P8",
@@ -379,7 +388,24 @@
         "npm run h4:gate",
         "docs/ops/red-team-results/2026-07-04-h4-break-glass-gate.md"
       ],
-      "notes": "Local rail proves request, approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. H4 remains open for real-PHI until production consent repository, segmented storage/RBAC/RLS, and Kentucky adolescent legal-policy approval are complete."
+      "notes": "Local rail proves request, approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent requirement, and adolescent fail-closed behavior. H4 remains open for real-PHI until production consent repository, segmented storage/RBAC/RLS, review workflow, and legal/clinical owner sign-off are complete."
+    },
+    {
+      "id": "d2_adolescent_consent_gate",
+      "name": "D2 adolescent consent and proxy disclosure gate",
+      "status": "local_policy_verified",
+      "phase": "P7",
+      "proof": [
+        "npm run d2:gate",
+        "server/adolescent-consent-policy.ts",
+        "server/adolescent-consent-policy.test.ts",
+        "server/d2-adolescent-consent-gate.ts",
+        "server/d2-adolescent-consent-gate.test.ts",
+        "scripts/rhtp-d2-adolescent-consent-gate.ts",
+        "docs/ops/red-team-results/2026-07-04-d2-adolescent-consent-gate.md",
+        "docs/ops/RHTP-D2-ADOLESCENT-CONSENT-DECISION.md"
+      ],
+      "notes": "Local policy pins Kentucky minor-consent and proxy rules for PHQ/GAD and SDOH packs: age-16 physician outpatient mental-health self-consent, age-16 unaccompanied-youth QMHP path with verification attempt, under-16 fail-closed behavior without guardian consent, substance-use self-consent, default guardian proxy suppression for minor-consented confidential data, clinician health-benefit parent-notice override, and general SDOH guardian-proxy allowance. Production still needs legal/clinical owner sign-off and real consent/RBAC/RLS enforcement."
     },
     {
       "id": "deployment_substrate",
@@ -526,9 +552,17 @@
       "severity": "decision",
       "title": "Adolescent confidential consent model",
       "phaseGate": "P7",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Pin Kentucky minor-consent ages and proxy disclosure rules before PHQ/GAD and SDOH packs.",
-      "source": "Appendix C.1"
+      "source": "Appendix C.1",
+      "evidence": [
+        "npm run d2:gate",
+        "server/adolescent-consent-policy.test.ts",
+        "server/d2-adolescent-consent-gate.test.ts",
+        "docs/ops/red-team-results/2026-07-04-d2-adolescent-consent-gate.md",
+        "docs/ops/RHTP-D2-ADOLESCENT-CONSENT-DECISION.md"
+      ],
+      "residual": "Closed as a local operating decision using current Kentucky statutory sources and HHS HIPAA proxy guidance. Production still requires Kentucky counsel and clinical owner sign-off plus consent repository, proxy-portal, RBAC/RLS, and audit enforcement before PHQ/GAD or adolescent SDOH use with real PHI."
     },
     {
       "id": "D3",
@@ -723,6 +757,7 @@
     "Run npm run async:gate before claiming local H2 async access proof.",
     "Run npm run part2:gate before claiming local H3 Part 2 suppression proof.",
     "Run npm run sms:gate before claiming local H5 SMS disclosure proof.",
+    "Run npm run d2:gate before claiming local D2 adolescent consent/proxy proof.",
     "Run npm run p3:gate before claiming local P3 ingestion-boundary proof.",
     "Run npm run d4:gate before claiming local D4 PDC diabetes adherence proof.",
     "Run npm run p5:gate before claiming local P5 device-boundary proof.",
