@@ -4,12 +4,14 @@ import type {
   GapStatus,
   HubMetric,
   NavigatorTask,
+  OpsAlert,
   NavigatorQueueItem,
   Patient,
   PatientConsent,
   PriorityLabel,
   ProtocolEvent,
   RedFlagEvent,
+  RuleGapTicket,
   Referral,
   ScreeningGap,
   ScreeningResult,
@@ -39,6 +41,8 @@ export interface SeedState {
   protocolEvents: ProtocolEvent[]
   voiceTurns: VoiceTurn[]
   redFlagEvents: RedFlagEvent[]
+  ruleGapTickets: RuleGapTicket[]
+  opsAlerts: OpsAlert[]
   navigatorQueue: NavigatorQueueItem[]
 }
 
@@ -317,5 +321,7 @@ export const seed: SeedState = {
   protocolEvents: HERO_PROTOCOL_EVENTS,
   voiceTurns: [],
   redFlagEvents: [],
+  ruleGapTickets: [],
+  opsAlerts: [],
   navigatorQueue: [],
 }

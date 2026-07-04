@@ -1,5 +1,21 @@
-import type { NavigatorQueueItem, Patient, PatientConsent, ProtocolEvent, RedFlagEvent, SourceFact, VoiceTurn } from '../src/types'
-import { completeNavigatorTask, recordVoiceReply, startVoiceSession } from './actions'
+import type {
+  NavigatorQueueItem,
+  OpsAlert,
+  Patient,
+  PatientConsent,
+  ProtocolEvent,
+  RedFlagEvent,
+  RuleGapTicket,
+  SourceFact,
+  VoiceTurn,
+} from '../src/types'
+import {
+  completeNavigatorTask,
+  recordModelBackstopHealth,
+  recordVoiceReply,
+  startVoiceSession,
+  type ModelBackstopStatus,
+} from './actions'
 import type { BackendState, RouteResponse, StateStore } from './types'
 
 interface PatientContextResponse {
@@ -9,6 +25,7 @@ interface PatientContextResponse {
   protocolEvents: ProtocolEvent[]
   voiceTurns: VoiceTurn[]
   redFlagEvents: RedFlagEvent[]
+  ruleGapTickets: RuleGapTicket[]
   navigatorQueue: NavigatorQueueItem[]
 }
 
@@ -22,8 +39,17 @@ interface ErrorResponse {
   error: string
 }
 
+interface OpsAlertResponse {
+  ok: true
+  opsAlerts: OpsAlert[]
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isModelBackstopStatus(value: unknown): value is ModelBackstopStatus {
+  return value === 'available' || value === 'degraded' || value === 'unavailable'
 }
 
 function patientContext(state: BackendState, patientId: string): RouteResponse<PatientContextResponse | ErrorResponse> {
@@ -42,6 +68,9 @@ function patientContext(state: BackendState, patientId: string): RouteResponse<P
       protocolEvents: state.data.protocolEvents.filter((event) => event.patientId === patientId),
       voiceTurns: state.data.voiceTurns.filter((turn) => turn.patientId === patientId),
       redFlagEvents: state.data.redFlagEvents.filter((event) => event.patientId === patientId),
+      ruleGapTickets: state.data.ruleGapTickets.filter(
+        (ticket) => ticket.patientId === patientId && ticket.status === 'open',
+      ),
       navigatorQueue: state.data.navigatorQueue.filter(
         (item) => item.patientId === patientId && item.status === 'open',
       ),
@@ -105,9 +134,33 @@ export async function handleApiRequest(
     }
 
     const patientId = segments[2] ?? ''
-    const updated = recordVoiceReply(state, { patientId, text: body.text })
+    const updated = recordVoiceReply(state, {
+      patientId,
+      text: body.text,
+      modelBackstopMatched:
+        typeof body.modelBackstopMatched === 'boolean' ? body.modelBackstopMatched : undefined,
+      modelBackstopLabel:
+        typeof body.modelBackstopLabel === 'string' ? body.modelBackstopLabel : undefined,
+    })
     await store.save(updated)
     return patientContext(updated, patientId)
+  }
+
+  if (method === 'POST' && url.pathname === '/api/safety/model-backstop/status') {
+    if (!isRecord(body) || !isModelBackstopStatus(body.status)) {
+      return { status: 400, body: { error: 'Model backstop status requires available, degraded, or unavailable' } }
+    }
+
+    const updated = recordModelBackstopHealth(state, {
+      status: body.status,
+      detail: typeof body.detail === 'string' ? body.detail : 'No detail supplied.',
+    })
+    await store.save(updated)
+    return { status: 200, body: { ok: true, opsAlerts: updated.data.opsAlerts } satisfies OpsAlertResponse }
+  }
+
+  if (method === 'GET' && url.pathname === '/api/ops/alerts') {
+    return { status: 200, body: state.data.opsAlerts }
   }
 
   if (

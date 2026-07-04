@@ -43,7 +43,7 @@ Every phase change updates the ledger first, then the docs:
 |---|---|---|
 | P0 | Built and verified | Production-shaped retinopathy prototype exists in the React app. |
 | P1 | Built and verified | Backend persistence, audit, route handler, and local API server exist. |
-| P2 | Not built, blocked | Real voice requires grounding verifier, red-team gate, and crisis-path controls. |
+| P2 | Safety gate verified | Grounding verifier, crisis recall floor, model-backstop rule-gap ticketing, and degraded-model ops alert state exist locally. Real voice plumbing is not built. |
 | P3 | Not built, blocked | FHIR/claims/HIE ingestion requires identity, consent, RLS, and Part 2 controls. |
 | P4 | Not built, blocked | Retinopathy pilot cannot start until P2/P3 gates and SMS disclosure controls close. |
 | P5 | Not built | Device rail, native shell, and insight engine remain future work. |

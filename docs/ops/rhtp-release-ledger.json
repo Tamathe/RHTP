@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 deterministic grounding is verified locally. E1 deterministic recall floor is verified locally, but the model-backstop and ops-alerting residual remains open. P2 real voice remains blocked.",
+  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice plumbing is not built and flags remain off. Real-PHI pilot remains blocked by identity, async RLS, Part 2, SMS, and deployment-substrate controls.",
   "phases": [
     {
       "id": "P0",
@@ -35,14 +35,16 @@
     {
       "id": "P2",
       "name": "Real voice",
-      "status": "blocked",
+      "status": "safety_gate_verified",
       "proof": [
         "npm run safety:gate",
         "src/lib/grounding.test.ts",
         "src/lib/crisis-red-flags.test.ts",
+        "server/actions.test.ts",
+        "server/routes.test.ts",
         "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md"
       ],
-      "blockers": ["E1"]
+      "blockers": []
     },
     {
       "id": "P3",
@@ -56,7 +58,7 @@
       "name": "Retinopathy pilot",
       "status": "blocked",
       "proof": [],
-      "blockers": ["E1", "E2", "H2", "H3", "H5"]
+      "blockers": ["E2", "H2", "H3", "H5"]
     },
     {
       "id": "P5",
@@ -77,7 +79,7 @@
       "name": "Screenings and campaigns",
       "status": "blocked",
       "proof": [],
-      "blockers": ["E1", "H4", "D2"]
+      "blockers": ["H4", "D2"]
     },
     {
       "id": "P8",
@@ -146,17 +148,19 @@
         "src/lib/grounding.ts",
         "src/lib/crisis-red-flags.ts",
         "src/lib/crisis-red-flags.corpus.ts",
+        "server/actions.ts",
+        "server/routes.ts",
         "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md"
       ],
-      "notes": "H1 is closed locally. E1 deterministic recall floor is verified, but model-net degradation alerting and rule-gap ticket workflow are still open."
+      "notes": "H1 and E1 are closed for the local P2 safety gate. Production alert transport still belongs to deployment substrate work before any real-PHI pilot."
     },
     {
       "id": "real_voice_gateway",
       "name": "Real voice and tool gateway",
-      "status": "blocked",
+      "status": "not_built",
       "phase": "P2",
       "proof": [],
-      "notes": "Requires grounding verifier, transcript storage, tool gateway, red-team gate, and E1 crisis-path controls."
+      "notes": "Safety gate is verified. Realtime/WebRTC sessions, transcript storage, and live tool gateway are not built. Flags remain off."
     },
     {
       "id": "fhir_ingestion",
@@ -181,14 +185,16 @@
       "severity": "existential",
       "title": "Model-in-the-crisis-path",
       "phaseGate": "Before real-PHI pilot",
-      "status": "open",
+      "status": "closed",
       "requiredControl": "Versioned deterministic recall floor, maintained adversarial corpus, model-net-only hits hard-lock and create rule-gap tickets, and fail-safe alerting when the model net degrades.",
       "source": "Appendix B.1",
       "evidence": [
         "npm run safety:gate",
+        "server/actions.test.ts",
+        "server/routes.test.ts",
         "docs/ops/red-team-results/2026-07-04-p2-safety-gate.md"
       ],
-      "residual": "Deterministic recall floor and corpus pass locally. Model-net-only rule-gap ticket workflow and degraded-model ops alerting are not production-wired."
+      "residual": "Closed for local P2 safety gate. Production alert transport remains deployment-substrate work before any real-PHI pilot."
     },
     {
       "id": "E2",
@@ -436,8 +442,8 @@
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
-    "Build the E1 model-net rule-gap ticket workflow and degraded-model ops alerting before real voice can exit P2.",
-    "Close E1 and E2 before any real-PHI pilot claim.",
+    "Build real voice Realtime/WebRTC session plumbing behind RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE.",
+    "Close E2 before any real-PHI pilot claim.",
     "Assign owners for FHIR store, KHIE engagement, first Medicaid MCO, and model BAAs before P3 planning."
   ]
 }

@@ -3,6 +3,7 @@ export type CrisisMatchSource = 'deterministic' | 'model_backstop' | 'none'
 
 export interface CrisisScreeningOptions {
   modelBackstopMatched?: boolean
+  modelBackstopLabel?: string
 }
 
 export interface CrisisScreeningResult {
@@ -11,6 +12,7 @@ export interface CrisisScreeningResult {
   domain: CrisisDomain | null
   ruleIds: string[]
   requiresRuleGapTicket: boolean
+  modelBackstopLabel?: string
 }
 
 export interface CrisisCorpusCase {
@@ -110,6 +112,7 @@ export function screenCrisisRedFlags(
       domain: null,
       ruleIds: [],
       requiresRuleGapTicket: true,
+      modelBackstopLabel: options.modelBackstopLabel,
     }
   }
 

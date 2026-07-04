@@ -214,6 +214,31 @@ export interface RedFlagEvent {
   status: 'open' | 'reviewed'
 }
 
+export interface RuleGapTicket {
+  id: string
+  patientId: string
+  text: string
+  source: 'model_backstop'
+  modelBackstopLabel: string
+  status: 'open' | 'resolved'
+  createdAt: string
+  sourceEventIds: string[]
+}
+
+export type OpsAlertType = 'model_backstop_degraded'
+export type OpsAlertSeverity = 'warning' | 'critical'
+export type OpsAlertStatus = 'open' | 'resolved'
+
+export interface OpsAlert {
+  id: string
+  type: OpsAlertType
+  severity: OpsAlertSeverity
+  status: OpsAlertStatus
+  message: string
+  detail: string
+  createdAt: string
+}
+
 export type NavigatorQueueReason =
   | 'transportation_barrier'
   | 'cost_barrier'

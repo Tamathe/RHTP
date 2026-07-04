@@ -39,6 +39,19 @@ describe('screenPatientMessage', () => {
     expect(result.navigatorSummary).toMatch(/self-harm|red flag/i)
   })
 
+  it('hard-locks model-backstop-only crisis hits and marks rule gaps', () => {
+    const result = screenPatientMessage('The future feels impossible', {
+      modelBackstopMatched: true,
+      modelBackstopLabel: 'suicidal_ideation',
+    })
+
+    expect(result.category).toBe('red_flag')
+    expect(result.queueReason).toBe('red_flag_symptom')
+    expect(result.redFlagSource).toBe('model_backstop')
+    expect(result.requiresRuleGapTicket).toBe(true)
+    expect(result.modelBackstopLabel).toBe('suicidal_ideation')
+  })
+
   it('keeps normal logistics questions autonomous', () => {
     const result = screenPatientMessage('Can you help me find a Saturday appointment?')
 

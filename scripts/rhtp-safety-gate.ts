@@ -2,6 +2,7 @@ import { HERO_ID, seed } from '../src/data/seed'
 import { crisisGateCorpus, CRISIS_RECALL_FLOOR } from '../src/lib/crisis-red-flags.corpus'
 import { measureCrisisRecall } from '../src/lib/crisis-red-flags'
 import { verifyGrounding, type GroundingVerificationInput } from '../src/lib/grounding'
+import { screenPatientMessage } from '../src/lib/safety'
 
 interface GroundingGateCase {
   id: string
@@ -69,12 +70,22 @@ const groundingFailures = groundingCases.flatMap((testCase) => {
 })
 const recallPassed = recallReport.recall >= CRISIS_RECALL_FLOOR && recallReport.falseNegatives.length === 0
 const groundingPassed = groundingFailures.length === 0
+const modelBackstopRuleGap = screenPatientMessage('The future feels impossible.', {
+  modelBackstopMatched: true,
+  modelBackstopLabel: 'suicidal_ideation',
+})
+const modelBackstopRuleGapPassed =
+  modelBackstopRuleGap.category === 'red_flag' &&
+  modelBackstopRuleGap.redFlagSource === 'model_backstop' &&
+  modelBackstopRuleGap.requiresRuleGapTicket === true &&
+  modelBackstopRuleGap.modelBackstopLabel === 'suicidal_ideation'
 
 console.log('RHTP P2 safety gate')
 console.log(`Crisis rule recall: ${recallReport.recall.toFixed(2)} (floor ${CRISIS_RECALL_FLOOR})`)
 console.log(`Crisis positives: ${recallReport.truePositives.length}/${recallReport.totalExpectedPositive}`)
 console.log(`Crisis false negatives: ${recallReport.falseNegatives.length}`)
 console.log(`Grounding checks: ${groundingCases.length - groundingFailures.length}/${groundingCases.length}`)
+console.log(`Model-backstop rule-gap check: ${modelBackstopRuleGapPassed ? 'pass' : 'fail'}`)
 
 if (!recallPassed) {
   console.error(`Crisis recall gate failed. Missed: ${recallReport.falseNegatives.join(', ')}`)
@@ -84,6 +95,10 @@ if (!groundingPassed) {
   console.error(`Grounding gate failed. Failures: ${groundingFailures.join('; ')}`)
 }
 
-if (!recallPassed || !groundingPassed) {
+if (!modelBackstopRuleGapPassed) {
+  console.error('Model-backstop rule-gap gate failed.')
+}
+
+if (!recallPassed || !groundingPassed || !modelBackstopRuleGapPassed) {
   process.exitCode = 1
 }

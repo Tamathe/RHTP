@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { HERO_ID } from '../src/data/seed'
-import { completeNavigatorTask, recordVoiceReply, startVoiceSession } from './actions'
+import {
+  completeNavigatorTask,
+  recordModelBackstopHealth,
+  recordVoiceReply,
+  startVoiceSession,
+} from './actions'
 import { createInitialBackendState } from './state'
 
 describe('backend protocol actions', () => {
@@ -56,6 +61,48 @@ describe('backend protocol actions', () => {
     expect(locked.data.voiceTurns.at(-1)?.text).toMatch(/cannot continue routine coaching/i)
     expect(locked.auditEvents.at(-1)).toEqual(
       expect.objectContaining({ action: 'voice_session_started', outcome: 'blocked' }),
+    )
+  })
+
+  it('hard-locks model-backstop-only hits and creates a rule-gap ticket', () => {
+    const updated = recordVoiceReply(createInitialBackendState(), {
+      patientId: HERO_ID,
+      text: 'The future feels impossible',
+      modelBackstopMatched: true,
+      modelBackstopLabel: 'suicidal_ideation',
+    })
+
+    expect(updated.data.navigatorQueue.at(-1)).toEqual(
+      expect.objectContaining({ reason: 'red_flag_symptom', priority: 'urgent' }),
+    )
+    expect(updated.data.ruleGapTickets.at(-1)).toEqual(
+      expect.objectContaining({
+        patientId: HERO_ID,
+        source: 'model_backstop',
+        modelBackstopLabel: 'suicidal_ideation',
+        status: 'open',
+      }),
+    )
+    expect(updated.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({ action: 'voice_reply_recorded', outcome: 'allowed' }),
+    )
+  })
+
+  it('records an ops alert when the model backstop is degraded', () => {
+    const updated = recordModelBackstopHealth(createInitialBackendState(), {
+      status: 'degraded',
+      detail: 'Realtime safety backstop timeout rate above threshold',
+    })
+
+    expect(updated.data.opsAlerts.at(-1)).toEqual(
+      expect.objectContaining({
+        type: 'model_backstop_degraded',
+        status: 'open',
+        severity: 'warning',
+      }),
+    )
+    expect(updated.auditEvents.at(-1)).toEqual(
+      expect.objectContaining({ actor: 'system', action: 'model_backstop_health_recorded' }),
     )
   })
 

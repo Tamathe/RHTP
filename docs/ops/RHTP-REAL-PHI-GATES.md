@@ -9,7 +9,7 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 
 | ID | Gate | Required control | Current state |
 |---|---|---|---|
-| E1 | Model-in-the-crisis-path | Versioned deterministic recall floor, maintained adversarial corpus, model-net-only hits hard-lock and create rule-gap tickets, fail-safe alerting when model net degrades. | Partial: deterministic recall floor and corpus pass locally; model-net rule-gap ticket workflow and degraded-model ops alerting remain open. |
+| E1 | Model-in-the-crisis-path | Versioned deterministic recall floor, maintained adversarial corpus, model-net-only hits hard-lock and create rule-gap tickets, fail-safe alerting when model net degrades. | Closed for local P2 gate: safety gate, rule-gap tickets, and degraded-model ops alert state pass. Production alert transport still belongs to deployment-substrate work before real PHI. |
 | E2 | Silent wrong-patient linkage | Deterministic strong-ID matches must corroborate DOB and/or name, downgrade mismatches to navigator review, and block autonomous outreach until first patient confirmation. | Open |
 
 ## High-Severity Phase Gates

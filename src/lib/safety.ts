@@ -15,6 +15,14 @@ export interface SafetyScreeningResult {
   patientCopy: string
   navigatorSummary: string
   queueReason?: NavigatorQueueReason
+  redFlagSource?: 'deterministic' | 'model_backstop'
+  requiresRuleGapTicket?: boolean
+  modelBackstopLabel?: string
+}
+
+export interface SafetyScreeningOptions {
+  modelBackstopMatched?: boolean
+  modelBackstopLabel?: string
 }
 
 const OFF_PROTOCOL_PATTERNS = [
@@ -25,8 +33,11 @@ const OFF_PROTOCOL_PATTERNS = [
   /should i take/i,
 ]
 
-export function screenPatientMessage(input: string): SafetyScreeningResult {
-  const crisisScreening = screenCrisisRedFlags(input)
+export function screenPatientMessage(
+  input: string,
+  options: SafetyScreeningOptions = {},
+): SafetyScreeningResult {
+  const crisisScreening = screenCrisisRedFlags(input, options)
 
   if (crisisScreening.matched) {
     const domain = crisisScreening.domain ? ` (${crisisScreening.domain})` : ''
@@ -36,6 +47,9 @@ export function screenPatientMessage(input: string): SafetyScreeningResult {
       patientCopy:
         'That could be urgent. Sandy cannot diagnose this, so a navigator should help you get human guidance now.',
       navigatorSummary: `Patient reported a possible red flag${domain}: "${input}"`,
+      redFlagSource: crisisScreening.source === 'model_backstop' ? 'model_backstop' : 'deterministic',
+      requiresRuleGapTicket: crisisScreening.requiresRuleGapTicket,
+      modelBackstopLabel: crisisScreening.modelBackstopLabel,
     }
   }
 

@@ -7,6 +7,7 @@ import type { BackendState, StateStore } from './types'
 interface ContextResponseBody {
   navigatorQueue: { id: string; reason: string }[]
   voiceTurns: { speaker: string }[]
+  ruleGapTickets?: { id: string }[]
 }
 
 function createMemoryStore(initial: BackendState = createInitialBackendState()): StateStore {
@@ -66,6 +67,41 @@ describe('handleApiRequest', () => {
     expect(response.status).toBe(200)
     expect(response.body).toEqual(
       expect.arrayContaining([expect.objectContaining({ reason: 'transportation_barrier' })]),
+    )
+  })
+
+  it('records model-backstop-only safety hits and exposes rule-gap tickets in context', async () => {
+    const store = createMemoryStore()
+    const response = await handleApiRequest(store, 'POST', `/api/voice/${HERO_ID}/reply`, {
+      text: 'The future feels impossible',
+      modelBackstopMatched: true,
+      modelBackstopLabel: 'suicidal_ideation',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        navigatorQueue: expect.arrayContaining([expect.objectContaining({ reason: 'red_flag_symptom' })]),
+        ruleGapTickets: expect.arrayContaining([
+          expect.objectContaining({ modelBackstopLabel: 'suicidal_ideation', status: 'open' }),
+        ]),
+      }),
+    )
+  })
+
+  it('records degraded model-backstop ops alerts', async () => {
+    const response = await handleApiRequest(createMemoryStore(), 'POST', '/api/safety/model-backstop/status', {
+      status: 'degraded',
+      detail: 'timeout rate high',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        opsAlerts: expect.arrayContaining([
+          expect.objectContaining({ type: 'model_backstop_degraded', status: 'open' }),
+        ]),
+      }),
     )
   })
 

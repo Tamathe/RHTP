@@ -1,12 +1,16 @@
 import { nextProtocolStatus, priorityForQueueReason, queueReasonForBarrier } from '../src/lib/retinopathy-protocol'
 import { screenPatientMessage } from '../src/lib/safety'
+import { crisisGateCorpus, CRISIS_RECALL_FLOOR } from '../src/lib/crisis-red-flags.corpus'
+import { measureCrisisRecall } from '../src/lib/crisis-red-flags'
 import type {
   BarrierType,
   NavigatorQueueReason,
+  OpsAlert,
   ProtocolActor,
   ProtocolEvent,
   ProtocolEventType,
   ProtocolStatus,
+  RuleGapTicket,
   ResultOutcome,
 } from '../src/types'
 import { appendAuditEvent } from './audit'
@@ -15,6 +19,15 @@ import type { BackendState } from './types'
 export interface RecordVoiceReplyInput {
   patientId: string
   text: string
+  modelBackstopMatched?: boolean
+  modelBackstopLabel?: string
+}
+
+export type ModelBackstopStatus = 'available' | 'degraded' | 'unavailable'
+
+export interface RecordModelBackstopHealthInput {
+  status: ModelBackstopStatus
+  detail: string
 }
 
 let actionCounter = 0
@@ -81,6 +94,41 @@ function queueItem(
     status: 'open' as const,
     createdAt: now(),
     sourceEventIds,
+  }
+}
+
+function ruleGapTicket(
+  patientId: string,
+  text: string,
+  modelBackstopLabel: string,
+  sourceEventIds: string[],
+): RuleGapTicket {
+  return {
+    id: nextId('rulegap'),
+    patientId,
+    text,
+    source: 'model_backstop',
+    modelBackstopLabel,
+    status: 'open',
+    createdAt: now(),
+    sourceEventIds,
+  }
+}
+
+function opsAlert(input: RecordModelBackstopHealthInput): OpsAlert {
+  const recallReport = measureCrisisRecall(crisisGateCorpus)
+  const severity = recallReport.recall >= CRISIS_RECALL_FLOOR ? 'warning' : 'critical'
+
+  return {
+    id: nextId('ops'),
+    type: 'model_backstop_degraded',
+    severity,
+    status: 'open',
+    message: `Model backstop is ${input.status}; deterministic crisis recall is ${recallReport.recall.toFixed(
+      2,
+    )} against floor ${CRISIS_RECALL_FLOOR}.`,
+    detail: input.detail,
+    createdAt: now(),
   }
 }
 
@@ -165,7 +213,10 @@ export function startVoiceSession(state: BackendState, patientId: string): Backe
 }
 
 export function recordVoiceReply(state: BackendState, input: RecordVoiceReplyInput): BackendState {
-  const screened = screenPatientMessage(input.text)
+  const screened = screenPatientMessage(input.text, {
+    modelBackstopMatched: input.modelBackstopMatched,
+    modelBackstopLabel: input.modelBackstopLabel,
+  })
   const patientTurn = {
     id: nextId('voice'),
     patientId: input.patientId,
@@ -216,6 +267,16 @@ export function recordVoiceReply(state: BackendState, input: RecordVoiceReplyInp
       'Possible vision red flag reported',
       'patient',
     )
+    const ruleGapTickets = screened.requiresRuleGapTicket
+      ? [
+          ruleGapTicket(
+            input.patientId,
+            input.text,
+            screened.modelBackstopLabel ?? 'unknown_model_backstop_hit',
+            [event.id],
+          ),
+        ]
+      : []
     const updated = {
       ...state,
       updatedAt: now(),
@@ -256,6 +317,7 @@ export function recordVoiceReply(state: BackendState, input: RecordVoiceReplyInp
             [event.id],
           ),
         ],
+        ruleGapTickets: [...state.data.ruleGapTickets, ...ruleGapTickets],
       },
     }
 
@@ -362,6 +424,32 @@ export function recordVoiceReply(state: BackendState, input: RecordVoiceReplyInp
       screened.category === 'off_protocol'
         ? 'Sandy used off-protocol fallback copy and preserved the transcript.'
         : 'Sandy answered inside the retinopathy outreach protocol.',
+  })
+}
+
+export function recordModelBackstopHealth(
+  state: BackendState,
+  input: RecordModelBackstopHealthInput,
+): BackendState {
+  const alerts = input.status === 'available' ? [] : [opsAlert(input)]
+  const updated = {
+    ...state,
+    updatedAt: now(),
+    data: {
+      ...state.data,
+      opsAlerts: [...state.data.opsAlerts, ...alerts],
+    },
+  }
+
+  return appendAuditEvent(updated, {
+    actor: 'system',
+    action: 'model_backstop_health_recorded',
+    outcome: 'allowed',
+    sourceIds: [],
+    detail:
+      input.status === 'available'
+        ? 'Model backstop reported available.'
+        : `Model backstop reported ${input.status}: ${input.detail}`,
   })
 }
 

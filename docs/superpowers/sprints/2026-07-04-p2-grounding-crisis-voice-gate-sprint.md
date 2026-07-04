@@ -28,8 +28,8 @@ Phase 5 - Verified locally
 
 ## Implementation
 **Status:** verified locally
-**Proof:** `npm run test -- src/lib/grounding.test.ts src/lib/crisis-red-flags.test.ts src/lib/safety.test.ts server/actions.test.ts src/store/useStore.test.ts`; `npm run safety:gate`; `npm run ops:status -- --blockers`; `npm run build`; `npm test`
-**Ledger:** H1 closed locally; E1 remains open for model-backstop rule-gap workflow and degraded-model ops alerting; P2 remains blocked.
+**Proof:** `npm run test -- src/lib/grounding.test.ts src/lib/crisis-red-flags.test.ts src/lib/safety.test.ts server/actions.test.ts server/routes.test.ts src/store/useStore.test.ts`; `npm run safety:gate`; `npm run ops:status -- --blockers`; `npm run build`; `npm test`
+**Ledger:** H1 and E1 closed for the local P2 safety gate; real voice remains off because Realtime/WebRTC plumbing is not built.
 
 ## Next Action
-Build the E1 model-backstop rule-gap workflow and degraded-model ops alerting before real voice can exit P2.
+Build real voice Realtime/WebRTC session plumbing behind the existing flags.
