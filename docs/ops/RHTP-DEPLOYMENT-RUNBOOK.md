@@ -1,7 +1,26 @@
 # RHTP Deployment Runbook
 
-**Current allowed deployment:** demo/prototype only.
+**Current allowed deployment:** stakeholder demo/prototype only, using synthetic/local seed data.
 **Blocked deployment:** any real-PHI pilot.
+
+## Stakeholder No-PHI Demo
+
+The first version is a prototype for stakeholder review. It should show what the experience looks like; it must not touch real patient data.
+
+Before any stakeholder preview:
+
+```bash
+npm run ops:status -- --blockers
+npm run build
+```
+
+Required interpretation:
+
+- `ops:status -- --blockers` must show `No open demo blockers.`
+- `RHTP_REAL_PHI` stays off.
+- Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
+- Use the built-in synthetic/local seed data only.
+- Real-PHI blockers remain in the ledger, but they do not block this demo lane.
 
 ## Local App
 
@@ -117,7 +136,7 @@ This proves only the local policy boundary: Kentucky PHQ/GAD self-consent floor,
 
 ## Preview Deployment
 
-The repo has `vercel.json` configured for a static Vite app rewrite. Before a preview or production static deploy:
+The repo has `vercel.json` configured for a static Vite app rewrite. Before a stakeholder demo preview:
 
 ```bash
 npm run build
@@ -131,7 +150,7 @@ Then deploy with the chosen deployment tool and record:
   "url": "https://...",
   "deploymentId": "dpl_...",
   "commit": "...",
-  "proof": ["GET / returned 200"],
+  "proof": ["GET / returned 200", "synthetic/local seed data only", "RHTP_REAL_PHI off"],
   "phi": false
 }
 ```

@@ -1,10 +1,10 @@
 # RHTP Feature Flags
 
-**Status:** No production flags are flipped.
+**Status:** No production flags are flipped. Stakeholder demo uses synthetic/local data and does not require real-PHI flags.
 **Source of truth:** `docs/ops/rhtp-release-ledger.json`
 **Status command:** `npm run ops:status -- --flags`
 
-The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. The Vite browser bundle accepts `NEXT_PUBLIC_RHTP_REAL_VOICE` through `envPrefix` and also accepts `VITE_RHTP_REAL_VOICE` as a local alias. Other phase flags are still registry entries until runtime code is added. The table below is the deployment registry so future work has a known set of switches and cannot quietly expose unfinished rails.
+The server runtime now checks `RHTP_REAL_VOICE` for the Realtime session route. The Vite browser bundle accepts `NEXT_PUBLIC_RHTP_REAL_VOICE` through `envPrefix` and also accepts `VITE_RHTP_REAL_VOICE` as a local alias. Other phase flags are still registry entries until runtime code is added. The table below is the deployment registry so future work has a known set of switches and cannot quietly expose unfinished rails. For stakeholder demo, keep `RHTP_REAL_PHI=0` or unset.
 
 ## Registry
 

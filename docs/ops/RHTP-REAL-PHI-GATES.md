@@ -3,7 +3,15 @@
 **Status:** Blocked.
 **Source:** Appendix B and Appendix C of `docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md`.
 
-This file is the no-ambiguity gate for any deployment that touches real PHI. The current app can be deployed as a demo/prototype. It must not be treated as real-PHI pilot infrastructure until these controls are built, tested, and recorded in `docs/ops/rhtp-release-ledger.json`.
+This file is the no-ambiguity gate for any deployment that touches real PHI. The current app can be deployed as a stakeholder demo/prototype with synthetic/local seed data. These gates do not block the no-PHI demo lane; they only block real patient data, real outreach, production integrations, or any real-PHI pilot claim.
+
+For demo readiness, the source of truth is:
+
+```bash
+npm run ops:status -- --blockers
+```
+
+That command must show `No open demo blockers.`
 
 ## Existential Gates
 

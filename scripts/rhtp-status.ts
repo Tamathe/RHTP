@@ -8,6 +8,8 @@ interface PhaseEntry {
   status: string
   proof: string[]
   blockers: string[]
+  demoBlockers?: string[]
+  realPhiBlockers?: string[]
 }
 
 interface WorkstreamEntry {
@@ -27,6 +29,7 @@ interface BlockerEntry {
   status: string
   requiredControl: string
   source: string
+  appliesTo?: 'demo' | 'real_phi' | 'both'
 }
 
 interface FeatureFlagEntry {
@@ -74,96 +77,145 @@ interface ReleaseLedger {
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const ledgerPath = resolve(rootDir, 'docs/ops/rhtp-release-ledger.json')
 const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8')) as ReleaseLedger
-const args = new Set(process.argv.slice(2))
 
-function line(title: string): void {
-  console.log(`\n${title}`)
-  console.log('-'.repeat(title.length))
+function line(output: string[], title: string): void {
+  output.push(`\n${title}`)
+  output.push('-'.repeat(title.length))
 }
 
 function joinList(items: string[]): string {
   return items.length === 0 ? 'none' : items.join(', ')
 }
 
-function printOverview(): void {
-  console.log(`RHTP release ledger v${ledger.version}`)
-  console.log(`Updated: ${ledger.updatedAt}`)
-  console.log(`Source spec: ${ledger.sourceSpec}`)
-  console.log(`Current proof rung: ${ledger.currentProofRung}`)
-  console.log(`Summary: ${ledger.summary}`)
+function phaseRealPhiBlockers(phase: PhaseEntry): string[] {
+  if (phase.realPhiBlockers) return phase.realPhiBlockers
+  return phase.status.includes('real_phi_blocked') ? phase.blockers : []
 }
 
-function printPhases(): void {
-  line('Phases')
+function phaseDemoBlockers(phase: PhaseEntry): string[] {
+  if (phase.demoBlockers) return phase.demoBlockers
+  return phase.status.includes('real_phi_blocked') ? [] : phase.blockers
+}
+
+function appliesToRealPhi(blocker: BlockerEntry): boolean {
+  return blocker.appliesTo === undefined || blocker.appliesTo === 'real_phi' || blocker.appliesTo === 'both'
+}
+
+function appliesToDemo(blocker: BlockerEntry): boolean {
+  return blocker.appliesTo === 'demo' || blocker.appliesTo === 'both'
+}
+
+function printOverview(output: string[]): void {
+  output.push(`RHTP release ledger v${ledger.version}`)
+  output.push(`Updated: ${ledger.updatedAt}`)
+  output.push(`Source spec: ${ledger.sourceSpec}`)
+  output.push(`Current proof rung: ${ledger.currentProofRung}`)
+  output.push(`Summary: ${ledger.summary}`)
+}
+
+function printPhases(output: string[]): void {
+  line(output, 'Phases')
   for (const phase of ledger.phases) {
-    console.log(`${phase.id} ${phase.name}: ${phase.status} | blockers: ${joinList(phase.blockers)}`)
+    output.push(
+      `${phase.id} ${phase.name}: ${phase.status} | demo blockers: ${joinList(
+        phaseDemoBlockers(phase),
+      )} | real-PHI blockers: ${joinList(phaseRealPhiBlockers(phase))}`,
+    )
   }
 }
 
-function printWorkstreams(): void {
-  line('Workstreams')
+function printWorkstreams(output: string[]): void {
+  line(output, 'Workstreams')
   for (const workstream of ledger.workstreams) {
-    console.log(`${workstream.name}: ${workstream.status} (${workstream.phase})`)
+    output.push(`${workstream.name}: ${workstream.status} (${workstream.phase})`)
   }
 }
 
-function printBlockers(): void {
-  line('Open blockers')
+function printBlockers(output: string[]): void {
   const openBlockers = ledger.blockers.filter((blocker) => blocker.status !== 'closed')
-  for (const blocker of openBlockers) {
-    console.log(`${blocker.id} [${blocker.severity}] ${blocker.title}`)
-    console.log(`  Gate: ${blocker.phaseGate}`)
-    console.log(`  Control: ${blocker.requiredControl}`)
+  const realPhiBlockers = openBlockers.filter(appliesToRealPhi)
+  const demoBlockers = openBlockers.filter(appliesToDemo)
+
+  line(output, 'Open real-PHI blockers')
+  for (const blocker of realPhiBlockers) {
+    output.push(`${blocker.id} [${blocker.severity}] ${blocker.title}`)
+    output.push(`  Gate: ${blocker.phaseGate}`)
+    output.push(`  Control: ${blocker.requiredControl}`)
+  }
+
+  line(output, 'Open demo blockers')
+  if (demoBlockers.length === 0) {
+    output.push('No open demo blockers.')
+    return
+  }
+
+  for (const blocker of demoBlockers) {
+    output.push(`${blocker.id} [${blocker.severity}] ${blocker.title}`)
+    output.push(`  Gate: ${blocker.phaseGate}`)
+    output.push(`  Control: ${blocker.requiredControl}`)
   }
 }
 
-function printFlags(): void {
-  line('Feature flags')
+function printFlags(output: string[]): void {
+  line(output, 'Feature flags')
   for (const flag of ledger.featureFlags) {
-    console.log(`${flag.key}: ${flag.status} | current=${flag.currentValue} | default=${flag.defaultValue} | ${flag.exposure} | ${flag.phase}`)
-    console.log(`  Flip condition: ${flag.flipCondition}`)
+    output.push(`${flag.key}: ${flag.status} | current=${flag.currentValue} | default=${flag.defaultValue} | ${flag.exposure} | ${flag.phase}`)
+    output.push(`  Flip condition: ${flag.flipCondition}`)
   }
 }
 
-function printDeployTargets(): void {
-  line('Deploy targets')
+function printDeployTargets(output: string[]): void {
+  line(output, 'Deploy targets')
   for (const target of ledger.deployTargets) {
     const phi = target.phi ? 'real-PHI' : 'no-PHI'
-    console.log(`${target.name}: ${target.status} | ${phi} | command: ${target.command}`)
-    console.log(`  Proof required: ${joinList(target.proofRequired)}`)
+    output.push(`${target.name}: ${target.status} | ${phi} | command: ${target.command}`)
+    output.push(`  Proof required: ${joinList(target.proofRequired)}`)
   }
 }
 
-function printDecisions(): void {
-  line('Open decisions')
+function printDecisions(output: string[]): void {
+  line(output, 'Open decisions')
   const openDecisions = ledger.decisions.filter((decision) => decision.status !== 'closed')
   for (const decision of openDecisions) {
-    console.log(`${decision.id}: ${decision.title} | gate=${decision.phaseGate} | default=${decision.default}`)
+    output.push(`${decision.id}: ${decision.title} | gate=${decision.phaseGate} | default=${decision.default}`)
   }
 }
 
-function printNextActions(): void {
-  line('Next actions')
+function printNextActions(output: string[]): void {
+  line(output, 'Next actions')
   ledger.nextActions.forEach((action, index) => {
-    console.log(`${index + 1}. ${action}`)
+    output.push(`${index + 1}. ${action}`)
   })
 }
 
-if (args.has('--json')) {
-  console.log(JSON.stringify(ledger, null, 2))
-} else if (args.has('--blockers')) {
-  printOverview()
-  printBlockers()
-} else if (args.has('--flags')) {
-  printOverview()
-  printFlags()
-} else {
-  printOverview()
-  printPhases()
-  printWorkstreams()
-  printBlockers()
-  printFlags()
-  printDeployTargets()
-  printDecisions()
-  printNextActions()
+export function renderStatus(argList: string[] = []): string {
+  const args = new Set(argList)
+  const output: string[] = []
+
+  if (args.has('--json')) {
+    output.push(JSON.stringify(ledger, null, 2))
+  } else if (args.has('--blockers')) {
+    printOverview(output)
+    printBlockers(output)
+  } else if (args.has('--flags')) {
+    printOverview(output)
+    printFlags(output)
+  } else {
+    printOverview(output)
+    printPhases(output)
+    printWorkstreams(output)
+    printBlockers(output)
+    printFlags(output)
+    printDeployTargets(output)
+    printDecisions(output)
+    printNextActions(output)
+  }
+
+  return `${output.join('\n')}\n`
+}
+
+const isCliRun = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (isCliRun) {
+  process.stdout.write(renderStatus(process.argv.slice(2)))
 }

@@ -2,8 +2,8 @@
   "version": 1,
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
-  "currentProofRung": "local_demo_buildable_no_real_phi",
-  "summary": "P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2 wrong-patient local identity-corroboration gate is verified and wired into the local claims-ingest seam. The H2 local async access gate is verified with patient/pack-scoped short-lived tokens and broad-grant rejection. The H3 local Part 2 suppression gate is verified with sensitive facility/category stripping and fail-closed unknown dispositions. The H4 local break-glass gate is verified with request/approval, TTL, expired-read blocking, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, and category-match enforcement. The H5 local SMS disclosure gate is verified with approved EN/ES templates, deterministic slots, category exclusions, and disclosure linting. The D2 local adolescent consent gate is verified with Kentucky PHQ/GAD minor-consent floors, QMHP unaccompanied-youth verification, under-16 fail-closed behavior, substance-use self-consent, guardian proxy suppression, and clinician health-benefit override. The D4 local PDC diabetes adherence gate is verified with PDC-DR treatment-period math, diabetes all-class grouping, same-drug overlap carry-forward, insulin exclusion, unknown-drug review, and claims-floor refill-gap separation. The P3 local ingestion boundary is verified with registered source vocabulary, patient-access claims consent checks, FHIR provenance requirements, and E2/H2/H3 gate composition. The P5 local device boundary is verified with registered device sources, canonical unit checks, FHIR provenance, non-diagnostic insight summaries, unsafe action blocking, web/native gating, and the local D4 PDC policy. Live Realtime audio red-team and live p95/p99 latency proof remain pending. Real-PHI pilot remains blocked by production MPI/FHIR/HIE integration, production consent/RLS, production Part 2, production SMS, real device integrations, and deployment-substrate controls.",
+  "currentProofRung": "stakeholder_demo_ready_no_real_phi",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 and P8 remain not built. Real-PHI pilot remains blocked and out of scope for the stakeholder demo.",
   "phases": [
     {
       "id": "P0",
@@ -70,7 +70,7 @@
     {
       "id": "P3",
       "name": "Ingestion rail",
-      "status": "local_ingestion_boundary_verified_real_phi_blocked",
+      "status": "local_ingestion_boundary_verified_demo_ready_real_phi_blocked",
       "proof": [
         "npm run p3:gate",
         "server/p3-ingestion-rail.ts",
@@ -91,8 +91,15 @@
     {
       "id": "P4",
       "name": "Retinopathy pilot",
-      "status": "blocked",
-      "proof": [],
+      "status": "demo_ready_real_phi_blocked",
+      "proof": [
+        "src/App.tsx",
+        "src/components/phone/PhoneApp.tsx",
+        "src/components/hub/HubShell.tsx",
+        "src/golden-path.test.tsx",
+        "npm run build",
+        "docs/ops/red-team-results/2026-07-04-stakeholder-demo-readiness.md"
+      ],
       "blockers": ["E2", "H2", "H3", "H5"]
     },
     {
@@ -132,7 +139,7 @@
     {
       "id": "P7",
       "name": "Screenings and campaigns",
-      "status": "blocked",
+      "status": "demo_ready_real_phi_blocked",
       "proof": [
         "npm run d2:gate",
         "server/adolescent-consent-policy.ts",
@@ -412,8 +419,14 @@
       "name": "Deployment substrate",
       "status": "scaffolded",
       "phase": "Cross-phase",
-      "proof": ["docs/ops/RHTP-DEPLOYMENT-CONTROL.md", "docs/ops/RHTP-DEPLOYMENT-RUNBOOK.md", "scripts/rhtp-status.ts"],
-      "notes": "Status tracking exists. IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
+      "proof": [
+        "docs/ops/RHTP-DEPLOYMENT-CONTROL.md",
+        "docs/ops/RHTP-DEPLOYMENT-RUNBOOK.md",
+        "scripts/rhtp-status.ts",
+        "scripts/rhtp-status.test.ts",
+        "docs/ops/red-team-results/2026-07-04-stakeholder-demo-readiness.md"
+      ],
+      "notes": "Status tracking separates no-PHI stakeholder demo blockers from real-PHI blockers. IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
     }
   ],
   "blockers": [
@@ -706,10 +719,18 @@
     {
       "id": "vercel_static_preview",
       "name": "Static Vite preview",
-      "status": "ready_to_attempt",
+      "status": "ready_for_stakeholder_demo_attempt",
       "phi": false,
       "command": "npm run build",
       "proofRequired": ["deployment URL", "deployment id", "GET / returned 200"]
+    },
+    {
+      "id": "stakeholder_demo",
+      "name": "Stakeholder no-PHI demo",
+      "status": "ready_local_and_static_preview",
+      "phi": false,
+      "command": "npm run build",
+      "proofRequired": ["npm run build", "synthetic seed data only", "RHTP_REAL_PHI remains off"]
     },
     {
       "id": "real_phi_pilot",
@@ -752,6 +773,7 @@
   ],
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
+    "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, run npm run build, then deploy or preview the static Vite app.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
     "Run npm run identity:gate before claiming local E2 wrong-patient control proof.",
     "Run npm run async:gate before claiming local H2 async access proof.",

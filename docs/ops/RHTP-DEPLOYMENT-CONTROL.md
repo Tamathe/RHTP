@@ -1,6 +1,6 @@
 # RHTP Deployment Control
 
-**Status:** Local prototype and P1 backend are buildable. Real-PHI pilot deployment is blocked.
+**Status:** Stakeholder no-PHI demo is ready to preview with synthetic/local data. Real-PHI pilot deployment is blocked.
 **Source spec:** `docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md`
 **Ledger:** `docs/ops/rhtp-release-ledger.json`
 **Status command:** `npm run ops:status`
@@ -13,10 +13,11 @@ This is the operational wrapper around the production technical spec. The spec s
 |---|---|---|
 | Local app | Ready | Vite app can run from the repo with seed/demo data. |
 | Local backend | Ready | P1 backend can run locally with file-backed demo state. |
-| Static preview deploy | Ready to attempt | Vercel is configured for the Vite app, but no deploy was run in this pass. |
+| Stakeholder demo | Ready | Synthetic/local seed data only; real-PHI flags stay off. |
+| Static preview deploy | Ready for demo attempt | Vercel is configured for the Vite app, but no deploy was run in this pass. |
 | Real-PHI pilot | Blocked | Appendix B hard gates and high-severity controls are not closed. |
 
-Do not describe the platform as PHI-ready, pilot-ready, or production clinical infrastructure until the hard gates in `docs/ops/RHTP-REAL-PHI-GATES.md` are closed and recorded in the ledger.
+Do not describe the platform as PHI-ready, pilot-ready, or production clinical infrastructure until the hard gates in `docs/ops/RHTP-REAL-PHI-GATES.md` are closed and recorded in the ledger. For stakeholder review, describe it as a no-PHI prototype demo.
 
 ## Operating Rule
 
@@ -44,11 +45,11 @@ Every phase change updates the ledger first, then the docs:
 | P0 | Built and verified | Production-shaped retinopathy prototype exists in the React app. |
 | P1 | Built and verified | Backend persistence, audit, route handler, and local API server exist. |
 | P2 | Local voice red-team verified | Grounding verifier, crisis recall floor, model-backstop rule-gap ticketing, degraded-model ops alert state, server-gated Realtime client-secret minting, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook exist locally behind off-by-default flags. Live Realtime audio red-team and live p95/p99 latency proof remain pending. |
-| P3 | Local ingestion boundary verified, real-PHI blocked | P3 source registry and patient-access claims boundary are verified locally with consent checks, FHIR provenance, E2 identity corroboration, H2 async access composition, and H3 Part 2 composition. Real Blue Button/MCO/KHIE/FHIR-store adapters and production MPI/consent/RLS/Part 2 controls are not built. |
-| P4 | Not built, blocked | Retinopathy pilot cannot start until P2/P3 gates and production SMS controls close. Local H5 SMS template/lint control is verified, but SMS outreach is not production-ready. |
+| P3 | Local ingestion boundary verified, demo-ready, real-PHI blocked | P3 source registry and patient-access claims boundary are verified locally with consent checks, FHIR provenance, E2 identity corroboration, H2 async access composition, and H3 Part 2 composition. Real Blue Button/MCO/KHIE/FHIR-store adapters and production MPI/consent/RLS/Part 2 controls are not built and are not needed for the stakeholder demo. |
+| P4 | Demo-ready, real-PHI blocked | The retinopathy stakeholder story can be shown with synthetic/local data. Production pilot and SMS outreach still require P2/P3 real-PHI controls and production SMS operations. |
 | P5 | Local device boundary verified, real device rail blocked | Device source registry, canonical unit checks, FHIR provenance, non-diagnostic local insight summaries, unsafe device-action blocking, web/native gating, and local D4 PDC diabetes adherence policy/math are verified locally. Native shell, HealthKit/Health Connect, Dexcom API, production pharmacy claims feeds, stream storage, and production FHIR writes are not built. |
 | P6 | Not built | Protocol-pack platform proof remains future work; D4 no longer blocks the local pack-metrics policy, but P6 still needs actual zero-rail-code pack delivery. |
-| P7 | Blocked with local H4 and D2 gates verified | Break-glass request/approval, TTL, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, category-match enforcement, and Kentucky adolescent consent/proxy policy are verified locally. Screenings/campaigns still require production consent/RLS/proxy-portal controls and legal/clinical owner sign-off before real PHI. |
+| P7 | Demo-ready, real-PHI blocked with local H4 and D2 gates verified | Break-glass request/approval, TTL, post-hoc review, Part 2 purpose-consent, adolescent purpose-consent, guardian-proxy blocking, category-match enforcement, and Kentucky adolescent consent/proxy policy are verified locally. Stakeholders can see the safety story with synthetic data; screenings/campaigns still require production consent/RLS/proxy-portal controls and legal/clinical owner sign-off before real PHI. |
 | P8 | Not built | Scale/writeback remains future work. |
 
 ## Deploy Discipline
@@ -62,6 +63,7 @@ Every phase change updates the ledger first, then the docs:
 | Local P5 device boundary works | `npm run p5:gate` passes and the P5 result note is recorded. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
+| Stakeholder demo ready | `npm run ops:status -- --blockers` shows no open demo blockers, `npm run build` passes, and `RHTP_REAL_PHI` remains off. |
 | Preview deployed | Deployment URL, deployment id, and smoke result are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |
