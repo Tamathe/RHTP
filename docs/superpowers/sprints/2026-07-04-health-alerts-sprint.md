@@ -4,7 +4,7 @@
 **Plan:** docs/superpowers/plans/2026-07-04-health-alerts-plan.md
 
 ## Current Phase
-Phase 4 - Implementation approved
+Phase 5 - Implementation verified
 
 ## Phase 1 - Discovery
 **Status:** done
@@ -24,8 +24,16 @@ Phase 4 - Implementation approved
 **Spec approved:** yes
 
 ## Phase 4 - Handoff
-**Status:** active
+**Status:** done
 **Plan path:** docs/superpowers/plans/2026-07-04-health-alerts-plan.md
 
+## Phase 5 - Implementation
+**Status:** done
+**Implemented:** In-app Alert Center for medication, blood pressure, and symptom logging reminders.
+**Patient actions:** Mark done and Snooze.
+**Safety boundary:** Local routine support only; no diagnosis, dose changes, or replacement for clinician instructions.
+**Verification:** Focused tests passed, full test suite passed, production build passed.
+**Browser proof:** Health tab showed Alerts, medication/BP/symptom reminders, safety copy, Mark done state, Snooze state, and no console errors.
+
 ## Next Action
-Implement the approved in-app Alert Center.
+Connect alert events to a real notification channel or navigator queue when the production wedge needs it.

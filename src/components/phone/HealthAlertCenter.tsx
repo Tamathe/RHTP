@@ -67,7 +67,7 @@ export function HealthAlertCenter() {
                   <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-slate-600">
                     <Clock3 className="size-3.5" />
                     <span>{alert.nextDueLabel}</span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-400">-</span>
                     {alert.channel}
                   </div>
                   <p className="mt-2 text-xs text-slate-500">{alert.safety}</p>
