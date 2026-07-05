@@ -23,6 +23,14 @@ Required interpretation:
 - Real-PHI blockers remain in the ledger as parked production work, but they do not block this demo lane.
 - Health-info gates E2, H2, H3, H4, and H5 are deferred until a real-PHI pilot is intentionally pursued.
 
+Generate the copyable stakeholder handoff:
+
+```bash
+npm run release:packet
+```
+
+The packet reports the current commit, push status, proof rung, demo scope, parked real-PHI blockers, missing public-preview receipt, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
+
 ## Local App
 
 ```bash
@@ -174,6 +182,12 @@ npm run release:gate
 ```
 
 This proves the local no-PHI demo gate, production build, all local phase gates, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+
+Generate the stakeholder packet after `release:gate`:
+
+```bash
+npm run release:packet
+```
 
 Then deploy with the chosen deployment tool and record:
 

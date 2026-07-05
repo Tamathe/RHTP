@@ -14,6 +14,7 @@
     "preview:gate": "npm run demo:gate && tsx scripts/rhtp-static-preview-smoke.ts",
     "preview:verify": "tsx scripts/rhtp-public-preview-gate.ts",
     "release:gate": "tsx scripts/rhtp-local-release-gate.ts",
+    "release:packet": "tsx scripts/rhtp-stakeholder-release-packet.ts",
     "safety:gate": "tsx scripts/rhtp-safety-gate.ts",
     "identity:gate": "tsx scripts/rhtp-identity-gate.ts",
     "async:gate": "tsx scripts/rhtp-async-access-gate.ts",
