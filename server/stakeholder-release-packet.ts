@@ -14,6 +14,11 @@ export interface DeployTargetEntry {
   phi: boolean
 }
 
+export interface WorkstreamEntry {
+  id: string
+  status: string
+}
+
 export interface PrototypeScopeEntry {
   patientData: boolean
   allowedData: string[]
@@ -21,11 +26,19 @@ export interface PrototypeScopeEntry {
   healthInfoGatesDeferred: string[]
 }
 
+export interface SpecResidualEntry {
+  id: string
+  source: string
+  demoBlocker: boolean
+}
+
 export interface ReleaseLedger {
   currentProofRung: string
   prototypeScope?: PrototypeScopeEntry
   blockers: BlockerEntry[]
   deployTargets: DeployTargetEntry[]
+  specResiduals?: SpecResidualEntry[]
+  workstreams: WorkstreamEntry[]
 }
 
 export interface ReleasePacketGitState {
@@ -45,6 +58,13 @@ export interface StakeholderReleasePacketInput {
 }
 
 export interface StakeholderReleasePacket {
+  appendixBResiduals: {
+    crossCuttingProductionSubsystems: number
+    demoBlockers: string[]
+    mediumControls: number
+    namedBriefDemoPaths: number
+    rightToErasure: number
+  }
   allowedData: string[]
   branch: string
   commit: string
@@ -64,6 +84,14 @@ export interface StakeholderReleasePacket {
   shortCommit: string
   unpushedCommitCount: number
 }
+
+const namedBriefDemoWorkstreamIds = [
+  'coverage_logistics_demo_gate',
+  'discharge_explainer_demo_gate',
+  'billing_artifact_demo_gate',
+  'grant_reporting_demo_gate',
+  'navigator_enrollment_demo_gate',
+]
 
 function openBlockers(ledger: ReleaseLedger): BlockerEntry[] {
   return ledger.blockers.filter((blocker) => blocker.status !== 'closed')
@@ -93,11 +121,26 @@ function publicPreviewReceiptSummary(input: StakeholderReleasePacketInput): stri
   return input.publicPreviewReceiptExists ? 'recorded' : 'missing'
 }
 
+function appendixBResiduals(ledger: ReleaseLedger): StakeholderReleasePacket['appendixBResiduals'] {
+  const residuals = ledger.specResiduals ?? []
+
+  return {
+    crossCuttingProductionSubsystems: residuals.filter((residual) => residual.source === 'Appendix B.4').length,
+    demoBlockers: residuals.filter((residual) => residual.demoBlocker).map((residual) => residual.id),
+    mediumControls: residuals.filter((residual) => residual.source === 'Appendix B.3').length,
+    namedBriefDemoPaths: ledger.workstreams.filter((workstream) =>
+      namedBriefDemoWorkstreamIds.includes(workstream.id) && workstream.status.includes('local_demo_verified'),
+    ).length,
+    rightToErasure: residuals.filter((residual) => residual.source === 'Appendix B.6').length,
+  }
+}
+
 export function createStakeholderReleasePacket(input: StakeholderReleasePacketInput): StakeholderReleasePacket {
   const prototypeScope = input.ledger.prototypeScope
   const previewReceiptRecorded = input.publicPreviewReceipt !== undefined || input.publicPreviewReceiptExists
 
   return {
+    appendixBResiduals: appendixBResiduals(input.ledger),
     allowedData: prototypeScope?.allowedData ?? [],
     branch: input.git.branch,
     commit: input.git.commit,
@@ -163,6 +206,14 @@ export function renderStakeholderReleasePacketMarkdown(packet: StakeholderReleas
     `- Disallowed data: ${listOrNone(packet.disallowedData)}`,
     `- Open demo blockers: ${listOrNone(packet.openDemoBlockers)}`,
     `- Prototype-deferred health-information gates: ${listOrNone(packet.parkedRealPhiBlockers)}`,
+    '',
+    '## Appendix B Residuals',
+    '',
+    `- Medium controls tracked: \`${packet.appendixBResiduals.mediumControls}\``,
+    `- Cross-cutting production subsystems tracked: \`${packet.appendixBResiduals.crossCuttingProductionSubsystems}\``,
+    `- Named brief demo paths verified: \`${packet.appendixBResiduals.namedBriefDemoPaths}\``,
+    `- Right-to-erasure tracked: \`${packet.appendixBResiduals.rightToErasure}\``,
+    `- Residual demo blockers: ${listOrNone(packet.appendixBResiduals.demoBlockers)}`,
     '',
     '## Next Commands',
     '',
