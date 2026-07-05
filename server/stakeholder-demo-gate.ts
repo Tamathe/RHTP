@@ -87,14 +87,16 @@ function prototypeScopeDefersHealthInfoGates(): StakeholderDemoGateCase {
   const ok =
     scope !== undefined &&
     scope.patientData === false &&
-    scope.deferUntil === 'real_phi_pilot' &&
+    scope.deferUntil === 'outside_stakeholder_prototype' &&
     missingFromScope.length === 0 &&
     staleDeferred.length === 0
 
-  let detail = `deferred for real-PHI pilot: ${deferred.join(', ')}`
+  let detail = `deferred outside stakeholder prototype: ${deferred.join(', ')}`
   if (scope === undefined) detail = 'prototype scope missing'
   if (scope !== undefined && scope.patientData !== false) detail = 'prototype scope must declare patientData=false'
-  if (scope !== undefined && scope.deferUntil !== 'real_phi_pilot') detail = `unexpected deferUntil=${scope.deferUntil}`
+  if (scope !== undefined && scope.deferUntil !== 'outside_stakeholder_prototype') {
+    detail = `unexpected deferUntil=${scope.deferUntil}`
+  }
   if (missingFromScope.length > 0) detail = `missing deferred gates: ${missingFromScope.join(', ')}`
   if (staleDeferred.length > 0) detail = `stale deferred gates: ${staleDeferred.join(', ')}`
 

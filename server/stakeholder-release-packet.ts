@@ -59,7 +59,7 @@ export interface StakeholderReleasePacket {
   publicPreviewReceiptSummary: string
   publicPreviewStatus: 'missing_receipt' | 'verified'
   pushStatus: 'not_pushed' | 'pushed'
-  realPhiPilotStatus: 'blocked' | 'unknown'
+  realPhiPilotStatus: 'not_in_prototype' | 'blocked' | 'unknown'
   requiredCommands: string[]
   shortCommit: string
   unpushedCommitCount: number
@@ -82,8 +82,9 @@ function parkedRealPhiBlockers(ledger: ReleaseLedger): string[] {
     .map((blocker) => blocker.id)
 }
 
-function realPhiPilotStatus(ledger: ReleaseLedger): 'blocked' | 'unknown' {
+function realPhiPilotStatus(ledger: ReleaseLedger): 'not_in_prototype' | 'blocked' | 'unknown' {
   const target = ledger.deployTargets.find((deployTarget) => deployTarget.id === 'real_phi_pilot')
+  if (target?.status === 'not_in_prototype') return 'not_in_prototype'
   return target?.status === 'blocked' ? 'blocked' : 'unknown'
 }
 
@@ -133,6 +134,11 @@ function codeFence(lines: string[]): string {
   return ['```powershell', ...lines, '```'].join('\n')
 }
 
+function formatRealPhiPilotStatus(status: StakeholderReleasePacket['realPhiPilotStatus']): string {
+  if (status === 'not_in_prototype') return 'not in prototype scope'
+  return status
+}
+
 export function renderStakeholderReleasePacketMarkdown(packet: StakeholderReleasePacket): string {
   const lines = [
     '# RHTP Stakeholder Demo Release Packet',
@@ -149,14 +155,14 @@ export function renderStakeholderReleasePacketMarkdown(packet: StakeholderReleas
     `- Commit: \`${packet.shortCommit}\``,
     `- Push status: ${packet.pushStatus === 'not_pushed' ? `not pushed (\`${packet.unpushedCommitCount}\` local commits ahead of origin)` : 'pushed'}`,
     `- Public preview receipt: ${packet.publicPreviewReceiptSummary}`,
-    `- Real-PHI pilot: ${packet.realPhiPilotStatus}`,
+    `- Real-PHI pilot: ${formatRealPhiPilotStatus(packet.realPhiPilotStatus)}`,
     '',
     '## Demo Scope',
     '',
     `- Allowed data: ${listOrNone(packet.allowedData)}`,
     `- Disallowed data: ${listOrNone(packet.disallowedData)}`,
     `- Open demo blockers: ${listOrNone(packet.openDemoBlockers)}`,
-    `- Parked real-PHI blockers: ${listOrNone(packet.parkedRealPhiBlockers)}`,
+    `- Prototype-deferred health-information gates: ${listOrNone(packet.parkedRealPhiBlockers)}`,
     '',
     '## Next Commands',
     '',

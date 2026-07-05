@@ -37,7 +37,7 @@ describe('stakeholder release packet', () => {
       patientData: false,
       pushStatus: 'not_pushed',
       publicPreviewStatus: 'missing_receipt',
-      realPhiPilotStatus: 'blocked',
+      realPhiPilotStatus: 'not_in_prototype',
     })
     expect(packet.parkedRealPhiBlockers).toEqual(['E2', 'H2', 'H3', 'H4', 'H5'])
     expect(packet.openDemoBlockers).toEqual([])
@@ -59,7 +59,8 @@ describe('stakeholder release packet', () => {
     expect(markdown).toContain('- Patient data: `false`')
     expect(markdown).toContain('- Push status: not pushed (`28` local commits ahead of origin)')
     expect(markdown).toContain('- Public preview receipt: missing')
-    expect(markdown).toContain('- Parked real-PHI blockers: E2, H2, H3, H4, H5')
+    expect(markdown).toContain('- Real-PHI pilot: not in prototype scope')
+    expect(markdown).toContain('- Prototype-deferred health-information gates: E2, H2, H3, H4, H5')
     expect(markdown).toContain('npm run release:gate')
     expect(markdown).toContain('npm run preview:verify')
     expect(markdown).toContain('This packet does not prove public deployment, live alias routing, or real-PHI readiness.')

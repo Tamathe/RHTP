@@ -12,7 +12,7 @@ Cases: 6/6
 - stakeholder_demo_target_is_no_phi: pass (ready_local_and_static_preview; phi=false)
 - stakeholder_demo_phases_allow_only_real_phi_blockers: pass (demo-ready phases have no demo blockers)
 - stakeholder_demo_health_info_gates_are_real_phi_only: pass (open E/H gates are real-PHI only)
-- stakeholder_demo_prototype_scope_defers_health_info_gates: pass (deferred for real-PHI pilot: E2, H2, H3, H4, H5)
+- stakeholder_demo_prototype_scope_defers_health_info_gates: pass (deferred outside stakeholder prototype: E2, H2, H3, H4, H5)
 ```
 
 ```text
@@ -41,9 +41,9 @@ Cases: 5/5
 - The static bundle builds and serves locally through Vite preview.
 - The app shell is reachable at `/` and returns HTTP 200.
 - The Vercel SPA rewrite still points `/(.*)` to `/index.html`.
-- The preview lane remains no-PHI: `RHTP_REAL_PHI` is off or unset, and open E/H blockers remain real-PHI-only, parked, and deferred until a real-PHI pilot.
+- The preview lane remains no-PHI: `RHTP_REAL_PHI` is off or unset, and E/H health-information gates remain outside the stakeholder prototype.
 - This does not prove a public deployment URL, deployment id, or live Vercel alias.
 
 ## Residual
 
-External preview deployment still needs a deployment URL, deployment id, and smoke result recorded against the deployed URL. Real-PHI pilot deployment remains blocked.
+External preview deployment still needs a deployment URL, deployment id, and smoke result recorded against the deployed URL. Real-PHI pilot infrastructure is not in prototype scope.

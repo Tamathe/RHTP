@@ -145,7 +145,7 @@ function printPrototypeScope(output: string[]): void {
   output.push(`Allowed data: ${joinList(scope.allowedData)}`)
   output.push(`Disallowed data: ${joinList(scope.disallowedData)}`)
   output.push(`Required flag posture: ${scope.realPhiFlag}=off`)
-  output.push(`Health-info gates deferred for stakeholder demo: ${joinList(scope.healthInfoGatesDeferred)}`)
+  output.push(`Health-info gates deferred outside stakeholder prototype: ${joinList(scope.healthInfoGatesDeferred)}`)
 }
 
 function printPhases(output: string[]): void {
@@ -154,7 +154,7 @@ function printPhases(output: string[]): void {
     output.push(
       `${phase.id} ${phase.name}: ${phase.status} | demo blockers: ${joinList(
         phaseDemoBlockers(phase),
-      )} | real-PHI blockers: ${joinList(phaseRealPhiBlockers(phase))}`,
+      )} | production-only gates: ${joinList(phaseRealPhiBlockers(phase))}`,
     )
   }
 }
@@ -171,10 +171,10 @@ function printBlockers(output: string[]): void {
   const realPhiBlockers = openBlockers.filter(appliesToRealPhi)
   const demoBlockers = openBlockers.filter(appliesToDemo)
 
-  line(output, 'Parked real-PHI blockers (not demo blockers)')
+  line(output, 'Prototype-deferred health-information gates (not demo blockers)')
   for (const blocker of realPhiBlockers) {
     output.push(`${blocker.id} [${blocker.severity}] ${blocker.title}`)
-    output.push(`  Gate: ${blocker.phaseGate}`)
+    output.push(`  Production-only gate: ${blocker.phaseGate}`)
     output.push(`  Control: ${blocker.requiredControl}`)
   }
 

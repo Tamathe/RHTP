@@ -4,21 +4,21 @@ import { renderStatus } from './rhtp-status'
 import type { PreviewDeploymentReceipt } from '../server/deploy-receipt'
 
 describe('rhtp status output', () => {
-  it('separates stakeholder demo blockers from real-PHI blockers by phase', () => {
+  it('separates stakeholder demo blockers from production-only health-information gates by phase', () => {
     const output = renderStatus()
 
     expect(output).toContain(
-      'P4 Retinopathy pilot: demo_ready_real_phi_blocked | demo blockers: none | real-PHI blockers: E2, H2, H3, H5',
+      'P4 Retinopathy pilot: demo_ready_real_phi_blocked | demo blockers: none | production-only gates: E2, H2, H3, H5',
     )
     expect(output).toContain(
-      'P7 Screenings and campaigns: local_screening_campaign_gate_verified_demo_ready_real_phi_blocked | demo blockers: none | real-PHI blockers: H4',
+      'P7 Screenings and campaigns: local_screening_campaign_gate_verified_demo_ready_real_phi_blocked | demo blockers: none | production-only gates: H4',
     )
   })
 
-  it('prints real-PHI blockers separately from demo blockers', () => {
+  it('prints prototype-deferred health-information gates separately from demo blockers', () => {
     const output = renderStatus(['--blockers'])
 
-    expect(output).toContain('Parked real-PHI blockers (not demo blockers)')
+    expect(output).toContain('Prototype-deferred health-information gates (not demo blockers)')
     expect(output).toContain('Open demo blockers')
     expect(output).toContain('No open demo blockers.')
   })
@@ -28,7 +28,7 @@ describe('rhtp status output', () => {
 
     expect(output).toContain('Prototype scope')
     expect(output).toContain('Patient data: false')
-    expect(output).toContain('Health-info gates deferred for stakeholder demo: E2, H2, H3, H4, H5')
+    expect(output).toContain('Health-info gates deferred outside stakeholder prototype: E2, H2, H3, H4, H5')
   })
 
   it('prints a concise deploy ladder with public receipt state', () => {
@@ -40,7 +40,9 @@ describe('rhtp status output', () => {
     expect(output).toContain('Stakeholder release packet: available | no-PHI | command: npm run release:packet')
     expect(output).toContain('Static Vite preview: local_static_preview_verified_ready_for_deploy_attempt | no-PHI | command: npm run release:gate && npm run preview:verify')
     expect(output).toContain('Public preview receipt: missing')
-    expect(output).toContain('Real-PHI pilot infrastructure: blocked | real-PHI | command: not allowed yet')
+    expect(output).toContain(
+      'Real-PHI pilot infrastructure: not_in_prototype | real-PHI | command: not part of stakeholder prototype',
+    )
     expect(output).toContain('npm run release:gate')
     expect(output).toContain('npm run release:packet')
     expect(output).toContain('npm run preview:verify')

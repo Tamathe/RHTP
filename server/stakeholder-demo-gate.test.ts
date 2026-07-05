@@ -19,7 +19,7 @@ describe('runStakeholderDemoGate', () => {
       report.cases.find((testCase) => testCase.id === 'stakeholder_demo_prototype_scope_defers_health_info_gates'),
     ).toMatchObject({
       ok: true,
-      detail: 'deferred for real-PHI pilot: E2, H2, H3, H4, H5',
+      detail: 'deferred outside stakeholder prototype: E2, H2, H3, H4, H5',
     })
   })
 

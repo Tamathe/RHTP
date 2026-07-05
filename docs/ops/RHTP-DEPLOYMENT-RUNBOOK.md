@@ -1,7 +1,7 @@
 # RHTP Deployment Runbook
 
 **Current allowed deployment:** stakeholder demo/prototype only, using synthetic/local seed data.
-**Blocked deployment:** any real-PHI pilot.
+**Outside prototype scope:** any real-PHI pilot.
 
 ## Stakeholder No-PHI Demo
 
@@ -21,8 +21,8 @@ Required interpretation:
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
-- Real-PHI blockers remain in the ledger as parked production work, but they do not block this demo lane.
-- Health-info gates E2, H2, H3, H4, and H5 are deferred until a real-PHI pilot is intentionally pursued.
+- Health-information gates remain in the ledger as production-only work, but they do not block this demo lane.
+- Health-info gates E2, H2, H3, H4, and H5 are deferred outside the stakeholder prototype.
 
 Generate the copyable stakeholder handoff:
 
@@ -30,7 +30,7 @@ Generate the copyable stakeholder handoff:
 npm run release:packet
 ```
 
-The packet reports the current commit, push status, proof rung, demo scope, parked real-PHI blockers, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
+The packet reports the current commit, push status, proof rung, demo scope, prototype-deferred health-information gates, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
 
 ## Local App
 
