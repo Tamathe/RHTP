@@ -63,6 +63,37 @@ export interface CoverageNavigationOption {
   blockers: string[]
 }
 
+export interface PlainLanguageExplainerSection {
+  id: string
+  title: string
+  body: string
+  citationIds: string[]
+}
+
+export interface PlainLanguageExplainerQuestion {
+  id: string
+  question: string
+  answer: string
+  citationIds: string[]
+}
+
+export interface PlainLanguageExplainer {
+  id: string
+  patientId: string
+  title: string
+  sourceDocumentLabel: string
+  sourceDocumentRef: string
+  sourceFactIds: string[]
+  generatedAt: string
+  readingLevel: 'plain_language'
+  synthetic: boolean
+  patientDataIncluded: false
+  sections: PlainLanguageExplainerSection[]
+  questions: PlainLanguageExplainerQuestion[]
+  safetyBoundary: string
+  blockers: string[]
+}
+
 export interface ScreeningGap {
   id: string
   patientId: string

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FindScreeningScreen } from './FindScreeningScreen'
 import { HealthCompanionScreen } from './HealthCompanionScreen'
+import { AfterVisitExplainerScreen } from './AfterVisitExplainerScreen'
 import { PhoneFrame } from './PhoneFrame'
 import { PlanBuilderScreen } from './PlanBuilderScreen'
 import { ResultScreen } from './ResultScreen'
@@ -8,12 +9,13 @@ import { VoiceCompanionScreen } from './VoiceCompanionScreen'
 import { TodayScreen } from './TodayScreen'
 import { WhyItMattersScreen } from './WhyItMattersScreen'
 
-export type PhoneScreen = 'voice' | 'health' | 'today' | 'why' | 'find' | 'plan' | 'result'
+export type PhoneScreen = 'voice' | 'health' | 'visit' | 'today' | 'why' | 'find' | 'plan' | 'result'
 
-const ORDER: PhoneScreen[] = ['voice', 'health', 'today', 'why', 'find', 'plan', 'result']
+const ORDER: PhoneScreen[] = ['voice', 'health', 'visit', 'today', 'why', 'find', 'plan', 'result']
 const LABEL: Record<PhoneScreen, string> = {
   voice: 'Voice',
   health: 'Health',
+  visit: 'Visit',
   today: 'Today',
   why: 'Why',
   find: 'Find',
@@ -29,6 +31,7 @@ export function PhoneApp() {
       <PhoneFrame>
         {screen === 'voice' && <VoiceCompanionScreen />}
         {screen === 'health' && <HealthCompanionScreen />}
+        {screen === 'visit' && <AfterVisitExplainerScreen />}
         {screen === 'today' && <TodayScreen onNext={() => setScreen('find')} />}
         {screen === 'why' && <WhyItMattersScreen />}
         {screen === 'find' && <FindScreeningScreen onSelect={() => setScreen('plan')} />}

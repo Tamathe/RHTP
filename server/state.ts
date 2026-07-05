@@ -34,6 +34,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     clinicianWritebackDrafts: data.clinicianWritebackDrafts ?? [],
     grantReportPackets: data.grantReportPackets ?? [],
     coverageNavigationOptions: data.coverageNavigationOptions ?? [],
+    plainLanguageExplainers: data.plainLanguageExplainers ?? [],
   }
 }
 

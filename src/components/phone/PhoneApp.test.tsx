@@ -19,6 +19,9 @@ describe('PhoneApp', () => {
     expect(screen.getByText(/your health signals/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /blood pressure/i })).toBeInTheDocument()
 
+    await user.click(screen.getByRole('button', { name: 'Visit' }))
+    expect(screen.getByRole('heading', { name: /After-visit explainer/i })).toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Today' }))
     expect(screen.getByText(/your diabetes eye screening is due/i)).toBeInTheDocument()
 

@@ -18,6 +18,7 @@ import type {
   Patient,
   PatientConsent,
   PatientIdentity,
+  PlainLanguageExplainer,
   PriorityLabel,
   ProtocolEvent,
   RedFlagEvent,
@@ -42,6 +43,7 @@ export interface SeedState {
   dataSources: DataSource[]
   sites: ScreeningSite[]
   coverageNavigationOptions: CoverageNavigationOption[]
+  plainLanguageExplainers: PlainLanguageExplainer[]
   gaps: ScreeningGap[]
   barriers: Barrier[]
   carePlanTasks: CarePlanTask[]
@@ -202,6 +204,20 @@ const HERO_SOURCE_FACTS: SourceFact[] = [
     patientConfirmed: true,
     navigatorOverridden: false,
   },
+  {
+    id: 'fact_ruth_discharge_document',
+    patientId: HERO_ID,
+    label: 'Discharge summary DocumentReference',
+    value: 'Synthetic discharge document available for plain-language explanation',
+    sourceKind: 'hie',
+    sourceName: 'KHIE discharge demo DocumentReference',
+    retrievedAt: '2026-07-01',
+    effectiveDate: '2026-06-28',
+    confidence: 'confirmed',
+    patientConfirmed: false,
+    navigatorOverridden: false,
+    fhirRef: 'DocumentReference/ruth_discharge_demo',
+  },
 ]
 
 const HERO_PATIENT_IDENTITIES: PatientIdentity[] = [
@@ -322,6 +338,61 @@ const coverageNavigationOptions: CoverageNavigationOption[] = [
     requiresNavigatorConfirmation: true,
     synthetic: true,
     blockers: ['prototype_no_real_coverage_adjudication', 'prototype_no_ride_booking'],
+  },
+]
+
+const plainLanguageExplainers: PlainLanguageExplainer[] = [
+  {
+    id: 'explainer_ruth_discharge_demo',
+    patientId: HERO_ID,
+    title: 'After-visit explainer',
+    sourceDocumentLabel: 'Plain-language discharge summary from a synthetic KHIE document',
+    sourceDocumentRef: 'DocumentReference/ruth_discharge_demo',
+    sourceFactIds: ['fact_ruth_discharge_document'],
+    generatedAt: '2026-07-05T10:00:00',
+    readingLevel: 'plain_language',
+    synthetic: true,
+    patientDataIncluded: false,
+    sections: [
+      {
+        id: 'discharge_what_happened',
+        title: 'What happened',
+        body:
+          'The demo record says a hospital visit ended and a follow-up plan should be reviewed with the care team.',
+        citationIds: ['fact_ruth_discharge_document'],
+      },
+      {
+        id: 'discharge_what_to_do_next',
+        title: 'What to do next',
+        body:
+          'Bring the printed instructions, medicine list, and any new symptoms to the next visit so the care team can confirm the plan.',
+        citationIds: ['fact_ruth_discharge_document'],
+      },
+      {
+        id: 'discharge_when_to_get_help',
+        title: 'When to get help',
+        body:
+          'If symptoms suddenly get worse, use the urgent contact instructions from the discharge paperwork or call emergency services.',
+        citationIds: ['fact_ruth_discharge_document'],
+      },
+    ],
+    questions: [
+      {
+        id: 'ask_med_changes',
+        question: 'Did any medicines change?',
+        answer: 'Ask the care team to compare the current medicine list with the discharge paperwork.',
+        citationIds: ['fact_ruth_discharge_document'],
+      },
+      {
+        id: 'ask_follow_up',
+        question: 'When is follow-up due?',
+        answer: 'Ask the care team which appointment needs to happen first and who will help schedule it.',
+        citationIds: ['fact_ruth_discharge_document'],
+      },
+    ],
+    safetyBoundary:
+      'This is a plain-language guide for a synthetic demo. It does not replace discharge instructions or advice from the care team.',
+    blockers: ['prototype_no_real_hie_document', 'prototype_no_medical_advice'],
   },
 ]
 
@@ -749,6 +820,7 @@ export const seed: SeedState = {
   dataSources: [...P3_DATA_SOURCES, ...P5_DATA_SOURCES],
   sites,
   coverageNavigationOptions,
+  plainLanguageExplainers,
   gaps: [heroGap, ...backgroundGaps],
   barriers: [],
   carePlanTasks: [],

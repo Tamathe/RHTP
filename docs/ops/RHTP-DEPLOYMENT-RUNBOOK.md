@@ -15,11 +15,12 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 20/20`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 21/21`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `equity:gate` must show `Cases: 6/6` for the synthetic equity metric gate.
 - `grant:gate` must show `Cases: 5/5` for the synthetic grant reporting gate.
 - `coverage:gate` must show `Cases: 5/5` for the synthetic coverage and logistics gate.
+- `explainer:gate` must show `Cases: 5/5` for the synthetic discharge explainer gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
@@ -188,6 +189,16 @@ npm run grant:gate
 
 This proves only the local stakeholder-demo report shape: a synthetic monthly RHTP stakeholder report packet with recipient, cadence, reporting period, metric lines, equity alarm evidence, billing artifact evidence, and explicit export/delivery blocking. It does not deliver a report to a funder, submit payer reporting, publish public exports, prove production analytics, or use real patient data.
 
+## Discharge Explainer Demo Boundary
+
+The local no-PHI discharge explainer gate is:
+
+```bash
+npm run explainer:gate
+```
+
+This proves only the local stakeholder-demo explanation shape: a synthetic discharge `DocumentReference`, cited plain-language sections, cited patient questions, a patient-facing safety boundary, and explicit blocking for real HIE retrieval and medical advice. It does not retrieve CCD/discharge documents, reconcile medications, summarize real clinical data, replace discharge instructions, or use real patient data.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:
@@ -226,7 +237,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 
