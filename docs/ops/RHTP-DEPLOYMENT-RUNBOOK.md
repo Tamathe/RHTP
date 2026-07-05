@@ -15,13 +15,14 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 22/22`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 23/23`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `equity:gate` must show `Cases: 6/6` for the synthetic equity metric gate.
 - `grant:gate` must show `Cases: 5/5` for the synthetic grant reporting gate.
 - `coverage:gate` must show `Cases: 5/5` for the synthetic coverage and logistics gate.
 - `explainer:gate` must show `Cases: 5/5` for the synthetic discharge explainer gate.
 - `enrollment:gate` must show `Cases: 5/5` for the synthetic navigator enrollment gate.
+- `spec:gate` must show `Cases: 5/5` for Appendix B residual tracking.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
@@ -62,10 +63,12 @@ npm run ops:status
 npm run ops:status -- --blockers
 npm run ops:status -- --deploy
 npm run ops:status -- --flags
+npm run ops:status -- --residuals
 ```
 
 Use this before and after deploy work. The output is only as current as `docs/ops/rhtp-release-ledger.json`.
 Use `--deploy` for the concise proof ladder, deploy targets, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and next deploy actions.
+Use `--residuals` for the Appendix B production-residual inventory and its demo-blocker split.
 
 ## P2 Live Voice Drill
 
@@ -210,6 +213,16 @@ npm run enrollment:gate
 
 This proves only the local stakeholder-demo enrollment shape: navigator-attested in-person enrollment, a linked `proofed_in_person` demo identity row, offline-capable intake steps, trust-transfer handoff to patient login, and explicit blocking for real identity proofing and account creation. It does not issue credentials, create a production account, prove legal identity validation, sync offline production data, or use real patient data.
 
+## Appendix B Residual Tracking
+
+The local no-PHI Appendix B residual gate is:
+
+```bash
+npm run spec:gate
+```
+
+This proves only the tracking structure: Appendix B.3 medium controls, Appendix B.4 cross-cutting production subsystems, Appendix B.5 named brief demo paths, and Appendix B.6 right-to-erasure are represented in the ledger. It does not build production operations, lifecycle, localization, accessibility, FinOps, vendor-risk, IaC/private networking, telephony operations, or deletion/crypto-shredding rails.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:
@@ -248,7 +261,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, navigator enrollment gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, navigator enrollment gate, grant reporting gate, Appendix B residual gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 

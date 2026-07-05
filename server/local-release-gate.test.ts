@@ -28,6 +28,7 @@ const packageScripts: PackageScripts = {
   'explainer:gate': 'tsx scripts/rhtp-discharge-explainer-gate.ts',
   'enrollment:gate': 'tsx scripts/rhtp-navigator-enrollment-gate.ts',
   'grant:gate': 'tsx scripts/rhtp-grant-reporting-gate.ts',
+  'spec:gate': 'tsx scripts/rhtp-spec-residual-gate.ts',
   'preview:gate': 'npm run demo:gate && tsx scripts/rhtp-static-preview-smoke.ts',
   test: 'vitest run',
 }
@@ -59,6 +60,7 @@ describe('local release gate', () => {
       { id: 'explainer_gate', script: 'explainer:gate' },
       { id: 'enrollment_gate', script: 'enrollment:gate' },
       { id: 'grant_gate', script: 'grant:gate' },
+      { id: 'spec_residual_gate', script: 'spec:gate' },
       { id: 'preview_gate', script: 'preview:gate' },
       { id: 'test_suite', script: 'test' },
     ])

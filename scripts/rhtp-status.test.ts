@@ -65,4 +65,16 @@ describe('rhtp status output', () => {
       'Public preview receipt: recorded: https://rhtp-demo.vercel.app/ | deployment=dpl_123 | commit=abc123 | verified=2026-07-04T21:00:00.000Z',
     )
   })
+
+  it('prints Appendix B residuals as production-only tracking, not demo blockers', () => {
+    const output = renderStatus(['--residuals'])
+
+    expect(output).toContain('Appendix B residuals')
+    expect(output).toContain(
+      'Appendix B.4 B4_ACCESSIBILITY_WCAG: tracked_production_backlog | production | demo blocker=false',
+    )
+    expect(output).toContain(
+      'Appendix B.6 B6_RIGHT_TO_ERASURE_APPEND_ONLY_LOG: tracked_production_backlog | real_phi | demo blocker=false',
+    )
+  })
 })

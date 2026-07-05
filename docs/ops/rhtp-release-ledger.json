@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-05",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_release_gate_verified_no_real_phi",
-  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are explicitly deferred outside the stakeholder prototype, so they are not demo blockers. Local release proof is aggregated through npm run release:gate: it validates required scripts, excludes public preview verification, keeps RHTP_REAL_PHI off/unset, runs ops:status -- --blockers, all local phase gates, equity:gate, billing:gate, coverage:gate, explainer:gate, enrollment:gate, grant:gate, preview:gate, and the full test suite. Local static preview remains verified: demo:gate, build, Vite preview HTTP 200, Vite app-shell markers, and the Vercel SPA rewrite pass through npm run preview:gate. Public preview verification is wired through npm run preview:verify, which requires RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, fetches the deployed URL, and checks HTTPS, Vercel deployment id, HTTP 200, Vite app-shell markers, RHTP_REAL_PHI off/unset, and no demo blockers. A successful public verifier run can append a JSONL receipt when RHTP_RECORD_PREVIEW_RECEIPT=1, and the deploy status view plus stakeholder release packet read the latest receipt details when present, but no public preview receipt exists yet. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain production-only if a real-data program is deliberately pursued. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P7 local screenings/campaigns gate is verified: PHQ/GAD item text is locked, scoring and crisis routing are deterministic, SDOH flags are assistive-only, and vaccination campaign barriers reuse the navigator rail. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. The equity metrics demo lane is verified locally: synthetic aggregate metric snapshots are projected with small-cell suppression, device-owner disparity creates a program-review alarm, and device-owner metrics require a claims floor. The billing artifact demo lane is verified locally: synthetic CCM/RPM/APCM/CHW-style evidence is summarized, source-linked, and blocked from claim submission. The coverage logistics demo lane is verified locally: synthetic coverage and ride-support options link to seeded sites and Kentucky transportation resources, require navigator confirmation, and block real coverage adjudication or ride booking. The discharge explainer demo lane is verified locally: a synthetic no-PHI discharge DocumentReference drives cited plain-language sections and patient questions, with real HIE retrieval and medical advice blocked. The navigator enrollment demo lane is verified locally: synthetic in-person navigator attestation links to a proofed_in_person demo identity, offline-capable intake steps, and trust-transfer handoff while real identity proofing and account creation stay blocked. The grant reporting demo lane is verified locally: a synthetic no-PHI monthly RHTP stakeholder report packet defines recipient, cadence, metric lines, equity alarm links, billing evidence links, and blocks real export/delivery. Public preview deployment remains unproven; real-PHI pilot infrastructure is not in prototype scope.",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are explicitly deferred outside the stakeholder prototype, so they are not demo blockers. Local release proof is aggregated through npm run release:gate: it validates required scripts, excludes public preview verification, keeps RHTP_REAL_PHI off/unset, runs ops:status -- --blockers, all local phase gates, equity:gate, billing:gate, coverage:gate, explainer:gate, enrollment:gate, grant:gate, spec:gate, preview:gate, and the full test suite. Local static preview remains verified: demo:gate, build, Vite preview HTTP 200, Vite app-shell markers, and the Vercel SPA rewrite pass through npm run preview:gate. Appendix B residual tracking is verified locally through spec:gate: medium controls, cross-cutting production subsystems, named brief demo paths, and right-to-erasure are represented without becoming stakeholder-demo blockers. Public preview verification is wired through npm run preview:verify, which requires RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, fetches the deployed URL, and checks HTTPS, Vercel deployment id, HTTP 200, Vite app-shell markers, RHTP_REAL_PHI off/unset, and no demo blockers. A successful public verifier run can append a JSONL receipt when RHTP_RECORD_PREVIEW_RECEIPT=1, and the deploy status view plus stakeholder release packet read the latest receipt details when present, but no public preview receipt exists yet. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain production-only if a real-data program is deliberately pursued. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P7 local screenings/campaigns gate is verified: PHQ/GAD item text is locked, scoring and crisis routing are deterministic, SDOH flags are assistive-only, and vaccination campaign barriers reuse the navigator rail. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. The equity metrics demo lane is verified locally: synthetic aggregate metric snapshots are projected with small-cell suppression, device-owner disparity creates a program-review alarm, and device-owner metrics require a claims floor. The billing artifact demo lane is verified locally: synthetic CCM/RPM/APCM/CHW-style evidence is summarized, source-linked, and blocked from claim submission. The coverage logistics demo lane is verified locally: synthetic coverage and ride-support options link to seeded sites and Kentucky transportation resources, require navigator confirmation, and block real coverage adjudication or ride booking. The discharge explainer demo lane is verified locally: a synthetic no-PHI discharge DocumentReference drives cited plain-language sections and patient questions, with real HIE retrieval and medical advice blocked. The navigator enrollment demo lane is verified locally: synthetic in-person navigator attestation links to a proofed_in_person demo identity, offline-capable intake steps, and trust-transfer handoff while real identity proofing and account creation stay blocked. The grant reporting demo lane is verified locally: a synthetic no-PHI monthly RHTP stakeholder report packet defines recipient, cadence, metric lines, equity alarm links, billing evidence links, and blocks real export/delivery. Public preview deployment remains unproven; real-PHI pilot infrastructure is not in prototype scope.",
   "prototypeScope": {
     "id": "stakeholder_no_phi_demo",
     "name": "Stakeholder no-PHI prototype",
@@ -658,6 +658,10 @@
         "server/grant-reporting-gate.test.ts",
         "scripts/rhtp-grant-reporting-gate.ts",
         "npm run grant:gate",
+        "server/spec-residual-gate.ts",
+        "server/spec-residual-gate.test.ts",
+        "scripts/rhtp-spec-residual-gate.ts",
+        "npm run spec:gate",
         "server/stakeholder-release-packet.ts",
         "server/stakeholder-release-packet.test.ts",
         "scripts/rhtp-stakeholder-release-packet.ts",
@@ -680,7 +684,7 @@
         "docs/ops/red-team-results/2026-07-04-public-preview-verifier.md",
         "docs/ops/red-team-results/2026-07-04-local-release-gate.md"
       ],
-      "notes": "Status tracking separates no-PHI stakeholder demo blockers from prototype-deferred health-information gates. The deploy status view prints the proof rung, prototype scope, deploy targets, public-preview receipt state, latest JSONL receipt details when recorded, and next deploy actions without the full ledger noise. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, open E/H gates scoped to real-PHI only, and prototype scope deferring E2/H2/H3/H4/H5 outside the stakeholder prototype before running the build. The local release gate aggregates the no-PHI proof stack: ops:status -- --blockers, safety, identity, async, Part 2, SMS, D2, P3, D4, P5, H4, P6, P7, P8, equity, billing, coverage, explainer, enrollment, grant, preview:gate, and the full test suite. It intentionally excludes preview:verify, which belongs only after a public deployed URL and deployment id exist. The stakeholder release packet prints the current commit, branch, push status, proof rung, no-PHI scope, prototype-deferred health-information gates, public receipt state, latest JSONL receipt details when recorded, and exact next commands for push/deploy verification. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. A successful public verifier run prints a JSON receipt and can append it to docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl when RHTP_RECORD_PREVIEW_RECEIPT=1. The deploy status view and stakeholder release packet read docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl and print the latest preview URL, Vercel deployment id, commit, and verification time when a receipt exists. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
+      "notes": "Status tracking separates no-PHI stakeholder demo blockers from prototype-deferred health-information gates and Appendix B production residuals. The deploy status view prints the proof rung, prototype scope, deploy targets, public-preview receipt state, latest JSONL receipt details when recorded, and next deploy actions without the full ledger noise. The residual status view prints Appendix B.3, B.4, and B.6 production backlog items separately from demo blockers. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, open E/H gates scoped to real-PHI only, and prototype scope deferring E2/H2/H3/H4/H5 outside the stakeholder prototype before running the build. The local release gate aggregates the no-PHI proof stack: ops:status -- --blockers, safety, identity, async, Part 2, SMS, D2, P3, D4, P5, H4, P6, P7, P8, equity, billing, coverage, explainer, enrollment, grant, spec:gate, preview:gate, and the full test suite. It intentionally excludes preview:verify, which belongs only after a public deployed URL and deployment id exist. The spec residual gate verifies Appendix B.3 medium controls, B.4 cross-cutting production subsystems, B.5 named brief demo paths, and B.6 right-to-erasure tracking without turning production residuals into demo blockers. The stakeholder release packet prints the current commit, branch, push status, proof rung, no-PHI scope, prototype-deferred health-information gates, public receipt state, latest JSONL receipt details when recorded, and exact next commands for push/deploy verification. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. A successful public verifier run prints a JSON receipt and can append it to docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl when RHTP_RECORD_PREVIEW_RECEIPT=1. The deploy status view and stakeholder release packet read docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl and print the latest preview URL, Vercel deployment id, commit, and verification time when a receipt exists. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
     }
   ],
   "blockers": [
@@ -893,6 +897,176 @@
       "residual": "Closed as a local operating decision: native shell starts at P5 with the device rail. Device rail implementation remains future work."
     }
   ],
+  "specResiduals": [
+    {
+      "id": "B3_IDEMPOTENCY_PACK_VERSION",
+      "title": "Idempotency key includes pack_version and rule_version",
+      "source": "Appendix B.3",
+      "status": "tracked_production_backlog",
+      "phaseGate": "P6 production pack publication",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "P1/P6 event rail",
+      "proof": ["Appendix A 8.9", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Tracked as a production event-rail requirement. The stakeholder demo has no distributed production event writers."
+    },
+    {
+      "id": "B3_INSIGHT_RETRACTION_RECONCILIATION",
+      "title": "Insight retraction flags live tasks and patient notifications",
+      "source": "Appendix B.3",
+      "status": "tracked_production_backlog",
+      "phaseGate": "P5/P6 production insight lane",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "P5/P6 insight rail and navigator console",
+      "proof": ["Appendix A 8.4", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Tracked as production reconciliation work; the local demo does not ingest backfilled real facts."
+    },
+    {
+      "id": "B3_LANGUAGE_COMPLETE_COPY_LINT",
+      "title": "Copy-lint and grounding-verifier parity in every shipped language",
+      "source": "Appendix B.3",
+      "status": "local_control_partially_verified_production_backlog",
+      "phaseGate": "Before multilingual production outreach",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Content ops and Sandy safety",
+      "proof": ["npm run sms:gate", "npm run safety:gate", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Local EN/ES SMS disclosure and P2 safety gates exist. Production still needs language-complete content ops and red-team suites for every shipped language."
+    },
+    {
+      "id": "B3_STALE_FACT_REVERIFICATION",
+      "title": "Stale-fact re-verification before gap closure",
+      "source": "Appendix B.3",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before real claims/HIE gap closure",
+      "appliesTo": "real_phi",
+      "demoBlocker": false,
+      "owner": "P3 ingestion and navigator workflow",
+      "proof": ["docs/ops/rhtp-release-ledger.json"],
+      "notes": "Tracked as a production claims/HIE confirmation rule. Synthetic demo billing artifacts cannot close a real gap."
+    },
+    {
+      "id": "B3_THRESHOLD_REGATE",
+      "title": "Clinical-safety threshold changes require full versioned re-gate",
+      "source": "Appendix B.3",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before published production pack changes",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Clinical safety and content ops",
+      "proof": ["Appendix A 8.9", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Tracked as pack governance work. Local protocol-pack manifests are config-verified, not production-published."
+    },
+    {
+      "id": "B4_OPERATIONS_OBSERVABILITY_RELIABILITY",
+      "title": "Operations, observability, reliability, incident response, and clinical safety officer role",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before real-PHI pilot",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Operations",
+      "proof": ["docs/ops/RHTP-DEPLOYMENT-RUNBOOK.md", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "The local runbook covers demo proof. Production observability, paging, backup/restore, DR, abuse protection, and HIPAA breach workflow remain future work."
+    },
+    {
+      "id": "B4_PATIENT_PROGRAM_LIFECYCLE",
+      "title": "Patient and program lifecycle",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before real-PHI pilot",
+      "appliesTo": "real_phi",
+      "demoBlocker": false,
+      "owner": "Program operations",
+      "proof": ["docs/ops/rhtp-release-ledger.json"],
+      "notes": "Death, move, custody, incarceration, account recovery, phone-number reassignment, program wind-down, and escrow handling are real-data operations work."
+    },
+    {
+      "id": "B4_LOCALIZATION_TRANSLATION_PIPELINE",
+      "title": "Localization and translation pipeline",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before multilingual production launch",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Content ops",
+      "proof": ["npm run sms:gate", "npm run p7:gate", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Local gates pin selected EN/ES safety surfaces. Production still needs validated translation workflow, lockstep versioning, and TTS/read-aloud coverage."
+    },
+    {
+      "id": "B4_ACCESSIBILITY_WCAG",
+      "title": "Accessibility and WCAG acceptance gate",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before production patient launch",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Patient and navigator surfaces",
+      "proof": ["docs/ops/rhtp-release-ledger.json"],
+      "notes": "Tracked for production because WCAG 2.1 AA, keyboard, screen-reader, contrast, low-literacy, and accessibility_prefs rendering gates are not complete."
+    },
+    {
+      "id": "B4_FINOPS_COST_MODEL",
+      "title": "FinOps and cost model",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before scaled production cohorts",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Platform operations",
+      "proof": ["docs/ops/rhtp-release-ledger.json"],
+      "notes": "Per-patient, per-cohort, storage, embedding, quota, and cost-containment degradation policies remain production work."
+    },
+    {
+      "id": "B4_VENDOR_RISK_MODEL_ABSTRACTION",
+      "title": "Vendor risk and model abstraction",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before real-PHI AI vendor use",
+      "appliesTo": "real_phi",
+      "demoBlocker": false,
+      "owner": "Sandy AI platform",
+      "proof": ["npm run safety:gate", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Local safety gates exist. Production still needs vendor abstraction, failover, model deprecation, approved-answer degradation, and HIPAA eligibility monitoring."
+    },
+    {
+      "id": "B4_DEPLOYMENT_SUBSTRATE",
+      "title": "Deployment substrate",
+      "source": "Appendix B.4",
+      "status": "local_release_control_verified_production_backlog",
+      "phaseGate": "Before real-PHI pilot",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Platform operations",
+      "proof": ["npm run release:gate", "npm run preview:verify", "docs/ops/RHTP-DEPLOYMENT-CONTROL.md", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Local release and public-preview verification scaffolding exist. IaC, private network, environments, secrets, feature flags, canary/blue-green, and synthetic-PHI staging strategy remain production work."
+    },
+    {
+      "id": "B4_SMS_TELEPHONY_OPERATIONS",
+      "title": "SMS and telephony operational reality",
+      "source": "Appendix B.4",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before production SMS or telephony launch",
+      "appliesTo": "production",
+      "demoBlocker": false,
+      "owner": "Outreach operations",
+      "proof": ["npm run sms:gate", "docs/ops/rhtp-release-ledger.json"],
+      "notes": "Local SMS disclosure control exists. A2P registration, deliverability, receipt handling, silent-filter monitoring, and PSTN/IVR decision remain production work."
+    },
+    {
+      "id": "B6_RIGHT_TO_ERASURE_APPEND_ONLY_LOG",
+      "title": "Right-to-erasure over append-only event log",
+      "source": "Appendix B.6",
+      "status": "tracked_production_backlog",
+      "phaseGate": "Before real-PHI pilot",
+      "appliesTo": "real_phi",
+      "demoBlocker": false,
+      "owner": "Privacy and event rail",
+      "proof": ["docs/ops/rhtp-release-ledger.json"],
+      "notes": "Production deletion policy must reconcile crypto-shredding source facts with retained protocol-event skeletons. The stakeholder demo stores synthetic data only."
+    }
+  ],
   "featureFlags": [
     {
       "key": "RHTP_REAL_VOICE",
@@ -1017,6 +1191,7 @@
         "npm run explainer:gate",
         "npm run enrollment:gate",
         "npm run grant:gate",
+        "npm run spec:gate",
         "npm run preview:gate",
         "npm test",
         "RHTP_REAL_PHI remains off",
@@ -1121,6 +1296,7 @@
     "Run npm run explainer:gate before claiming local discharge explainer demo proof.",
     "Run npm run enrollment:gate before claiming local navigator enrollment demo proof.",
     "Run npm run grant:gate before claiming local grant reporting demo proof.",
+    "Run npm run spec:gate before claiming Appendix B residual tracking proof.",
     "Run npm run voice:live:preflight in a no-PHI environment with RHTP_REAL_VOICE, NEXT_PUBLIC_RHTP_REAL_VOICE or VITE_RHTP_REAL_VOICE, and OPENAI_API_KEY set; set RHTP_LIVE_VOICE_PROVIDER_MINT=1 only when provider timing is intended.",
     "Run the live Realtime audio retinopathy voice journey red-team with RHTP_REAL_VOICE and NEXT_PUBLIC_RHTP_REAL_VOICE enabled in a no-PHI browser environment, then record getMetricsReport().voiceTurnP95Ms and voiceTurnP99Ms.",
     "Measure live voice p95 and p99 latency before claiming P2 real voice exit.",

@@ -30,9 +30,10 @@ Validation: 3/3
 - explainer_gate: pass (explainer:gate)
 - enrollment_gate: pass (enrollment:gate)
 - grant_gate: pass (grant:gate)
+- spec_residual_gate: pass (spec:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 22/22
+Commands: 23/23
 ```
 
 ## Interpretation

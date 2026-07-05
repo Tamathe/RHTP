@@ -66,6 +66,19 @@ interface PrototypeScopeEntry {
   statement: string
 }
 
+interface SpecResidualEntry {
+  id: string
+  title: string
+  source: string
+  status: string
+  phaseGate: string
+  appliesTo: string
+  demoBlocker: boolean
+  owner: string
+  proof: string[]
+  notes: string
+}
+
 interface DecisionEntry {
   id: string
   title: string
@@ -84,6 +97,7 @@ interface ReleaseLedger {
   phases: PhaseEntry[]
   workstreams: WorkstreamEntry[]
   blockers: BlockerEntry[]
+  specResiduals?: SpecResidualEntry[]
   featureFlags: FeatureFlagEntry[]
   deployTargets: DeployTargetEntry[]
   decisions: DecisionEntry[]
@@ -191,6 +205,25 @@ function printBlockers(output: string[]): void {
   }
 }
 
+function printSpecResiduals(output: string[]): void {
+  line(output, 'Appendix B residuals')
+  const residuals = ledger.specResiduals ?? []
+  if (residuals.length === 0) {
+    output.push('No Appendix B residuals tracked.')
+    return
+  }
+
+  for (const residual of residuals) {
+    output.push(
+      `${residual.source} ${residual.id}: ${residual.status} | ${residual.appliesTo} | demo blocker=${residual.demoBlocker}`,
+    )
+    output.push(`  Gate: ${residual.phaseGate}`)
+    output.push(`  Owner: ${residual.owner}`)
+    output.push(`  Proof: ${joinList(residual.proof)}`)
+    output.push(`  Notes: ${residual.notes}`)
+  }
+}
+
 function printFlags(output: string[]): void {
   line(output, 'Feature flags')
   for (const flag of ledger.featureFlags) {
@@ -258,6 +291,10 @@ export function renderStatus(argList: string[] = [], options: StatusRenderOption
     printOverview(output)
     printPrototypeScope(output)
     printBlockers(output)
+  } else if (args.has('--residuals')) {
+    printOverview(output)
+    printPrototypeScope(output)
+    printSpecResiduals(output)
   } else if (args.has('--flags')) {
     printOverview(output)
     printPrototypeScope(output)
@@ -268,6 +305,7 @@ export function renderStatus(argList: string[] = [], options: StatusRenderOption
     printPhases(output)
     printWorkstreams(output)
     printBlockers(output)
+    printSpecResiduals(output)
     printFlags(output)
     printDeployTargets(output)
     printDecisions(output)
