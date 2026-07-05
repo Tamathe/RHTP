@@ -55,10 +55,12 @@ The backend is a P1 local demo backend with file-persisted seed state. It is not
 ```bash
 npm run ops:status
 npm run ops:status -- --blockers
+npm run ops:status -- --deploy
 npm run ops:status -- --flags
 ```
 
 Use this before and after deploy work. The output is only as current as `docs/ops/rhtp-release-ledger.json`.
+Use `--deploy` for the concise proof ladder, deploy targets, public-preview receipt state, and next deploy actions.
 
 ## P2 Live Voice Drill
 

@@ -521,6 +521,7 @@
         "package.json",
         "scripts/rhtp-status.ts",
         "scripts/rhtp-status.test.ts",
+        "npm run ops:status -- --deploy",
         "server/stakeholder-demo-gate.ts",
         "server/stakeholder-demo-gate.test.ts",
         "scripts/rhtp-stakeholder-demo-gate.ts",
@@ -549,7 +550,7 @@
         "docs/ops/red-team-results/2026-07-04-public-preview-verifier.md",
         "docs/ops/red-team-results/2026-07-04-local-release-gate.md"
       ],
-      "notes": "Status tracking separates no-PHI stakeholder demo blockers from parked real-PHI blockers. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, open E/H gates scoped to real-PHI only, and prototype scope deferring E2/H2/H3/H4/H5 until a real-PHI pilot before running the build. The local release gate aggregates the no-PHI proof stack: ops:status -- --blockers, safety, identity, async, Part 2, SMS, D2, P3, D4, P5, H4, P6, P7, P8, preview:gate, and the full test suite. It intentionally excludes preview:verify, which belongs only after a public deployed URL and deployment id exist. The stakeholder release packet prints the current commit, branch, push status, proof rung, no-PHI scope, parked real-PHI blockers, missing/recorded public receipt state, and exact next commands for push/deploy verification. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. A successful public verifier run prints a JSON receipt and can append it to docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl when RHTP_RECORD_PREVIEW_RECEIPT=1. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
+      "notes": "Status tracking separates no-PHI stakeholder demo blockers from parked real-PHI blockers. The deploy status view prints the proof rung, prototype scope, deploy targets, public-preview receipt state, and next deploy actions without the full ledger noise. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, open E/H gates scoped to real-PHI only, and prototype scope deferring E2/H2/H3/H4/H5 until a real-PHI pilot before running the build. The local release gate aggregates the no-PHI proof stack: ops:status -- --blockers, safety, identity, async, Part 2, SMS, D2, P3, D4, P5, H4, P6, P7, P8, preview:gate, and the full test suite. It intentionally excludes preview:verify, which belongs only after a public deployed URL and deployment id exist. The stakeholder release packet prints the current commit, branch, push status, proof rung, no-PHI scope, parked real-PHI blockers, missing/recorded public receipt state, and exact next commands for push/deploy verification. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. A successful public verifier run prints a JSON receipt and can append it to docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl when RHTP_RECORD_PREVIEW_RECEIPT=1. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
     }
   ],
   "blockers": [
@@ -956,7 +957,7 @@
     }
   ],
   "nextActions": [
-    "Run npm run ops:status before claiming current project state.",
+    "Run npm run ops:status -- --deploy before claiming deploy-readiness state.",
     "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, keep E2/H2/H3/H4/H5 deferred as real-PHI-pilot work, run npm run release:gate, generate the handoff with npm run release:packet, then deploy the static Vite app only when push/deploy is explicitly requested and verify the deployed URL with RHTP_PREVIEW_URL plus RHTP_DEPLOYMENT_ID plus RHTP_RECORD_PREVIEW_RECEIPT=1 and npm run preview:verify.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
     "Run npm run identity:gate before claiming local E2 wrong-patient control proof.",

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -87,8 +87,13 @@ interface ReleaseLedger {
   nextActions: string[]
 }
 
+interface StatusRenderOptions {
+  previewReceiptExists?: boolean
+}
+
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const ledgerPath = resolve(rootDir, 'docs/ops/rhtp-release-ledger.json')
+const previewReceiptPath = resolve(rootDir, 'docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl')
 const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8')) as ReleaseLedger
 
 function line(output: string[], title: string): void {
@@ -199,6 +204,21 @@ function printDeployTargets(output: string[]): void {
   }
 }
 
+function printDeployStatus(output: string[], options: StatusRenderOptions): void {
+  const previewReceiptExists = options.previewReceiptExists ?? existsSync(previewReceiptPath)
+  output.push('RHTP deploy status')
+  output.push(`Updated: ${ledger.updatedAt}`)
+  output.push(`Current proof rung: ${ledger.currentProofRung}`)
+  printPrototypeScope(output)
+  printDeployTargets(output)
+  output.push(`Public preview receipt: ${previewReceiptExists ? 'recorded' : 'missing'}`)
+  line(output, 'Next deploy actions')
+  output.push('1. npm run release:gate')
+  output.push('2. npm run release:packet')
+  output.push('3. Push/deploy only when explicitly requested.')
+  output.push('4. RHTP_PREVIEW_URL + RHTP_DEPLOYMENT_ID + RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify')
+}
+
 function printDecisions(output: string[]): void {
   line(output, 'Open decisions')
   const openDecisions = ledger.decisions.filter((decision) => decision.status !== 'closed')
@@ -214,12 +234,14 @@ function printNextActions(output: string[]): void {
   })
 }
 
-export function renderStatus(argList: string[] = []): string {
+export function renderStatus(argList: string[] = [], options: StatusRenderOptions = {}): string {
   const args = new Set(argList)
   const output: string[] = []
 
   if (args.has('--json')) {
     output.push(JSON.stringify(ledger, null, 2))
+  } else if (args.has('--deploy')) {
+    printDeployStatus(output, options)
   } else if (args.has('--blockers')) {
     printOverview(output)
     printPrototypeScope(output)

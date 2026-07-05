@@ -29,4 +29,19 @@ describe('rhtp status output', () => {
     expect(output).toContain('Patient data: false')
     expect(output).toContain('Health-info gates deferred for stakeholder demo: E2, H2, H3, H4, H5')
   })
+
+  it('prints a concise deploy ladder with public receipt state', () => {
+    const output = renderStatus(['--deploy'], { previewReceiptExists: false })
+
+    expect(output).toContain('RHTP deploy status')
+    expect(output).toContain('Current proof rung: local_release_gate_verified_no_real_phi')
+    expect(output).toContain('Local no-PHI release gate: verified | no-PHI | command: npm run release:gate')
+    expect(output).toContain('Stakeholder release packet: available | no-PHI | command: npm run release:packet')
+    expect(output).toContain('Static Vite preview: local_static_preview_verified_ready_for_deploy_attempt | no-PHI | command: npm run release:gate && npm run preview:verify')
+    expect(output).toContain('Public preview receipt: missing')
+    expect(output).toContain('Real-PHI pilot infrastructure: blocked | real-PHI | command: not allowed yet')
+    expect(output).toContain('npm run release:gate')
+    expect(output).toContain('npm run release:packet')
+    expect(output).toContain('npm run preview:verify')
+  })
 })
