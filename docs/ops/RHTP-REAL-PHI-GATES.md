@@ -8,10 +8,10 @@ This file is the no-ambiguity gate for any deployment that touches real PHI. The
 For demo readiness, the source of truth is:
 
 ```bash
-npm run preview:gate
+npm run release:gate
 ```
 
-That command must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate, then complete the build without enabling `RHTP_REAL_PHI`. The extra stakeholder-demo case asserts that the prototype scope declares `patientData=false` and defers E2, H2, H3, H4, and H5 until a real-PHI pilot.
+That command must show `Validation: 3/3`, `Commands: 16/16`, `Cases: 6/6` for the stakeholder demo gate, and `Cases: 5/5` for the static preview smoke gate, then complete the full local test suite without enabling `RHTP_REAL_PHI`. The extra stakeholder-demo case asserts that the prototype scope declares `patientData=false` and defers E2, H2, H3, H4, and H5 until a real-PHI pilot.
 
 ## Existential Gates
 

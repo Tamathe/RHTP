@@ -10,11 +10,12 @@ The first version is a prototype for stakeholder review. It should show what the
 Before any stakeholder preview:
 
 ```bash
-npm run preview:gate
+npm run release:gate
 ```
 
 Required interpretation:
 
+- `release:gate` must show `Validation: 3/3` and `Commands: 16/16`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
@@ -169,10 +170,10 @@ This proves only the local screenings/campaigns boundary: PHQ/GAD item text is l
 The repo has `vercel.json` configured for a static Vite app rewrite. Before a stakeholder demo preview:
 
 ```bash
-npm run preview:gate
+npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite.
+This proves the local no-PHI demo gate, production build, all local phase gates, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Then deploy with the chosen deployment tool and record:
 

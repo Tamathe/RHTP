@@ -15,6 +15,7 @@ This is the operational wrapper around the production technical spec. The spec s
 | Local backend | Ready | P1 backend can run locally with file-backed demo state. |
 | Stakeholder demo | Ready | Synthetic/local seed data only; real-PHI flags stay off. |
 | Static preview deploy | Local static preview verified | `npm run preview:gate` builds, serves the static bundle locally, fetches `/`, and verifies the no-PHI app shell plus Vercel SPA rewrite. No public deploy was run in this pass. |
+| Local release gate | Verified | `npm run release:gate` runs the local no-PHI proof stack: status blockers, all local phase gates, static preview smoke, and the full test suite. It intentionally excludes public preview verification. |
 | Real-PHI pilot | Blocked | Appendix B hard gates and high-severity controls are not closed. |
 
 Do not describe the platform as PHI-ready, pilot-ready, or production clinical infrastructure until the hard gates in `docs/ops/RHTP-REAL-PHI-GATES.md` are closed and recorded in the ledger. For stakeholder review, describe it as a no-PHI prototype demo.
@@ -68,6 +69,7 @@ Every phase change updates the ledger first, then the docs:
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Stakeholder demo ready | `npm run demo:gate` passes: no open demo blockers, `RHTP_REAL_PHI` off/unset, stakeholder target no-PHI, open E/H gates real-PHI-only, prototype scope says `patientData=false`, health-info gates are deferred for real-PHI pilot, and build passes. |
 | Local static preview works | `npm run preview:gate` passes: stakeholder demo gate, build, local Vite preview HTTP 200, app-shell markers, SPA rewrite, and no-PHI checks. |
+| Local release gate works | `npm run release:gate` passes: `ops:status -- --blockers`, all local phase gates, `npm run preview:gate`, and `npm test`; `preview:verify` is excluded until a public deployment exists. |
 | Preview deployed | `RHTP_PREVIEW_URL=https://... RHTP_DEPLOYMENT_ID=dpl_... RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify` passes and the URL, deployment id, commit, and JSONL receipt are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |
