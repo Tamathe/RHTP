@@ -15,7 +15,7 @@ This is the operational wrapper around the production technical spec. The spec s
 | Local backend | Ready | P1 backend can run locally with file-backed demo state. |
 | Stakeholder demo | Ready | Synthetic/local seed data only; real-PHI flags stay off. |
 | Static preview deploy | Local static preview verified | `npm run preview:gate` builds, serves the static bundle locally, fetches `/`, and verifies the no-PHI app shell plus Vercel SPA rewrite. No public deploy was run in this pass. |
-| Local release gate | Verified | `npm run release:gate` runs the local no-PHI proof stack: status blockers, all local phase gates, billing artifact gate, static preview smoke, and the full test suite. It intentionally excludes public preview verification. |
+| Local release gate | Verified | `npm run release:gate` runs the local no-PHI proof stack: status blockers, all local phase gates, equity metrics gate, billing artifact gate, static preview smoke, and the full test suite. It intentionally excludes public preview verification. |
 | Stakeholder packet | Available | `npm run release:packet` prints the current commit, push status, proof rung, demo scope, parked real-PHI blockers, missing public receipt, and next commands. |
 | Real-PHI pilot | Blocked | Appendix B hard gates and high-severity controls are not closed. |
 
@@ -66,12 +66,13 @@ Every phase change updates the ledger first, then the docs:
 | Local P6 protocol-pack config works | `npm run p6:gate` passes and the P6 result note is recorded. |
 | Local P7 screenings/campaigns boundary works | `npm run p7:gate` passes and the P7 result note is recorded. |
 | Local P8 writeback boundary works | `npm run p8:gate` passes and the P8 result note is recorded. |
+| Local equity metrics demo works | `npm run equity:gate` passes and the equity metrics result note is recorded; small-cell suppression and disparity alarms are synthetic aggregate demo proof only. |
 | Local billing artifact demo works | `npm run billing:gate` passes and the billing artifact result note is recorded; claim submission remains blocked. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
 | Stakeholder demo ready | `npm run demo:gate` passes: no open demo blockers, `RHTP_REAL_PHI` off/unset, stakeholder target no-PHI, open E/H gates real-PHI-only, prototype scope says `patientData=false`, health-info gates are deferred for real-PHI pilot, and build passes. |
 | Local static preview works | `npm run preview:gate` passes: stakeholder demo gate, build, local Vite preview HTTP 200, app-shell markers, SPA rewrite, and no-PHI checks. |
-| Local release gate works | `npm run release:gate` passes: `ops:status -- --blockers`, all local phase gates, `npm run billing:gate`, `npm run preview:gate`, and `npm test`; `preview:verify` is excluded until a public deployment exists. |
+| Local release gate works | `npm run release:gate` passes: `ops:status -- --blockers`, all local phase gates, `npm run equity:gate`, `npm run billing:gate`, `npm run preview:gate`, and `npm test`; `preview:verify` is excluded until a public deployment exists. |
 | Stakeholder handoff packet is current | `npm run release:packet` prints a packet whose push status, commit, public-preview receipt state, latest receipt URL/deployment/commit when recorded, proof rung, and blocker split match the current repo state. |
 | Deploy ladder is current | `npm run ops:status -- --deploy` prints the current proof rung, prototype scope, deploy targets, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and next deploy actions. |
 | Preview deployed | `RHTP_PREVIEW_URL=https://... RHTP_DEPLOYMENT_ID=dpl_... RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify` passes and the URL, deployment id, commit, and JSONL receipt are recorded. |

@@ -1,6 +1,6 @@
 # Local Release Gate Result
 
-**Date:** 2026-07-04
+**Date:** 2026-07-05
 **Command:** `npm run release:gate`
 **Proof rung:** local release gate verified, no real PHI
 
@@ -24,10 +24,11 @@ Validation: 3/3
 - p6_gate: pass (p6:gate)
 - p7_gate: pass (p7:gate)
 - p8_gate: pass (p8:gate)
+- equity_gate: pass (equity:gate)
 - billing_gate: pass (billing:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 17/17
+Commands: 18/18
 ```
 
 ## Interpretation

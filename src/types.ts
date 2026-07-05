@@ -117,6 +117,44 @@ export interface HubMetric {
   scope: 'cohort'
 }
 
+export type MetricSnapshotScope = 'cohort' | 'county' | 'language' | 'demographic' | 'device_owner'
+export type EquityMetricStage =
+  | 'insight_rate'
+  | 'outreach_rate'
+  | 'engagement_rate'
+  | 'outcome_rate'
+  | 'gap_closure_rate'
+
+export interface MetricSnapshotRow {
+  id: string
+  metricId: string
+  packId: string
+  stage: EquityMetricStage
+  scope: MetricSnapshotScope
+  stratum?: string
+  value: number
+  denominator: number
+  capturedAt: string
+  synthetic: boolean
+  suppressed?: boolean
+  suppressionReason?: string
+  claimsFloorPresent?: boolean
+}
+
+export interface EquityAlarm {
+  id: string
+  metricId: string
+  packId: string
+  stage: EquityMetricStage
+  stratum: MetricSnapshotScope
+  disparityRatio: number
+  threshold: number
+  claimsFloorPresent: boolean
+  sourceSnapshotIds: string[]
+  programReviewOnly: boolean
+  synthetic: boolean
+}
+
 export type BillingEvidenceCode = 'ccm' | 'rpm' | 'apcm' | 'chw'
 
 export interface BillingEvidenceRecord {

@@ -19,4 +19,13 @@ describe('ProgramOutcomesView', () => {
     const card = screen.getByText('Screenings scheduled').parentElement!
     expect(card).toHaveTextContent('6')
   })
+
+  it('shows the synthetic equity snapshot and program-review alarm', () => {
+    render(<ProgramOutcomesView />)
+
+    expect(screen.getByText(/Equity snapshot/i)).toBeInTheDocument()
+    expect(screen.getByText(/Small cells suppressed before display/i)).toBeInTheDocument()
+    expect(screen.getByText(/Program review alert/i)).toBeInTheDocument()
+    expect(screen.getByText(/Synthetic aggregate demo data/i)).toBeInTheDocument()
+  })
 })
