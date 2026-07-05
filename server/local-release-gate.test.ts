@@ -26,6 +26,7 @@ const packageScripts: PackageScripts = {
   'billing:gate': 'tsx scripts/rhtp-billing-artifact-gate.ts',
   'coverage:gate': 'tsx scripts/rhtp-coverage-logistics-gate.ts',
   'explainer:gate': 'tsx scripts/rhtp-discharge-explainer-gate.ts',
+  'enrollment:gate': 'tsx scripts/rhtp-navigator-enrollment-gate.ts',
   'grant:gate': 'tsx scripts/rhtp-grant-reporting-gate.ts',
   'preview:gate': 'npm run demo:gate && tsx scripts/rhtp-static-preview-smoke.ts',
   test: 'vitest run',
@@ -56,6 +57,7 @@ describe('local release gate', () => {
       { id: 'billing_gate', script: 'billing:gate' },
       { id: 'coverage_gate', script: 'coverage:gate' },
       { id: 'explainer_gate', script: 'explainer:gate' },
+      { id: 'enrollment_gate', script: 'enrollment:gate' },
       { id: 'grant_gate', script: 'grant:gate' },
       { id: 'preview_gate', script: 'preview:gate' },
       { id: 'test_suite', script: 'test' },
@@ -75,13 +77,13 @@ describe('local release gate', () => {
   })
 
   it('fails when a required script is missing', () => {
-    const { 'explainer:gate': _removed, ...incompleteScripts } = packageScripts
+    const { 'enrollment:gate': _removed, ...incompleteScripts } = packageScripts
     const report = validateLocalReleaseGate({ env: {}, packageScripts: incompleteScripts })
 
     expect(report.summary.ok).toBe(false)
     expect(report.cases.find((testCase) => testCase.id === 'local_release_required_scripts_exist')).toMatchObject({
       ok: false,
-      detail: 'missing scripts: explainer:gate',
+      detail: 'missing scripts: enrollment:gate',
     })
   })
 

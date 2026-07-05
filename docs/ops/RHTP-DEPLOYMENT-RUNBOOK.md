@@ -15,12 +15,13 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 21/21`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 22/22`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `equity:gate` must show `Cases: 6/6` for the synthetic equity metric gate.
 - `grant:gate` must show `Cases: 5/5` for the synthetic grant reporting gate.
 - `coverage:gate` must show `Cases: 5/5` for the synthetic coverage and logistics gate.
 - `explainer:gate` must show `Cases: 5/5` for the synthetic discharge explainer gate.
+- `enrollment:gate` must show `Cases: 5/5` for the synthetic navigator enrollment gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
@@ -199,6 +200,16 @@ npm run explainer:gate
 
 This proves only the local stakeholder-demo explanation shape: a synthetic discharge `DocumentReference`, cited plain-language sections, cited patient questions, a patient-facing safety boundary, and explicit blocking for real HIE retrieval and medical advice. It does not retrieve CCD/discharge documents, reconcile medications, summarize real clinical data, replace discharge instructions, or use real patient data.
 
+## Navigator Enrollment Demo Boundary
+
+The local no-PHI navigator enrollment gate is:
+
+```bash
+npm run enrollment:gate
+```
+
+This proves only the local stakeholder-demo enrollment shape: navigator-attested in-person enrollment, a linked `proofed_in_person` demo identity row, offline-capable intake steps, trust-transfer handoff to patient login, and explicit blocking for real identity proofing and account creation. It does not issue credentials, create a production account, prove legal identity validation, sync offline production data, or use real patient data.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:
@@ -237,7 +248,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, navigator enrollment gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 

@@ -94,6 +94,32 @@ export interface PlainLanguageExplainer {
   blockers: string[]
 }
 
+export interface NavigatorEnrollmentStep {
+  id: string
+  label: string
+  detail: string
+  status: 'complete' | 'blocked'
+}
+
+export interface NavigatorEnrollmentSession {
+  id: string
+  patientId: string
+  identityId: string
+  navigatorId: string
+  navigatorName: string
+  attestationLabel: 'Navigator-attested'
+  channel: 'in_person'
+  locationLabel: string
+  offlineCapable: boolean
+  proofingStatus: IdentityProofingStatus
+  trustTransferStatus: 'ready_for_patient_login' | 'blocked'
+  patientLoginHandoff: string
+  synthetic: boolean
+  patientDataIncluded: false
+  steps: NavigatorEnrollmentStep[]
+  blockers: string[]
+}
+
 export interface ScreeningGap {
   id: string
   patientId: string

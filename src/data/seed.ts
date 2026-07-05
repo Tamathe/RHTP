@@ -12,6 +12,7 @@ import type {
   GrantReportPacket,
   HubMetric,
   MetricSnapshotRow,
+  NavigatorEnrollmentSession,
   NavigatorTask,
   OpsAlert,
   NavigatorQueueItem,
@@ -44,6 +45,7 @@ export interface SeedState {
   sites: ScreeningSite[]
   coverageNavigationOptions: CoverageNavigationOption[]
   plainLanguageExplainers: PlainLanguageExplainer[]
+  navigatorEnrollmentSessions: NavigatorEnrollmentSession[]
   gaps: ScreeningGap[]
   barriers: Barrier[]
   carePlanTasks: CarePlanTask[]
@@ -233,6 +235,18 @@ const HERO_PATIENT_IDENTITIES: PatientIdentity[] = [
     createdAt: '2026-07-01T08:00:00',
     updatedAt: '2026-07-01T08:00:00',
   },
+  {
+    id: 'identity_ruth_navigator_attested',
+    patientId: HERO_ID,
+    externalSystem: 'rhtp_navigator_enrollment',
+    externalId: 'nav_attested_ruth_demo',
+    matchMethod: 'deterministic',
+    matchConfidence: 1,
+    proofingStatus: 'proofed_in_person',
+    confirmedByPatient: true,
+    createdAt: '2026-07-05T10:15:00',
+    updatedAt: '2026-07-05T10:15:00',
+  },
 ]
 
 const HERO_CONSENT: PatientConsent = {
@@ -393,6 +407,52 @@ const plainLanguageExplainers: PlainLanguageExplainer[] = [
     safetyBoundary:
       'This is a plain-language guide for a synthetic demo. It does not replace discharge instructions or advice from the care team.',
     blockers: ['prototype_no_real_hie_document', 'prototype_no_medical_advice'],
+  },
+]
+
+const navigatorEnrollmentSessions: NavigatorEnrollmentSession[] = [
+  {
+    id: 'enroll_ruth_in_person_demo',
+    patientId: HERO_ID,
+    identityId: 'identity_ruth_navigator_attested',
+    navigatorId: 'nav_dana',
+    navigatorName: 'Dana Miller',
+    attestationLabel: 'Navigator-attested',
+    channel: 'in_person',
+    locationLabel: 'Perry County clinic waiting room',
+    offlineCapable: true,
+    proofingStatus: 'proofed_in_person',
+    trustTransferStatus: 'ready_for_patient_login',
+    patientLoginHandoff: 'Demo handoff prepares the patient to use their own login after the visit.',
+    synthetic: true,
+    patientDataIncluded: false,
+    steps: [
+      {
+        id: 'enroll_confirm_presence',
+        label: 'Confirm patient is present',
+        detail: 'Navigator confirms the patient is physically present for the demo enrollment.',
+        status: 'complete',
+      },
+      {
+        id: 'enroll_review_consent',
+        label: 'Review consent scope',
+        detail: 'Navigator explains the no-PHI demo scope and what production consent would cover.',
+        status: 'complete',
+      },
+      {
+        id: 'enroll_offline_capture',
+        label: 'Capture offline intake',
+        detail: 'The session can be completed before network sync in a rural clinic setting.',
+        status: 'complete',
+      },
+      {
+        id: 'enroll_handoff_login',
+        label: 'Prepare patient login handoff',
+        detail: 'The demo marks the account handoff ready without creating real credentials.',
+        status: 'complete',
+      },
+    ],
+    blockers: ['prototype_no_real_identity_proofing', 'prototype_no_account_creation'],
   },
 ]
 
@@ -821,6 +881,7 @@ export const seed: SeedState = {
   sites,
   coverageNavigationOptions,
   plainLanguageExplainers,
+  navigatorEnrollmentSessions,
   gaps: [heroGap, ...backgroundGaps],
   barriers: [],
   carePlanTasks: [],

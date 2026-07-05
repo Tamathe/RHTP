@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Activity, BarChart3, ClipboardList, Inbox, ListChecks, Map, ReceiptText } from 'lucide-react'
+import { Activity, BarChart3, ClipboardList, Inbox, ListChecks, Map, ReceiptText, UserCheck } from 'lucide-react'
 import { BillingEvidenceView } from './BillingEvidenceView'
 import { ExpansionMapView } from './ExpansionMapView'
 import { GapListView } from './GapListView'
 import { NavigatorQueueView } from './NavigatorQueueView'
+import { NavigatorEnrollmentView } from './NavigatorEnrollmentView'
 import { PatientTimelineView } from './PatientTimelineView'
 import { ProgramOutcomesView } from './ProgramOutcomesView'
 import { ReferralQueueView } from './ReferralQueueView'
 
-export type HubView = 'queue' | 'gaps' | 'timeline' | 'referrals' | 'outcomes' | 'billing' | 'expansion'
+export type HubView = 'queue' | 'gaps' | 'timeline' | 'referrals' | 'outcomes' | 'billing' | 'enrollment' | 'expansion'
 
 const NAV: { view: HubView; label: string; Icon: LucideIcon }[] = [
   { view: 'queue', label: 'Navigator queue', Icon: ClipboardList },
@@ -18,6 +19,7 @@ const NAV: { view: HubView; label: string; Icon: LucideIcon }[] = [
   { view: 'referrals', label: 'Referral queue', Icon: Inbox },
   { view: 'outcomes', label: 'Program outcomes', Icon: BarChart3 },
   { view: 'billing', label: 'Billing evidence', Icon: ReceiptText },
+  { view: 'enrollment', label: 'Enrollment', Icon: UserCheck },
   { view: 'expansion', label: 'Expansion map', Icon: Map },
 ]
 
@@ -46,6 +48,7 @@ export function HubShell() {
         {view === 'referrals' && <ReferralQueueView />}
         {view === 'outcomes' && <ProgramOutcomesView />}
         {view === 'billing' && <BillingEvidenceView />}
+        {view === 'enrollment' && <NavigatorEnrollmentView />}
         {view === 'expansion' && <ExpansionMapView />}
       </main>
     </div>

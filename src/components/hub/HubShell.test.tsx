@@ -21,4 +21,13 @@ describe('HubShell', () => {
     expect(screen.getByRole('heading', { name: /billing evidence/i })).toBeInTheDocument()
     expect(screen.getByText(/Claim submission remains blocked/i)).toBeInTheDocument()
   })
+
+  it('opens the navigator enrollment view from hub navigation', () => {
+    render(<HubShell />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Enrollment/i }))
+
+    expect(screen.getByRole('heading', { name: /In-person enrollment/i })).toBeInTheDocument()
+    expect(screen.getByText(/Trust transfer ready/i)).toBeInTheDocument()
+  })
 })

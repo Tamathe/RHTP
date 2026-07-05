@@ -49,6 +49,7 @@ export const localReleaseGateCommands: LocalReleaseGateCommand[] = [
   { id: 'billing_gate', script: 'billing:gate' },
   { id: 'coverage_gate', script: 'coverage:gate' },
   { id: 'explainer_gate', script: 'explainer:gate' },
+  { id: 'enrollment_gate', script: 'enrollment:gate' },
   { id: 'grant_gate', script: 'grant:gate' },
   { id: 'preview_gate', script: 'preview:gate' },
   { id: 'test_suite', script: 'test' },

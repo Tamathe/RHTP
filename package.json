@@ -32,6 +32,7 @@
     "billing:gate": "tsx scripts/rhtp-billing-artifact-gate.ts",
     "coverage:gate": "tsx scripts/rhtp-coverage-logistics-gate.ts",
     "explainer:gate": "tsx scripts/rhtp-discharge-explainer-gate.ts",
+    "enrollment:gate": "tsx scripts/rhtp-navigator-enrollment-gate.ts",
     "grant:gate": "tsx scripts/rhtp-grant-reporting-gate.ts",
     "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "voice:live:preflight": "tsx scripts/rhtp-live-voice-drill.ts",

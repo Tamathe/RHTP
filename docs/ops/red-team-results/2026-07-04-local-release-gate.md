@@ -28,10 +28,11 @@ Validation: 3/3
 - billing_gate: pass (billing:gate)
 - coverage_gate: pass (coverage:gate)
 - explainer_gate: pass (explainer:gate)
+- enrollment_gate: pass (enrollment:gate)
 - grant_gate: pass (grant:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 21/21
+Commands: 22/22
 ```
 
 ## Interpretation
