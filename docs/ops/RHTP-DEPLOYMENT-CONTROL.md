@@ -72,7 +72,7 @@ Every phase change updates the ledger first, then the docs:
 | Local static preview works | `npm run preview:gate` passes: stakeholder demo gate, build, local Vite preview HTTP 200, app-shell markers, SPA rewrite, and no-PHI checks. |
 | Local release gate works | `npm run release:gate` passes: `ops:status -- --blockers`, all local phase gates, `npm run preview:gate`, and `npm test`; `preview:verify` is excluded until a public deployment exists. |
 | Stakeholder handoff packet is current | `npm run release:packet` prints a packet whose push status, commit, public-preview receipt state, proof rung, and blocker split match the current repo state. |
-| Deploy ladder is current | `npm run ops:status -- --deploy` prints the current proof rung, prototype scope, deploy targets, public-preview receipt state, and next deploy actions. |
+| Deploy ladder is current | `npm run ops:status -- --deploy` prints the current proof rung, prototype scope, deploy targets, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and next deploy actions. |
 | Preview deployed | `RHTP_PREVIEW_URL=https://... RHTP_DEPLOYMENT_ID=dpl_... RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify` passes and the URL, deployment id, commit, and JSONL receipt are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
 | Real-PHI ready | All hard gates are closed, vendor/cloud BAAs are recorded, and clinical safety sign-off is recorded. |

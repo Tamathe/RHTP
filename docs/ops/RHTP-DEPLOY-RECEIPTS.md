@@ -33,3 +33,11 @@ The verifier appends one JSON object per line only when all public-preview check
 - no open demo blockers.
 
 No receipt means no public preview deployment proof.
+
+After a receipt is recorded, check the deploy ladder:
+
+```powershell
+npm run ops:status -- --deploy
+```
+
+The deploy status view reads the latest JSONL receipt and prints the preview URL, Vercel deployment id, commit, and verification time.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { renderStatus } from './rhtp-status'
+import type { PreviewDeploymentReceipt } from '../server/deploy-receipt'
 
 describe('rhtp status output', () => {
   it('separates stakeholder demo blockers from real-PHI blockers by phase', () => {
@@ -43,5 +44,23 @@ describe('rhtp status output', () => {
     expect(output).toContain('npm run release:gate')
     expect(output).toContain('npm run release:packet')
     expect(output).toContain('npm run preview:verify')
+  })
+
+  it('prints the latest public preview receipt details when one is available', () => {
+    const previewReceipt: PreviewDeploymentReceipt = {
+      cases: [],
+      commit: 'abc123',
+      deploymentId: 'dpl_123',
+      phi: false,
+      proof: ['npm run preview:verify'],
+      target: 'vercel_static_preview',
+      url: 'https://rhtp-demo.vercel.app/',
+      verifiedAt: '2026-07-04T21:00:00.000Z',
+    }
+    const output = renderStatus(['--deploy'], { previewReceipt })
+
+    expect(output).toContain(
+      'Public preview receipt: recorded: https://rhtp-demo.vercel.app/ | deployment=dpl_123 | commit=abc123 | verified=2026-07-04T21:00:00.000Z',
+    )
   })
 })

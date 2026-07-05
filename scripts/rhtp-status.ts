@@ -2,6 +2,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import type { PreviewDeploymentReceipt } from '../server/deploy-receipt'
+import { latestPreviewDeploymentReceipt, summarizePreviewDeploymentReceipt } from '../server/deploy-receipt-log'
+
 interface PhaseEntry {
   id: string
   name: string
@@ -88,6 +91,7 @@ interface ReleaseLedger {
 }
 
 interface StatusRenderOptions {
+  previewReceipt?: PreviewDeploymentReceipt
   previewReceiptExists?: boolean
 }
 
@@ -204,14 +208,22 @@ function printDeployTargets(output: string[]): void {
   }
 }
 
+function previewReceiptSummary(options: StatusRenderOptions): string {
+  if (options.previewReceipt) return summarizePreviewDeploymentReceipt(options.previewReceipt)
+  if (options.previewReceiptExists === false) return 'missing'
+  if (!existsSync(previewReceiptPath)) return options.previewReceiptExists === true ? 'recorded' : 'missing'
+
+  const latestReceipt = latestPreviewDeploymentReceipt(readFileSync(previewReceiptPath, 'utf8'))
+  return latestReceipt ? summarizePreviewDeploymentReceipt(latestReceipt) : 'missing'
+}
+
 function printDeployStatus(output: string[], options: StatusRenderOptions): void {
-  const previewReceiptExists = options.previewReceiptExists ?? existsSync(previewReceiptPath)
   output.push('RHTP deploy status')
   output.push(`Updated: ${ledger.updatedAt}`)
   output.push(`Current proof rung: ${ledger.currentProofRung}`)
   printPrototypeScope(output)
   printDeployTargets(output)
-  output.push(`Public preview receipt: ${previewReceiptExists ? 'recorded' : 'missing'}`)
+  output.push(`Public preview receipt: ${previewReceiptSummary(options)}`)
   line(output, 'Next deploy actions')
   output.push('1. npm run release:gate')
   output.push('2. npm run release:packet')
