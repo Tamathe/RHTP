@@ -15,9 +15,10 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 18/18`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 19/19`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `equity:gate` must show `Cases: 6/6` for the synthetic equity metric gate.
+- `grant:gate` must show `Cases: 5/5` for the synthetic grant reporting gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
@@ -166,6 +167,16 @@ npm run billing:gate
 
 This proves only the local stakeholder-demo evidence shape: synthetic CCM-style time, RPM-style reading days, APCM/CHW documentation artifacts, source-event links, and explicit claim-submission blocking. It does not submit claims, call a payer, connect to EHR billing, prove financial compliance, or use real patient data.
 
+## Grant Reporting Demo Boundary
+
+The local no-PHI grant reporting gate is:
+
+```bash
+npm run grant:gate
+```
+
+This proves only the local stakeholder-demo report shape: a synthetic monthly RHTP stakeholder report packet with recipient, cadence, reporting period, metric lines, equity alarm evidence, billing artifact evidence, and explicit export/delivery blocking. It does not deliver a report to a funder, submit payer reporting, publish public exports, prove production analytics, or use real patient data.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:
@@ -204,7 +215,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, grant reporting gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 

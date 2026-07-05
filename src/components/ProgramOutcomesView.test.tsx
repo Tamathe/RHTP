@@ -28,4 +28,13 @@ describe('ProgramOutcomesView', () => {
     expect(screen.getByText(/Program review alert/i)).toBeInTheDocument()
     expect(screen.getByText(/Synthetic aggregate demo data/i)).toBeInTheDocument()
   })
+
+  it('shows the synthetic no-PHI grant report packet', () => {
+    render(<ProgramOutcomesView />)
+
+    expect(screen.getByText(/Grant report packet/i)).toBeInTheDocument()
+    expect(screen.getByText(/Synthetic no-PHI report packet/i)).toBeInTheDocument()
+    expect(screen.getByText(/RHTP stakeholder review/i)).toBeInTheDocument()
+    expect(screen.getByText(/Delivery remains blocked/i)).toBeInTheDocument()
+  })
 })

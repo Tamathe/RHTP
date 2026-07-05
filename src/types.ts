@@ -174,6 +174,35 @@ export interface BillingEvidenceRecord {
   notes: string
 }
 
+export type GrantReportCadence = 'monthly' | 'quarterly'
+export type GrantReportRecipientType = 'stakeholder_review' | 'grant_funder' | 'mco_partner'
+
+export interface GrantReportMetricLine {
+  id: string
+  label: string
+  metricId: string
+  value: number
+  denominator: number
+  sourceSnapshotIds: string[]
+  suppressedCount: number
+}
+
+export interface GrantReportPacket {
+  id: string
+  title: string
+  reportingPeriod: string
+  cadence: GrantReportCadence
+  recipient: string
+  recipientType: GrantReportRecipientType
+  generatedAt: string
+  synthetic: boolean
+  patientDataIncluded: false
+  metricLines: GrantReportMetricLine[]
+  equityAlarmIds: string[]
+  billingEvidenceIds: string[]
+  blockers: string[]
+}
+
 export type SourceKind =
   | 'hie'
   | 'claims'

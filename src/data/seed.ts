@@ -8,6 +8,7 @@ import type {
   DataSource,
   EquityAlarm,
   GapStatus,
+  GrantReportPacket,
   HubMetric,
   MetricSnapshotRow,
   NavigatorTask,
@@ -51,6 +52,7 @@ export interface SeedState {
   metricSnapshots: MetricSnapshotRow[]
   equityAlarms: EquityAlarm[]
   billingEvidenceRecords: BillingEvidenceRecord[]
+  grantReportPackets: GrantReportPacket[]
   sourceFacts: SourceFact[]
   patientIdentities: PatientIdentity[]
   consents: PatientConsent[]
@@ -643,6 +645,61 @@ const billingEvidenceRecords: BillingEvidenceRecord[] = [
   },
 ]
 
+const grantReportPackets: GrantReportPacket[] = [
+  {
+    id: 'grant_report_rhtp_july_demo',
+    title: 'RHTP stakeholder grant report',
+    reportingPeriod: '2026-07',
+    cadence: 'monthly',
+    recipient: 'RHTP stakeholder review',
+    recipientType: 'stakeholder_review',
+    generatedAt: '2026-07-05T09:00:00',
+    synthetic: true,
+    patientDataIncluded: false,
+    metricLines: [
+      {
+        id: 'grant_metric_eye_exam',
+        label: 'Retinopathy gap closure',
+        metricId: 'eye_exam',
+        value: 9,
+        denominator: 18,
+        sourceSnapshotIds: ['metric_eye_exam_cohort', 'metric_eye_exam_perry', 'metric_eye_exam_leslie'],
+        suppressedCount: 1,
+      },
+      {
+        id: 'grant_metric_bp_control',
+        label: 'Hypertension control',
+        metricId: 'bp_control',
+        value: 7,
+        denominator: 16,
+        sourceSnapshotIds: ['metric_bp_control_cohort', 'metric_bp_control_perry'],
+        suppressedCount: 0,
+      },
+      {
+        id: 'grant_metric_pdc',
+        label: 'Diabetes medication adherence',
+        metricId: 'pdc_diabetes',
+        value: 16,
+        denominator: 30,
+        sourceSnapshotIds: ['metric_pdc_cohort', 'metric_pdc_device_owner', 'metric_pdc_no_device'],
+        suppressedCount: 0,
+      },
+      {
+        id: 'grant_metric_transition',
+        label: 'Transitional care follow-up',
+        metricId: 'transitional_care',
+        value: 9,
+        denominator: 15,
+        sourceSnapshotIds: ['metric_transition_cohort', 'metric_transition_perry'],
+        suppressedCount: 0,
+      },
+    ],
+    equityAlarmIds: ['alarm_pdc_diabetes_device_owner_outcome_rate'],
+    billingEvidenceIds: ['bill_ccm_ruth_july', 'bill_rpm_ruth_july', 'bill_apcm_ruth_july', 'bill_chw_ruth_july'],
+    blockers: ['prototype_no_real_reporting_export', 'no_recipient_delivery'],
+  },
+]
+
 const referrals: Referral[] = [
   {
     id: 'ref_seed',
@@ -671,6 +728,7 @@ export const seed: SeedState = {
   metricSnapshots,
   equityAlarms,
   billingEvidenceRecords,
+  grantReportPackets,
   sourceFacts: HERO_SOURCE_FACTS,
   patientIdentities: HERO_PATIENT_IDENTITIES,
   consents: [HERO_CONSENT],

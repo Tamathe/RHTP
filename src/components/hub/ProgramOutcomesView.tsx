@@ -1,6 +1,7 @@
-import { AlertTriangle, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, FileText, ShieldCheck } from 'lucide-react'
 
 import { detectEquityAlarms, projectEquitySnapshots } from '../../lib/equity-metrics'
+import { summarizeGrantReport } from '../../lib/grant-reporting'
 import { useStore } from '../../store/useStore'
 
 function percent(value: number, denominator: number): string {
@@ -12,9 +13,11 @@ export function ProgramOutcomesView() {
   const metrics = useStore((state) => state.metrics)
   const metricSnapshots = useStore((state) => state.metricSnapshots)
   const seededEquityAlarms = useStore((state) => state.equityAlarms)
+  const grantReport = useStore((state) => state.grantReportPackets[0])
   const equityProjection = projectEquitySnapshots(metricSnapshots)
   const equityAlarms = seededEquityAlarms.length > 0 ? seededEquityAlarms : detectEquityAlarms(metricSnapshots)
   const visibleSnapshots = equityProjection.visible.filter((snapshot) => snapshot.scope !== 'cohort').slice(0, 4)
+  const grantSummary = grantReport ? summarizeGrantReport(grantReport) : null
 
   return (
     <div className="space-y-6">
@@ -82,6 +85,48 @@ export function ProgramOutcomesView() {
           </div>
         ))}
       </section>
+      {grantReport && grantSummary ? (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <FileText className="size-5 text-slate-700" />
+            <h3 className="text-lg font-extrabold text-slate-900">Grant report packet</h3>
+          </div>
+          <div className="rounded-lg border border-stone-200 bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold text-slate-900">Synthetic no-PHI report packet</div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {grantReport.reportingPeriod} | {grantReport.cadence} | {grantReport.recipient}
+                </div>
+              </div>
+              <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                Delivery remains blocked
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm md:grid-cols-4">
+              <div>
+                <div className="text-2xl font-extrabold text-slate-900">{grantSummary.metricCount}</div>
+                <div className="text-xs font-semibold uppercase text-slate-500">metric lines</div>
+              </div>
+              <div>
+                <div className="text-2xl font-extrabold text-slate-900">{grantSummary.equityAlarmCount}</div>
+                <div className="text-xs font-semibold uppercase text-slate-500">equity alerts</div>
+              </div>
+              <div>
+                <div className="text-2xl font-extrabold text-slate-900">{grantSummary.billingEvidenceCount}</div>
+                <div className="text-xs font-semibold uppercase text-slate-500">billing artifacts</div>
+              </div>
+              <div>
+                <div className="text-2xl font-extrabold text-slate-900">{grantSummary.suppressedRows}</div>
+                <div className="text-xs font-semibold uppercase text-slate-500">suppressed rows</div>
+              </div>
+            </div>
+            <div className="mt-4 text-xs font-semibold text-slate-500">
+              Blockers: {grantReport.blockers.join(', ')}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
