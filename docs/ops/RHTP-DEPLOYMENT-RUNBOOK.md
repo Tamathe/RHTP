@@ -15,11 +15,12 @@ npm run preview:gate
 
 Required interpretation:
 
-- `preview:gate` must show `Cases: 5/5` for both the stakeholder demo gate and the static preview smoke gate.
+- `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
 - Use the built-in synthetic/local seed data only.
-- Real-PHI blockers remain in the ledger, but they do not block this demo lane.
+- Real-PHI blockers remain in the ledger as parked production work, but they do not block this demo lane.
+- Health-info gates E2, H2, H3, H4, and H5 are deferred until a real-PHI pilot is intentionally pursued.
 
 ## Local App
 

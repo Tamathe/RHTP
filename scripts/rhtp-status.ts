@@ -51,6 +51,18 @@ interface DeployTargetEntry {
   proofRequired: string[]
 }
 
+interface PrototypeScopeEntry {
+  id: string
+  name: string
+  patientData: boolean
+  allowedData: string[]
+  disallowedData: string[]
+  realPhiFlag: string
+  healthInfoGatesDeferred: string[]
+  deferUntil: string
+  statement: string
+}
+
 interface DecisionEntry {
   id: string
   title: string
@@ -65,6 +77,7 @@ interface ReleaseLedger {
   sourceSpec: string
   currentProofRung: string
   summary: string
+  prototypeScope?: PrototypeScopeEntry
   phases: PhaseEntry[]
   workstreams: WorkstreamEntry[]
   blockers: BlockerEntry[]
@@ -113,6 +126,19 @@ function printOverview(output: string[]): void {
   output.push(`Summary: ${ledger.summary}`)
 }
 
+function printPrototypeScope(output: string[]): void {
+  const scope = ledger.prototypeScope
+  if (scope === undefined) return
+
+  line(output, 'Prototype scope')
+  output.push(`${scope.name}: ${scope.statement}`)
+  output.push(`Patient data: ${scope.patientData}`)
+  output.push(`Allowed data: ${joinList(scope.allowedData)}`)
+  output.push(`Disallowed data: ${joinList(scope.disallowedData)}`)
+  output.push(`Required flag posture: ${scope.realPhiFlag}=off`)
+  output.push(`Health-info gates deferred for stakeholder demo: ${joinList(scope.healthInfoGatesDeferred)}`)
+}
+
 function printPhases(output: string[]): void {
   line(output, 'Phases')
   for (const phase of ledger.phases) {
@@ -136,7 +162,7 @@ function printBlockers(output: string[]): void {
   const realPhiBlockers = openBlockers.filter(appliesToRealPhi)
   const demoBlockers = openBlockers.filter(appliesToDemo)
 
-  line(output, 'Open real-PHI blockers')
+  line(output, 'Parked real-PHI blockers (not demo blockers)')
   for (const blocker of realPhiBlockers) {
     output.push(`${blocker.id} [${blocker.severity}] ${blocker.title}`)
     output.push(`  Gate: ${blocker.phaseGate}`)
@@ -196,12 +222,15 @@ export function renderStatus(argList: string[] = []): string {
     output.push(JSON.stringify(ledger, null, 2))
   } else if (args.has('--blockers')) {
     printOverview(output)
+    printPrototypeScope(output)
     printBlockers(output)
   } else if (args.has('--flags')) {
     printOverview(output)
+    printPrototypeScope(output)
     printFlags(output)
   } else {
     printOverview(output)
+    printPrototypeScope(output)
     printPhases(output)
     printWorkstreams(output)
     printBlockers(output)

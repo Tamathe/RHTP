@@ -37,8 +37,15 @@ interface DeployTargetEntry {
   proofRequired: string[]
 }
 
+interface PrototypeScope {
+  patientData: boolean
+  healthInfoGatesDeferred: string[]
+  deferUntil: string
+}
+
 interface ReleaseLedger {
   currentProofRung: string
+  prototypeScope?: PrototypeScope
   phases: PhaseEntry[]
   blockers: BlockerEntry[]
   deployTargets: DeployTargetEntry[]
@@ -67,6 +74,35 @@ function openHealthInfoBlockers(): BlockerEntry[] {
   return ledger.blockers.filter(
     (blocker) => blocker.status !== 'closed' && (blocker.severity === 'existential' || blocker.severity === 'high'),
   )
+}
+
+function prototypeScopeDefersHealthInfoGates(): StakeholderDemoGateCase {
+  const scope = ledger.prototypeScope
+  const openRealPhiHealthInfoBlockers = openHealthInfoBlockers()
+    .filter((blocker) => blocker.appliesTo === 'real_phi')
+    .map((blocker) => blocker.id)
+  const deferred = scope?.healthInfoGatesDeferred ?? []
+  const missingFromScope = openRealPhiHealthInfoBlockers.filter((id) => !deferred.includes(id))
+  const staleDeferred = deferred.filter((id) => !openRealPhiHealthInfoBlockers.includes(id))
+  const ok =
+    scope !== undefined &&
+    scope.patientData === false &&
+    scope.deferUntil === 'real_phi_pilot' &&
+    missingFromScope.length === 0 &&
+    staleDeferred.length === 0
+
+  let detail = `deferred for real-PHI pilot: ${deferred.join(', ')}`
+  if (scope === undefined) detail = 'prototype scope missing'
+  if (scope !== undefined && scope.patientData !== false) detail = 'prototype scope must declare patientData=false'
+  if (scope !== undefined && scope.deferUntil !== 'real_phi_pilot') detail = `unexpected deferUntil=${scope.deferUntil}`
+  if (missingFromScope.length > 0) detail = `missing deferred gates: ${missingFromScope.join(', ')}`
+  if (staleDeferred.length > 0) detail = `stale deferred gates: ${staleDeferred.join(', ')}`
+
+  return {
+    id: 'stakeholder_demo_prototype_scope_defers_health_info_gates',
+    ok,
+    detail,
+  }
 }
 
 export function runStakeholderDemoGate(env: RuntimeEnv = process.env): StakeholderDemoGateReport {
@@ -117,6 +153,7 @@ export function runStakeholderDemoGate(env: RuntimeEnv = process.env): Stakehold
           ? 'open E/H gates are real-PHI only'
           : unscopedHealthInfoBlockers.join(','),
     },
+    prototypeScopeDefersHealthInfoGates(),
   ]
   const passed = cases.filter((testCase) => testCase.ok).length
 

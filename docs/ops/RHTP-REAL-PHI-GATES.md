@@ -11,7 +11,7 @@ For demo readiness, the source of truth is:
 npm run preview:gate
 ```
 
-That command must show `Cases: 5/5` for the stakeholder demo gate and the static preview smoke gate, then complete the build without enabling `RHTP_REAL_PHI`.
+That command must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate, then complete the build without enabling `RHTP_REAL_PHI`. The extra stakeholder-demo case asserts that the prototype scope declares `patientData=false` and defers E2, H2, H3, H4, and H5 until a real-PHI pilot.
 
 ## Existential Gates
 

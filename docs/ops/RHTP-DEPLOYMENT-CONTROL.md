@@ -66,7 +66,7 @@ Every phase change updates the ledger first, then the docs:
 | Local P8 writeback boundary works | `npm run p8:gate` passes and the P8 result note is recorded. |
 | Local H4 break-glass boundary works | `npm run h4:gate` passes and the H4 result note is recorded. |
 | Local D2 adolescent consent boundary works | `npm run d2:gate` passes and the D2 result note is recorded. |
-| Stakeholder demo ready | `npm run demo:gate` passes: no open demo blockers, `RHTP_REAL_PHI` off/unset, stakeholder target no-PHI, open E/H gates real-PHI-only, and build passes. |
+| Stakeholder demo ready | `npm run demo:gate` passes: no open demo blockers, `RHTP_REAL_PHI` off/unset, stakeholder target no-PHI, open E/H gates real-PHI-only, prototype scope says `patientData=false`, health-info gates are deferred for real-PHI pilot, and build passes. |
 | Local static preview works | `npm run preview:gate` passes: stakeholder demo gate, build, local Vite preview HTTP 200, app-shell markers, SPA rewrite, and no-PHI checks. |
 | Preview deployed | `RHTP_PREVIEW_URL=https://... RHTP_DEPLOYMENT_ID=dpl_... RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify` passes and the URL, deployment id, commit, and JSONL receipt are recorded. |
 | Feature flag flipped | Flag key, environment, value, actor, time, and redeploy requirement are recorded. |
