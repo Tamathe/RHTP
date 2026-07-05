@@ -19,8 +19,9 @@ RHTP_PREVIEW_URL is required
   - Vite app-shell markers.
   - `RHTP_REAL_PHI` off or unset.
   - no open demo blockers.
-- A successful run prints a one-line receipt with `target=vercel_static_preview`, URL, deployment id, and `phi=false`.
+- A successful run prints a one-line JSON receipt with `target=vercel_static_preview`, URL, deployment id, commit, proof list, case results, and `phi=false`.
+- When `RHTP_RECORD_PREVIEW_RECEIPT=1`, a successful run appends the receipt to `docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl`.
 
 ## Residual
 
-No public preview URL or deployment id has been produced in this pass. Public deployment remains unproven until the repo is pushed/deployed and `npm run preview:verify` passes against the deployed URL.
+No public preview URL or deployment id has been produced in this pass. Public deployment remains unproven until the repo is pushed/deployed and `npm run preview:verify` passes against the deployed URL. No JSONL deploy receipt has been recorded yet.

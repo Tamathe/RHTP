@@ -3,7 +3,7 @@
   "updatedAt": "2026-07-04",
   "sourceSpec": "docs/superpowers/specs/2026-07-04-rhtp-platform-technical-spec.md",
   "currentProofRung": "local_static_preview_verified_no_real_phi",
-  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. Local static preview is verified: demo:gate, build, Vite preview HTTP 200, Vite app-shell markers, and the Vercel SPA rewrite pass through npm run preview:gate. Public preview verification is wired through npm run preview:verify, which requires RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, fetches the deployed URL, and checks HTTPS, Vercel deployment id, HTTP 200, Vite app-shell markers, RHTP_REAL_PHI off/unset, and no demo blockers. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P7 local screenings/campaigns gate is verified: PHQ/GAD item text is locked, scoring and crisis routing are deterministic, SDOH flags are assistive-only, and vaccination campaign barriers reuse the navigator rail. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. Public preview deployment and real-PHI pilot remain unproven; real-PHI pilot is blocked and out of scope for the stakeholder demo.",
+  "summary": "The stakeholder demo lane is no-real-PHI and demo-ready with synthetic/local seed data; E/H health-information gates are tracked as real-PHI blockers, not demo blockers. Local static preview is verified: demo:gate, build, Vite preview HTTP 200, Vite app-shell markers, and the Vercel SPA rewrite pass through npm run preview:gate. Public preview verification is wired through npm run preview:verify, which requires RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, fetches the deployed URL, and checks HTTPS, Vercel deployment id, HTTP 200, Vite app-shell markers, RHTP_REAL_PHI off/unset, and no demo blockers. A successful public verifier run can append a JSONL receipt when RHTP_RECORD_PREVIEW_RECEIPT=1, but no public preview receipt exists yet. P0/P1 demo rails are built locally. H1 and E1 P2 safety gates are verified locally. Real voice server session plumbing, browser WebRTC attach code, transcript persistence, Sandy tool gateway routing, the no-PHI local voice red-team harness, live voice preflight command, and browser live-latency metrics hook are built behind off-by-default flags. The E2, H2, H3, H4, and H5 local controls are verified for demo/prototype evidence and remain real-PHI-only blockers until production integrations, consent/RLS/storage, SMS operations, and owner sign-off exist. P3 and P5 local boundaries are verified with synthetic sources and local gates. P6 protocol packs 2-4 are locally config-verified for the stakeholder demo: hypertension, PDC adherence, and transitional care are declared as manifests that reuse shared rails. P7 local screenings/campaigns gate is verified: PHQ/GAD item text is locked, scoring and crisis routing are deterministic, SDOH flags are assistive-only, and vaccination campaign barriers reuse the navigator rail. P8 local writeback boundary is verified for demo evidence: no clinician writeback without navigator review, prohibited content is blocked, the clinician surface is P8-gated and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. Public preview deployment and real-PHI pilot remain unproven; real-PHI pilot is blocked and out of scope for the stakeholder demo.",
   "phases": [
     {
       "id": "P0",
@@ -508,13 +508,16 @@
         "npm run preview:gate",
         "server/public-preview-gate.ts",
         "server/public-preview-gate.test.ts",
+        "server/deploy-receipt.ts",
+        "server/deploy-receipt.test.ts",
         "scripts/rhtp-public-preview-gate.ts",
         "npm run preview:verify",
+        "docs/ops/RHTP-DEPLOY-RECEIPTS.md",
         "docs/ops/red-team-results/2026-07-04-stakeholder-demo-readiness.md",
         "docs/ops/red-team-results/2026-07-04-static-preview-smoke.md",
         "docs/ops/red-team-results/2026-07-04-public-preview-verifier.md"
       ],
-      "notes": "Status tracking separates no-PHI stakeholder demo blockers from real-PHI blockers. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, and open E/H gates scoped to real-PHI only before running the build. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
+      "notes": "Status tracking separates no-PHI stakeholder demo blockers from real-PHI blockers. The stakeholder demo gate asserts no demo blockers, RHTP_REAL_PHI off/unset, stakeholder target no-PHI, demo-ready phases clear, and open E/H gates scoped to real-PHI only before running the build. The static preview smoke gate starts the built Vite preview, fetches /, checks HTTP 200, verifies the app shell and Vercel SPA rewrite, and keeps the lane no-PHI. The public preview verifier fails closed without RHTP_PREVIEW_URL and RHTP_DEPLOYMENT_ID, then verifies HTTPS URL, Vercel deployment id, HTTP 200, app shell, and no-PHI/demo-blocker status when a deployed URL exists. A successful public verifier run prints a JSON receipt and can append it to docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl when RHTP_RECORD_PREVIEW_RECEIPT=1. Public deploy URL proof, IaC, VPC, secrets, observability, and synthetic-PHI staging are not built."
     }
   ],
   "blockers": [
@@ -833,7 +836,7 @@
       "status": "local_static_preview_verified_ready_for_deploy_attempt",
       "phi": false,
       "command": "npm run preview:gate && npm run preview:verify",
-      "proofRequired": ["npm run preview:gate", "RHTP_PREVIEW_URL", "RHTP_DEPLOYMENT_ID", "npm run preview:verify", "GET / returned 200"]
+      "proofRequired": ["npm run preview:gate", "RHTP_PREVIEW_URL", "RHTP_DEPLOYMENT_ID", "npm run preview:verify", "GET / returned 200", "docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl receipt"]
     },
     {
       "id": "stakeholder_demo",
@@ -884,7 +887,7 @@
   ],
   "nextActions": [
     "Run npm run ops:status before claiming current project state.",
-    "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, run npm run preview:gate, then deploy the static Vite app only when push/deploy is explicitly requested and verify the deployed URL with RHTP_PREVIEW_URL plus RHTP_DEPLOYMENT_ID and npm run preview:verify.",
+    "For stakeholder demo, keep RHTP_REAL_PHI off, use only synthetic/local seed data, run npm run preview:gate, then deploy the static Vite app only when push/deploy is explicitly requested and verify the deployed URL with RHTP_PREVIEW_URL plus RHTP_DEPLOYMENT_ID plus RHTP_RECORD_PREVIEW_RECEIPT=1 and npm run preview:verify.",
     "Run npm run safety:gate before claiming P2 safety-gate proof.",
     "Run npm run identity:gate before claiming local E2 wrong-patient control proof.",
     "Run npm run async:gate before claiming local H2 async access proof.",

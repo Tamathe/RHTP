@@ -1,4 +1,13 @@
+import { execFileSync } from 'node:child_process'
+import { appendFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { createPreviewDeploymentReceipt, formatDeployReceiptLine } from '../server/deploy-receipt'
 import { runPublicPreviewGate } from '../server/public-preview-gate'
+
+const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const defaultReceiptPath = resolve(rootDir, 'docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl')
 
 function requiredEnv(name: 'RHTP_PREVIEW_URL' | 'RHTP_DEPLOYMENT_ID'): string {
   const value = process.env[name]?.trim()
@@ -7,6 +16,22 @@ function requiredEnv(name: 'RHTP_PREVIEW_URL' | 'RHTP_DEPLOYMENT_ID'): string {
   }
 
   return value
+}
+
+function optionalEnv(name: 'RHTP_DEPLOY_COMMIT' | 'RHTP_PREVIEW_RECEIPT_PATH'): string | undefined {
+  const value = process.env[name]?.trim()
+  return value === undefined || value.length === 0 ? undefined : value
+}
+
+function currentCommit(): string {
+  return (
+    optionalEnv('RHTP_DEPLOY_COMMIT') ??
+    execFileSync('git', ['rev-parse', 'HEAD'], { cwd: rootDir, encoding: 'utf8' }).trim()
+  )
+}
+
+function shouldRecordReceipt(): boolean {
+  return process.env.RHTP_RECORD_PREVIEW_RECEIPT === '1'
 }
 
 function printReport(responseUrl: string, report: ReturnType<typeof runPublicPreviewGate>): void {
@@ -28,6 +53,7 @@ async function main(): Promise<void> {
   try {
     const deploymentUrl = requiredEnv('RHTP_PREVIEW_URL')
     const deploymentId = requiredEnv('RHTP_DEPLOYMENT_ID')
+    const commit = currentCommit()
     const response = await fetchPreview(deploymentUrl)
     const responseBody = await response.text()
     const report = runPublicPreviewGate({
@@ -40,9 +66,21 @@ async function main(): Promise<void> {
     printReport(response.url, report)
 
     if (report.summary.ok) {
-      console.log(
-        `Receipt: target=vercel_static_preview url=${response.url} deploymentId=${deploymentId} phi=false`,
-      )
+      const receipt = createPreviewDeploymentReceipt({
+        commit,
+        deploymentId,
+        report,
+        responseUrl: response.url,
+        verifiedAt: new Date().toISOString(),
+      })
+      const receiptLine = formatDeployReceiptLine(receipt)
+      console.log(`Receipt: ${receiptLine.trim()}`)
+
+      if (shouldRecordReceipt()) {
+        const receiptPath = optionalEnv('RHTP_PREVIEW_RECEIPT_PATH') ?? defaultReceiptPath
+        appendFileSync(receiptPath, receiptLine, 'utf8')
+        console.log(`Recorded receipt: ${receiptPath}`)
+      }
     } else {
       process.exitCode = 1
     }

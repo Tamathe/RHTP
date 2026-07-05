@@ -178,10 +178,11 @@ Then deploy with the chosen deployment tool and record:
 ```bash
 $env:RHTP_PREVIEW_URL = "https://..."
 $env:RHTP_DEPLOYMENT_ID = "dpl_..."
+$env:RHTP_RECORD_PREVIEW_RECEIPT = "1"
 npm run preview:verify
 ```
 
-The verifier must show `Cases: 6/6` before the preview is called deployed. Record the printed receipt:
+The verifier must show `Cases: 6/6` before the preview is called deployed. With `RHTP_RECORD_PREVIEW_RECEIPT=1`, it appends a JSONL receipt to `docs/ops/RHTP-DEPLOY-RECEIPTS.jsonl`. Record the printed receipt:
 
 ```json
 {
