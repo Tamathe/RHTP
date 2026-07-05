@@ -1,9 +1,10 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import releaseLedger from '../docs/ops/rhtp-release-ledger.json'
+import { latestPreviewDeploymentReceipt } from '../server/deploy-receipt-log'
 import {
   createStakeholderReleasePacket,
   renderStakeholderReleasePacketMarkdown,
@@ -33,11 +34,18 @@ function outputPath(): string | undefined {
   return value === undefined || value.length === 0 ? undefined : resolve(rootDir, value)
 }
 
+function publicPreviewReceipt() {
+  if (!existsSync(defaultReceiptPath)) return undefined
+  return latestPreviewDeploymentReceipt(readFileSync(defaultReceiptPath, 'utf8'))
+}
+
+const previewReceipt = publicPreviewReceipt()
 const packet = createStakeholderReleasePacket({
   generatedAt: new Date().toISOString(),
   git: gitState(),
   ledger: releaseLedger as ReleaseLedger,
-  publicPreviewReceiptExists: existsSync(defaultReceiptPath),
+  publicPreviewReceipt: previewReceipt,
+  publicPreviewReceiptExists: previewReceipt !== undefined,
 })
 const markdown = renderStakeholderReleasePacketMarkdown(packet)
 const targetPath = outputPath()

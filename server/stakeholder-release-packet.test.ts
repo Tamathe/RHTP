@@ -7,6 +7,7 @@ import {
   renderStakeholderReleasePacketMarkdown,
   type ReleaseLedger,
 } from './stakeholder-release-packet'
+import type { PreviewDeploymentReceipt } from './deploy-receipt'
 
 const packetInput = {
   generatedAt: '2026-07-04T20:00:00.000Z',
@@ -62,5 +63,29 @@ describe('stakeholder release packet', () => {
     expect(markdown).toContain('npm run release:gate')
     expect(markdown).toContain('npm run preview:verify')
     expect(markdown).toContain('This packet does not prove public deployment, live alias routing, or real-PHI readiness.')
+  })
+
+  it('renders public preview receipt details when a receipt is available', () => {
+    const publicPreviewReceipt: PreviewDeploymentReceipt = {
+      cases: [],
+      commit: '8d54984d5a316d7300ec6b474d5563d247989da9',
+      deploymentId: 'dpl_receipt_123',
+      phi: false,
+      proof: ['npm run preview:verify'],
+      target: 'vercel_static_preview',
+      url: 'https://rhtp-demo.vercel.app/',
+      verifiedAt: '2026-07-04T21:30:00.000Z',
+    }
+    const markdown = renderStakeholderReleasePacketMarkdown(
+      createStakeholderReleasePacket({
+        ...packetInput,
+        publicPreviewReceipt,
+        publicPreviewReceiptExists: true,
+      }),
+    )
+
+    expect(markdown).toContain(
+      '- Public preview receipt: recorded: https://rhtp-demo.vercel.app/ | deployment=dpl_receipt_123 | commit=8d54984d5a316d7300ec6b474d5563d247989da9 | verified=2026-07-04T21:30:00.000Z',
+    )
   })
 })

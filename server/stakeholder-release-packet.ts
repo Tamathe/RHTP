@@ -1,3 +1,6 @@
+import type { PreviewDeploymentReceipt } from './deploy-receipt'
+import { summarizePreviewDeploymentReceipt } from './deploy-receipt-log'
+
 export interface BlockerEntry {
   id: string
   severity: string
@@ -37,6 +40,7 @@ export interface StakeholderReleasePacketInput {
   generatedAt: string
   git: ReleasePacketGitState
   ledger: ReleaseLedger
+  publicPreviewReceipt?: PreviewDeploymentReceipt
   publicPreviewReceiptExists: boolean
 }
 
@@ -52,6 +56,7 @@ export interface StakeholderReleasePacket {
   parkedRealPhiBlockers: string[]
   patientData: boolean
   proofRung: string
+  publicPreviewReceiptSummary: string
   publicPreviewStatus: 'missing_receipt' | 'verified'
   pushStatus: 'not_pushed' | 'pushed'
   realPhiPilotStatus: 'blocked' | 'unknown'
@@ -82,8 +87,14 @@ function realPhiPilotStatus(ledger: ReleaseLedger): 'blocked' | 'unknown' {
   return target?.status === 'blocked' ? 'blocked' : 'unknown'
 }
 
+function publicPreviewReceiptSummary(input: StakeholderReleasePacketInput): string {
+  if (input.publicPreviewReceipt) return summarizePreviewDeploymentReceipt(input.publicPreviewReceipt)
+  return input.publicPreviewReceiptExists ? 'recorded' : 'missing'
+}
+
 export function createStakeholderReleasePacket(input: StakeholderReleasePacketInput): StakeholderReleasePacket {
   const prototypeScope = input.ledger.prototypeScope
+  const previewReceiptRecorded = input.publicPreviewReceipt !== undefined || input.publicPreviewReceiptExists
 
   return {
     allowedData: prototypeScope?.allowedData ?? [],
@@ -97,7 +108,8 @@ export function createStakeholderReleasePacket(input: StakeholderReleasePacketIn
     parkedRealPhiBlockers: parkedRealPhiBlockers(input.ledger),
     patientData: prototypeScope?.patientData ?? true,
     proofRung: input.ledger.currentProofRung,
-    publicPreviewStatus: input.publicPreviewReceiptExists ? 'verified' : 'missing_receipt',
+    publicPreviewReceiptSummary: publicPreviewReceiptSummary(input),
+    publicPreviewStatus: previewReceiptRecorded ? 'verified' : 'missing_receipt',
     pushStatus: input.git.aheadOfOrigin > 0 ? 'not_pushed' : 'pushed',
     realPhiPilotStatus: realPhiPilotStatus(input.ledger),
     requiredCommands: [
@@ -136,7 +148,7 @@ export function renderStakeholderReleasePacketMarkdown(packet: StakeholderReleas
     `- Branch: \`${packet.branch}\``,
     `- Commit: \`${packet.shortCommit}\``,
     `- Push status: ${packet.pushStatus === 'not_pushed' ? `not pushed (\`${packet.unpushedCommitCount}\` local commits ahead of origin)` : 'pushed'}`,
-    `- Public preview receipt: ${packet.publicPreviewStatus === 'verified' ? 'recorded' : 'missing'}`,
+    `- Public preview receipt: ${packet.publicPreviewReceiptSummary}`,
     `- Real-PHI pilot: ${packet.realPhiPilotStatus}`,
     '',
     '## Demo Scope',

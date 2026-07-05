@@ -29,7 +29,7 @@ Generate the copyable stakeholder handoff:
 npm run release:packet
 ```
 
-The packet reports the current commit, push status, proof rung, demo scope, parked real-PHI blockers, missing public-preview receipt, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
+The packet reports the current commit, push status, proof rung, demo scope, parked real-PHI blockers, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
 
 ## Local App
 
