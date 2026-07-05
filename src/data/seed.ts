@@ -5,6 +5,7 @@ import type {
   BillingEvidenceRecord,
   CarePlanTask,
   ClinicianWritebackDraft,
+  CoverageNavigationOption,
   DataSource,
   EquityAlarm,
   GapStatus,
@@ -40,6 +41,7 @@ export interface SeedState {
   patients: Patient[]
   dataSources: DataSource[]
   sites: ScreeningSite[]
+  coverageNavigationOptions: CoverageNavigationOption[]
   gaps: ScreeningGap[]
   barriers: Barrier[]
   carePlanTasks: CarePlanTask[]
@@ -290,6 +292,36 @@ const sites: ScreeningSite[] = [
     nextAvailableHours: 20,
     rideSupport: false,
     lowCost: false,
+  },
+]
+
+const coverageNavigationOptions: CoverageNavigationOption[] = [
+  {
+    id: 'coverage_ruth_mobile_fqhc_demo',
+    siteId: 'site_fqhc_mobile',
+    patientId: HERO_ID,
+    payerLabel: 'Kentucky Medicaid MCO demo',
+    coverageStatus: 'likely_covered',
+    basis: 'fqhc_program',
+    estimatedPatientCost: '$0-25 demo estimate',
+    rideOption: 'LKLP Community Action Council transportation',
+    rideResourceId: 'lklp_transportation_region_13',
+    requiresNavigatorConfirmation: true,
+    synthetic: true,
+    blockers: ['prototype_no_real_coverage_adjudication', 'prototype_no_ride_booking'],
+  },
+  {
+    id: 'coverage_ruth_hazard_fqhc_demo',
+    siteId: 'site_fqhc',
+    patientId: HERO_ID,
+    payerLabel: 'FQHC sliding-fee demo',
+    coverageStatus: 'navigator_review_required',
+    basis: 'navigator_attested',
+    estimatedPatientCost: 'Navigator must confirm demo estimate',
+    rideOption: 'Navigator confirms local ride path',
+    requiresNavigatorConfirmation: true,
+    synthetic: true,
+    blockers: ['prototype_no_real_coverage_adjudication', 'prototype_no_ride_booking'],
   },
 ]
 
@@ -716,6 +748,7 @@ export const seed: SeedState = {
   patients: [hero, ...backgroundPatients],
   dataSources: [...P3_DATA_SOURCES, ...P5_DATA_SOURCES],
   sites,
+  coverageNavigationOptions,
   gaps: [heroGap, ...backgroundGaps],
   barriers: [],
   carePlanTasks: [],

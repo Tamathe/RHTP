@@ -26,10 +26,11 @@ Validation: 3/3
 - p8_gate: pass (p8:gate)
 - equity_gate: pass (equity:gate)
 - billing_gate: pass (billing:gate)
+- coverage_gate: pass (coverage:gate)
 - grant_gate: pass (grant:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 19/19
+Commands: 20/20
 ```
 
 ## Interpretation

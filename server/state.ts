@@ -33,6 +33,7 @@ function normalizeSeedState(data: SeedState): SeedState {
     breakGlassAccesses: data.breakGlassAccesses ?? [],
     clinicianWritebackDrafts: data.clinicianWritebackDrafts ?? [],
     grantReportPackets: data.grantReportPackets ?? [],
+    coverageNavigationOptions: data.coverageNavigationOptions ?? [],
   }
 }
 

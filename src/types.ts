@@ -41,6 +41,28 @@ export interface ScreeningSite {
   lowCost: boolean
 }
 
+export type CoverageStatus = 'likely_covered' | 'navigator_review_required' | 'unknown'
+export type CoverageBasis =
+  | 'medicaid_mco_benefit'
+  | 'fqhc_program'
+  | 'community_camera_program'
+  | 'navigator_attested'
+
+export interface CoverageNavigationOption {
+  id: string
+  siteId: string
+  patientId: string
+  payerLabel: string
+  coverageStatus: CoverageStatus
+  basis: CoverageBasis
+  estimatedPatientCost: string
+  rideOption: string
+  rideResourceId?: string
+  requiresNavigatorConfirmation: boolean
+  synthetic: boolean
+  blockers: string[]
+}
+
 export interface ScreeningGap {
   id: string
   patientId: string

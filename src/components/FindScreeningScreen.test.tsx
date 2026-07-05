@@ -19,4 +19,14 @@ describe('FindScreeningScreen', () => {
     expect(screen.getByText(/Perry County FQHC Mobile Camera/i)).toBeInTheDocument()
     expect(screen.getByText(/Regional Eye Clinic/i)).toBeInTheDocument()
   })
+
+  it('shows synthetic coverage and ride checks without real adjudication or booking', () => {
+    render(<FindScreeningScreen onSelect={() => {}} />)
+
+    expect(screen.getAllByText(/Coverage & ride check/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Kentucky Medicaid MCO demo/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Navigator confirmation required/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Ride help: LKLP Community Action Council transportation/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/No real coverage adjudication or ride booking/i).length).toBeGreaterThan(0)
+  })
 })

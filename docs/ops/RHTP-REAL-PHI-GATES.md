@@ -11,7 +11,7 @@ For demo readiness, the source of truth is:
 npm run release:gate
 ```
 
-That command must show `Validation: 3/3`, `Commands: 19/19`, `Cases: 6/6` for the stakeholder demo gate, `Cases: 6/6` for the equity metrics gate, `Cases: 5/5` for the billing artifact gate, `Cases: 5/5` for the grant reporting gate, and `Cases: 5/5` for the static preview smoke gate, then complete the full local test suite without enabling `RHTP_REAL_PHI`. The extra stakeholder-demo case asserts that the prototype scope declares `patientData=false` and defers E2, H2, H3, H4, and H5 outside the stakeholder prototype.
+That command must show `Validation: 3/3`, `Commands: 20/20`, `Cases: 6/6` for the stakeholder demo gate, `Cases: 6/6` for the equity metrics gate, `Cases: 5/5` for the billing artifact gate, `Cases: 5/5` for the coverage logistics gate, `Cases: 5/5` for the grant reporting gate, and `Cases: 5/5` for the static preview smoke gate, then complete the full local test suite without enabling `RHTP_REAL_PHI`. The extra stakeholder-demo case asserts that the prototype scope declares `patientData=false` and defers E2, H2, H3, H4, and H5 outside the stakeholder prototype.
 
 ## Existential Gates
 
