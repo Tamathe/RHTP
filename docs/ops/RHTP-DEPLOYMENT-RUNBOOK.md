@@ -175,13 +175,21 @@ This proves the local no-PHI demo gate, production build, Vite preview HTTP 200,
 
 Then deploy with the chosen deployment tool and record:
 
+```bash
+$env:RHTP_PREVIEW_URL = "https://..."
+$env:RHTP_DEPLOYMENT_ID = "dpl_..."
+npm run preview:verify
+```
+
+The verifier must show `Cases: 6/6` before the preview is called deployed. Record the printed receipt:
+
 ```json
 {
   "target": "vercel_static_preview",
   "url": "https://...",
   "deploymentId": "dpl_...",
   "commit": "...",
-  "proof": ["GET / returned 200", "synthetic/local seed data only", "RHTP_REAL_PHI off"],
+  "proof": ["npm run preview:verify", "GET / returned 200", "synthetic/local seed data only", "RHTP_REAL_PHI off"],
   "phi": false
 }
 ```
