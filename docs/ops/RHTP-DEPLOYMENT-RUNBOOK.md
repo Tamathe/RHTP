@@ -15,10 +15,11 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 23/23`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 24/24`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `equity:gate` must show `Cases: 6/6` for the synthetic equity metric gate.
 - `grant:gate` must show `Cases: 5/5` for the synthetic grant reporting gate.
+- `accessibility:gate` must show `Cases: 5/5` for the local accessibility acceptance gate.
 - `coverage:gate` must show `Cases: 5/5` for the synthetic coverage and logistics gate.
 - `explainer:gate` must show `Cases: 5/5` for the synthetic discharge explainer gate.
 - `enrollment:gate` must show `Cases: 5/5` for the synthetic navigator enrollment gate.
@@ -173,6 +174,16 @@ npm run billing:gate
 
 This proves only the local stakeholder-demo evidence shape: synthetic CCM-style time, RPM-style reading days, APCM/CHW documentation artifacts, source-event links, and explicit claim-submission blocking. It does not submit claims, call a payer, connect to EHR billing, prove financial compliance, or use real patient data.
 
+## Accessibility Acceptance Boundary
+
+The local no-PHI accessibility acceptance gate is:
+
+```bash
+npm run accessibility:gate
+```
+
+This proves only the local stakeholder-demo accessibility floor: demo patients declare language and accessibility preferences, protocol-pack education modules carry WCAG 2.1 AA/local affordance attestations, patient preferences are satisfied by pack content, and the phone shell exposes large-text, high-contrast, screen-reader, keyboard, and read-aloud affordance metadata. It does not prove an independent production WCAG audit, complete assistive-technology matrix, design-system enforcement, or production accessibility owner sign-off.
+
 ## Coverage Logistics Demo Boundary
 
 The local no-PHI coverage logistics gate is:
@@ -261,7 +272,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, coverage logistics gate, discharge explainer gate, navigator enrollment gate, grant reporting gate, Appendix B residual gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, equity metrics gate, billing artifact gate, accessibility gate, coverage logistics gate, discharge explainer gate, navigator enrollment gate, grant reporting gate, Appendix B residual gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 

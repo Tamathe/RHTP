@@ -68,6 +68,15 @@ export interface EducationModuleRef {
   readingLevelGrade: number
   readAloud: boolean
   languages: string[]
+  accessibility: {
+    wcagTarget: 'WCAG_2_1_AA'
+    readAloud: boolean
+    largeText: boolean
+    screenReader: boolean
+    highContrast: boolean
+    keyboardNavigation: boolean
+    lowLiteracy: boolean
+  }
 }
 
 export interface InsightRuleRef {
@@ -135,6 +144,15 @@ const canonicalAdtEvents = new Set<AdtEventType>(['admit', 'discharge', 'transfe
 const canonicalTools = new Set<PackToolName>(['answer_education', 'collect_barrier', 'match_site', 'confirm_plan'])
 const deniedSafetyActions = new Set<SafetyAction>(['change_medication', 'dose_insulin', 'diagnose', 'autonomous_triage'])
 const requiredLanguages = ['en', 'es']
+const wcagAaAttestation: EducationModuleRef['accessibility'] = {
+  wcagTarget: 'WCAG_2_1_AA',
+  readAloud: true,
+  largeText: true,
+  screenReader: true,
+  highContrast: true,
+  keyboardNavigation: true,
+  lowLiteracy: true,
+}
 
 const sharedRailReuse: ProtocolPack['railReuse'] = {
   stateMachine: 'shared',
@@ -163,6 +181,7 @@ export const PROTOCOL_PACKS: ProtocolPack[] = [
       readingLevelGrade: 6,
       readAloud: true,
       languages: ['en', 'es'],
+      accessibility: wcagAaAttestation,
     },
     deviceBindings: [],
     insightRules: [
@@ -208,6 +227,7 @@ export const PROTOCOL_PACKS: ProtocolPack[] = [
       readingLevelGrade: 6,
       readAloud: true,
       languages: ['en', 'es'],
+      accessibility: wcagAaAttestation,
     },
     deviceBindings: ['bp_systolic', 'bp_diastolic'],
     insightRules: [
@@ -262,6 +282,7 @@ export const PROTOCOL_PACKS: ProtocolPack[] = [
       readingLevelGrade: 6,
       readAloud: true,
       languages: ['en', 'es'],
+      accessibility: wcagAaAttestation,
     },
     deviceBindings: ['pharmacy_fill_claim'],
     insightRules: [
@@ -306,6 +327,7 @@ export const PROTOCOL_PACKS: ProtocolPack[] = [
       readingLevelGrade: 6,
       readAloud: true,
       languages: ['en', 'es'],
+      accessibility: wcagAaAttestation,
     },
     deviceBindings: [],
     insightRules: [
@@ -392,6 +414,16 @@ export function validateProtocolPack(pack: ProtocolPack): ProtocolPackValidation
 
   if (pack.education.readingLevelGrade > 6) {
     errors.push(`${pack.packId} education is above sixth-grade reading level`)
+  }
+
+  if (pack.education.accessibility.wcagTarget !== 'WCAG_2_1_AA') {
+    errors.push(`${pack.packId} education is missing WCAG 2.1 AA attestation`)
+  }
+
+  for (const [key, value] of Object.entries(pack.education.accessibility)) {
+    if (key !== 'wcagTarget' && value !== true) {
+      errors.push(`${pack.packId} education accessibility ${key} is not attested`)
+    }
   }
 
   validateSharedRails(pack, errors)

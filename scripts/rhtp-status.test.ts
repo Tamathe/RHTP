@@ -71,7 +71,7 @@ describe('rhtp status output', () => {
 
     expect(output).toContain('Appendix B residuals')
     expect(output).toContain(
-      'Appendix B.4 B4_ACCESSIBILITY_WCAG: tracked_production_backlog | production | demo blocker=false',
+      'Appendix B.4 B4_ACCESSIBILITY_WCAG: local_control_verified_production_backlog | production | demo blocker=false',
     )
     expect(output).toContain(
       'Appendix B.6 B6_RIGHT_TO_ERASURE_APPEND_ONLY_LOG: tracked_production_backlog | real_phi | demo blocker=false',

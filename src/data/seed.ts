@@ -120,6 +120,8 @@ const backgroundPatients: Patient[] = backgroundStatuses.map((_, index) => ({
   id: `pat_bg_${index + 1}`,
   name: names[index],
   county: counties[index % counties.length],
+  language: index % 4 === 1 ? 'es' : 'en',
+  accessibilityPrefs: ['read_aloud', 'keyboard_navigation'],
   condition: 'type_2_diabetes',
   a1c: a1cValues[index],
 }))
@@ -137,6 +139,8 @@ const hero: Patient = {
   id: HERO_ID,
   name: 'Ruth Ann Caldwell',
   county: 'Perry',
+  language: 'en',
+  accessibilityPrefs: ['read_aloud', 'large_text', 'screen_reader', 'high_contrast', 'keyboard_navigation'],
   condition: 'type_2_diabetes',
   a1c: '8.4',
 }

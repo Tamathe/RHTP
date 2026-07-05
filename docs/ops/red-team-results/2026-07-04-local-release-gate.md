@@ -26,6 +26,7 @@ Validation: 3/3
 - p8_gate: pass (p8:gate)
 - equity_gate: pass (equity:gate)
 - billing_gate: pass (billing:gate)
+- accessibility_gate: pass (accessibility:gate)
 - coverage_gate: pass (coverage:gate)
 - explainer_gate: pass (explainer:gate)
 - enrollment_gate: pass (enrollment:gate)
@@ -33,7 +34,7 @@ Validation: 3/3
 - spec_residual_gate: pass (spec:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 23/23
+Commands: 24/24
 ```
 
 ## Interpretation

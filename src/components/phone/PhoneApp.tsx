@@ -8,6 +8,9 @@ import { ResultScreen } from './ResultScreen'
 import { VoiceCompanionScreen } from './VoiceCompanionScreen'
 import { TodayScreen } from './TodayScreen'
 import { WhyItMattersScreen } from './WhyItMattersScreen'
+import { HERO_ID } from '../../data/seed'
+import { accessibilityProfileForPatient } from '../../lib/accessibility-policy'
+import { useStore } from '../../store/useStore'
 
 export type PhoneScreen = 'voice' | 'health' | 'visit' | 'today' | 'why' | 'find' | 'plan' | 'result'
 
@@ -25,9 +28,18 @@ const LABEL: Record<PhoneScreen, string> = {
 
 export function PhoneApp() {
   const [screen, setScreen] = useState<PhoneScreen>('voice')
+  const patient = useStore((state) => state.patients.find((candidate) => candidate.id === HERO_ID) ?? state.patients[0])
+  const accessibilityProfile = accessibilityProfileForPatient(patient)
 
   return (
-    <div className="py-6">
+    <div
+      aria-label={accessibilityProfile.ariaLabel}
+      className={`py-6 ${accessibilityProfile.className}`}
+      data-keyboard-navigation={accessibilityProfile.keyboardNavigation}
+      data-min-touch-target-px={accessibilityProfile.minTouchTargetPx}
+      data-read-aloud={accessibilityProfile.readAloud}
+      data-screen-reader={accessibilityProfile.screenReader}
+    >
       <PhoneFrame>
         {screen === 'voice' && <VoiceCompanionScreen />}
         {screen === 'health' && <HealthCompanionScreen />}

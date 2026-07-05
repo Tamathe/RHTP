@@ -22,10 +22,21 @@ export type BarrierType =
   | 'not_ready'
   | 'already_completed'
 
+export type PatientLanguage = 'en' | 'es'
+
+export type AccessibilityPreference =
+  | 'read_aloud'
+  | 'large_text'
+  | 'screen_reader'
+  | 'high_contrast'
+  | 'keyboard_navigation'
+
 export interface Patient {
   id: string
   name: string
   county: string
+  language: PatientLanguage
+  accessibilityPrefs: AccessibilityPreference[]
   condition: string
   a1c: string
 }

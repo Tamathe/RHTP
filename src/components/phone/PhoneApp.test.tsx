@@ -37,4 +37,16 @@ describe('PhoneApp', () => {
     await user.click(screen.getByRole('button', { name: 'Result' }))
     expect(screen.getByText(/your result/i)).toBeInTheDocument()
   })
+
+  it('applies the hero patient accessibility profile to the phone shell', () => {
+    render(<PhoneApp />)
+
+    const shell = screen.getByLabelText(/RHTP phone demo with large text/i)
+
+    expect(shell).toHaveAttribute('data-read-aloud', 'true')
+    expect(shell).toHaveAttribute('data-screen-reader', 'true')
+    expect(shell).toHaveAttribute('data-keyboard-navigation', 'true')
+    expect(shell).toHaveClass('text-[17px]')
+    expect(shell).toHaveClass('contrast-125')
+  })
 })
