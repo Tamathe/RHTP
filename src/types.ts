@@ -117,6 +117,25 @@ export interface HubMetric {
   scope: 'cohort'
 }
 
+export type BillingEvidenceCode = 'ccm' | 'rpm' | 'apcm' | 'chw'
+
+export interface BillingEvidenceRecord {
+  id: string
+  patientId: string
+  code: BillingEvidenceCode
+  label: string
+  month: string
+  minutes: number
+  readingDays: number
+  documentedArtifactIds: string[]
+  sourceEventIds: string[]
+  reviewedByNavigator: boolean
+  synthetic: boolean
+  claimSubmissionReady: boolean
+  blockers: string[]
+  notes: string
+}
+
 export type SourceKind =
   | 'hie'
   | 'claims'

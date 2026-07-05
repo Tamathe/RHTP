@@ -28,6 +28,7 @@
     "p6:gate": "tsx scripts/rhtp-p6-protocol-pack-gate.ts",
     "p7:gate": "tsx scripts/rhtp-p7-screenings-campaigns-gate.ts",
     "p8:gate": "tsx scripts/rhtp-p8-writeback-gate.ts",
+    "billing:gate": "tsx scripts/rhtp-billing-artifact-gate.ts",
     "voice:redteam": "tsx scripts/rhtp-voice-red-team.ts",
     "voice:live:preflight": "tsx scripts/rhtp-live-voice-drill.ts",
     "server:dev": "tsx server/index.ts",

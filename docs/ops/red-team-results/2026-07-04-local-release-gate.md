@@ -24,9 +24,10 @@ Validation: 3/3
 - p6_gate: pass (p6:gate)
 - p7_gate: pass (p7:gate)
 - p8_gate: pass (p8:gate)
+- billing_gate: pass (billing:gate)
 - preview_gate: pass (preview:gate)
 - test_suite: pass (test)
-Commands: 16/16
+Commands: 17/17
 ```
 
 ## Interpretation

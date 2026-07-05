@@ -2,6 +2,7 @@ import type {
   Barrier,
   AsyncAccessToken,
   BreakGlassAccess,
+  BillingEvidenceRecord,
   CarePlanTask,
   ClinicianWritebackDraft,
   DataSource,
@@ -45,6 +46,7 @@ export interface SeedState {
   outreach: OutreachEvent[]
   timeline: TimelineEntry[]
   metrics: HubMetric[]
+  billingEvidenceRecords: BillingEvidenceRecord[]
   sourceFacts: SourceFact[]
   patientIdentities: PatientIdentity[]
   consents: PatientConsent[]
@@ -396,6 +398,73 @@ const metrics: HubMetric[] = [
   },
 ]
 
+const billingEvidenceRecords: BillingEvidenceRecord[] = [
+  {
+    id: 'bill_ccm_ruth_july',
+    patientId: HERO_ID,
+    code: 'ccm',
+    label: 'CCM monthly care management time',
+    month: '2026-07',
+    minutes: 22,
+    readingDays: 0,
+    documentedArtifactIds: ['audit_nav_call', 'care_plan_update'],
+    sourceEventIds: ['proto_ruth_patient_consented'],
+    reviewedByNavigator: true,
+    synthetic: true,
+    claimSubmissionReady: false,
+    blockers: ['prototype_no_claim_submission'],
+    notes: 'Synthetic navigator time evidence for stakeholder demo.',
+  },
+  {
+    id: 'bill_rpm_ruth_july',
+    patientId: HERO_ID,
+    code: 'rpm',
+    label: 'RPM reading-day evidence',
+    month: '2026-07',
+    minutes: 0,
+    readingDays: 18,
+    documentedArtifactIds: ['device_reading_summary'],
+    sourceEventIds: ['proto_ruth_gap_imported'],
+    reviewedByNavigator: true,
+    synthetic: true,
+    claimSubmissionReady: false,
+    blockers: ['prototype_no_claim_submission'],
+    notes: 'Synthetic reading-day count; no real device stream.',
+  },
+  {
+    id: 'bill_apcm_ruth_july',
+    patientId: HERO_ID,
+    code: 'apcm',
+    label: 'APCM longitudinal documentation',
+    month: '2026-07',
+    minutes: 12,
+    readingDays: 0,
+    documentedArtifactIds: ['protocol_summary', 'navigator_attestation'],
+    sourceEventIds: ['proto_ruth_gap_imported', 'proto_ruth_patient_consented'],
+    reviewedByNavigator: true,
+    synthetic: true,
+    claimSubmissionReady: false,
+    blockers: ['prototype_no_claim_submission'],
+    notes: 'Synthetic advanced primary-care management documentation bundle.',
+  },
+  {
+    id: 'bill_chw_ruth_july',
+    patientId: HERO_ID,
+    code: 'chw',
+    label: 'CHW navigation support',
+    month: '2026-07',
+    minutes: 35,
+    readingDays: 0,
+    documentedArtifactIds: ['resource_connection_note'],
+    sourceEventIds: ['proto_ruth_patient_consented'],
+    reviewedByNavigator: false,
+    synthetic: true,
+    claimSubmissionReady: false,
+    blockers: ['navigator_review_required', 'prototype_no_claim_submission'],
+    notes: 'Synthetic resource-navigation evidence awaiting review.',
+  },
+]
+
 const referrals: Referral[] = [
   {
     id: 'ref_seed',
@@ -421,6 +490,7 @@ export const seed: SeedState = {
   outreach: [],
   timeline: [{ id: 'tl_hero_0', patientId: HERO_ID, label: 'Gap identified', seq: 0 }],
   metrics,
+  billingEvidenceRecords,
   sourceFacts: HERO_SOURCE_FACTS,
   patientIdentities: HERO_PATIENT_IDENTITIES,
   consents: [HERO_CONSENT],

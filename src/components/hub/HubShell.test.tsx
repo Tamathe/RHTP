@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useStore } from '../../store/useStore'
 import { HubShell } from './HubShell'
@@ -11,5 +11,14 @@ describe('HubShell', () => {
 
     expect(screen.getAllByRole('button')[0]).toHaveTextContent(/Navigator queue/i)
     expect(screen.getByText(/No open navigator work/i)).toBeInTheDocument()
+  })
+
+  it('opens the billing evidence view from hub navigation', () => {
+    render(<HubShell />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Billing evidence/i }))
+
+    expect(screen.getByRole('heading', { name: /billing evidence/i })).toBeInTheDocument()
+    expect(screen.getByText(/Claim submission remains blocked/i)).toBeInTheDocument()
   })
 })

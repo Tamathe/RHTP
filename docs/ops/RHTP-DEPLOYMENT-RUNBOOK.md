@@ -15,7 +15,7 @@ npm run release:gate
 
 Required interpretation:
 
-- `release:gate` must show `Validation: 3/3` and `Commands: 16/16`.
+- `release:gate` must show `Validation: 3/3` and `Commands: 17/17`.
 - `preview:gate` must show `Cases: 6/6` for the stakeholder demo gate and `Cases: 5/5` for the static preview smoke gate.
 - `RHTP_REAL_PHI` stays off.
 - Do not enter real patient names, identifiers, phone numbers, clinical facts, claims, or device data.
@@ -145,6 +145,16 @@ npm run p8:gate
 
 This proves only the local clinician-summary/writeback boundary: navigator signature is required before clinician approval, prohibited diagnosis/dosing/triage language is blocked and audited, a safe navigator-attested `DocumentReference` can be locally approved and persisted, the clinician surface is P8-flagged and EMR-launch-only, and expansion proof uses synthetic multi-county cohorts. It does not launch SMART on FHIR, write to an EMR, call TEFCA IAS, or prove live multi-county operations.
 
+## Billing Artifact Demo Boundary
+
+The local no-PHI billing artifact gate is:
+
+```bash
+npm run billing:gate
+```
+
+This proves only the local stakeholder-demo evidence shape: synthetic CCM-style time, RPM-style reading days, APCM/CHW documentation artifacts, source-event links, and explicit claim-submission blocking. It does not submit claims, call a payer, connect to EHR billing, prove financial compliance, or use real patient data.
+
 ## H4 Local Break-Glass Boundary
 
 The local no-PHI H4 gate is:
@@ -183,7 +193,7 @@ The repo has `vercel.json` configured for a static Vite app rewrite. Before a st
 npm run release:gate
 ```
 
-This proves the local no-PHI demo gate, production build, all local phase gates, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
+This proves the local no-PHI demo gate, production build, all local phase gates, billing artifact gate, full test suite, Vite preview HTTP 200, app-shell markers, and the `/(.*)` to `/index.html` rewrite. It deliberately does not prove public deployment.
 
 Generate the stakeholder packet after `release:gate`:
 
