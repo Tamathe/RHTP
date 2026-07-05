@@ -38,6 +38,16 @@ npm run release:packet
 
 The packet reports the current commit, push status, proof rung, demo scope, prototype-deferred health-information gates, Appendix B residual counts, public-preview receipt state, latest receipt URL/deployment/commit when recorded, and exact next commands. To write it to a file, set `RHTP_RELEASE_PACKET_PATH` before running the command.
 
+Before a public preview attempt, run:
+
+```bash
+git push origin master
+vercel link
+npm run preview:preflight
+```
+
+This preflight is expected to fail until the local release rung is verified, `RHTP_REAL_PHI` is off, the tree is clean, the branch has an upstream, local commits are pushed, and `.vercel/project.json` is present. It does not deploy anything or prove a public URL.
+
 ## Local App
 
 ```bash
@@ -283,6 +293,9 @@ npm run release:packet
 Then deploy with the chosen deployment tool and record:
 
 ```bash
+git push origin master
+vercel link
+npm run preview:preflight
 $env:RHTP_PREVIEW_URL = "https://..."
 $env:RHTP_DEPLOYMENT_ID = "dpl_..."
 $env:RHTP_RECORD_PREVIEW_RECEIPT = "1"

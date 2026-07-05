@@ -159,6 +159,8 @@ export function createStakeholderReleasePacket(input: StakeholderReleasePacketIn
     requiredCommands: [
       'npm run release:gate',
       'git push origin master',
+      'vercel link',
+      'npm run preview:preflight',
       '$env:RHTP_PREVIEW_URL = "https://..."',
       '$env:RHTP_DEPLOYMENT_ID = "dpl_..."',
       '$env:RHTP_RECORD_PREVIEW_RECEIPT = "1"',

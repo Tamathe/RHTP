@@ -10,11 +10,16 @@ This file describes the append-only proof log for no-PHI stakeholder preview dep
 After a preview deploy exists, run:
 
 ```powershell
+git push origin master
+vercel link
+npm run preview:preflight
 $env:RHTP_PREVIEW_URL = "https://..."
 $env:RHTP_DEPLOYMENT_ID = "dpl_..."
 $env:RHTP_RECORD_PREVIEW_RECEIPT = "1"
 npm run preview:verify
 ```
+
+`npm run preview:preflight` does not create a receipt and does not prove a public URL. It only checks that the local no-PHI release rung is verified, the working tree is clean, commits are pushed, `RHTP_REAL_PHI` is off/unset, and the checkout is linked to a Vercel project before public verification.
 
 Optional override:
 

@@ -44,6 +44,8 @@ describe('stakeholder release packet', () => {
     expect(packet.requiredCommands).toEqual([
       'npm run release:gate',
       'git push origin master',
+      'vercel link',
+      'npm run preview:preflight',
       '$env:RHTP_PREVIEW_URL = "https://..."',
       '$env:RHTP_DEPLOYMENT_ID = "dpl_..."',
       '$env:RHTP_RECORD_PREVIEW_RECEIPT = "1"',
@@ -68,6 +70,7 @@ describe('stakeholder release packet', () => {
     expect(markdown).toContain('- Right-to-erasure tracked: `1`')
     expect(markdown).toContain('- Residual demo blockers: none')
     expect(markdown).toContain('npm run release:gate')
+    expect(markdown).toContain('npm run preview:preflight')
     expect(markdown).toContain('npm run preview:verify')
     expect(markdown).toContain('This packet does not prove public deployment, live alias routing, or real-PHI readiness.')
   })

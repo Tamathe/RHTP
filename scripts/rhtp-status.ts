@@ -261,7 +261,9 @@ function printDeployStatus(output: string[], options: StatusRenderOptions): void
   output.push('1. npm run release:gate')
   output.push('2. npm run release:packet')
   output.push('3. Push/deploy only when explicitly requested.')
-  output.push('4. RHTP_PREVIEW_URL + RHTP_DEPLOYMENT_ID + RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify')
+  output.push('4. vercel link')
+  output.push('5. npm run preview:preflight')
+  output.push('6. RHTP_PREVIEW_URL + RHTP_DEPLOYMENT_ID + RHTP_RECORD_PREVIEW_RECEIPT=1 npm run preview:verify')
 }
 
 function printDecisions(output: string[]): void {

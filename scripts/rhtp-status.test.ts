@@ -38,13 +38,17 @@ describe('rhtp status output', () => {
     expect(output).toContain('Current proof rung: local_release_gate_verified_no_real_phi')
     expect(output).toContain('Local no-PHI release gate: verified | no-PHI | command: npm run release:gate')
     expect(output).toContain('Stakeholder release packet: available | no-PHI | command: npm run release:packet')
-    expect(output).toContain('Static Vite preview: local_static_preview_verified_ready_for_deploy_attempt | no-PHI | command: npm run release:gate && npm run preview:verify')
+    expect(output).toContain(
+      'Static Vite preview: local_static_preview_verified_ready_for_deploy_attempt | no-PHI | command: npm run release:gate && npm run preview:preflight && npm run preview:verify',
+    )
     expect(output).toContain('Public preview receipt: missing')
     expect(output).toContain(
       'Real-PHI pilot infrastructure: not_in_prototype | real-PHI | command: not part of stakeholder prototype',
     )
     expect(output).toContain('npm run release:gate')
     expect(output).toContain('npm run release:packet')
+    expect(output).toContain('vercel link')
+    expect(output).toContain('npm run preview:preflight')
     expect(output).toContain('npm run preview:verify')
   })
 

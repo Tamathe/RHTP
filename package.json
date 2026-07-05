@@ -12,6 +12,7 @@
     "ops:status": "tsx scripts/rhtp-status.ts",
     "demo:gate": "tsx scripts/rhtp-stakeholder-demo-gate.ts && npm run build",
     "preview:gate": "npm run demo:gate && tsx scripts/rhtp-static-preview-smoke.ts",
+    "preview:preflight": "tsx scripts/rhtp-public-preview-preflight.ts",
     "preview:verify": "tsx scripts/rhtp-public-preview-gate.ts",
     "release:gate": "tsx scripts/rhtp-local-release-gate.ts",
     "release:packet": "tsx scripts/rhtp-stakeholder-release-packet.ts",
