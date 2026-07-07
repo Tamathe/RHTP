@@ -77,6 +77,14 @@ export interface SeedState {
 }
 
 const counties = ['Perry', 'Leslie', 'Knott', 'Letcher', 'Breathitt', 'Harlan']
+const countyZips: Record<string, string> = {
+  Perry: '41701',
+  Leslie: '41749',
+  Knott: '41822',
+  Letcher: '41858',
+  Breathitt: '41339',
+  Harlan: '40831',
+}
 
 const backgroundStatuses: GapStatus[] = [
   'overdue',
@@ -116,15 +124,19 @@ const names = [
 
 const a1cValues = ['7.1', '9.2', '6.8', '8.0', '7.6', '10.1', '8.9', '7.3', '6.5', '9.8', '8.2', '7.9']
 
-const backgroundPatients: Patient[] = backgroundStatuses.map((_, index) => ({
-  id: `pat_bg_${index + 1}`,
-  name: names[index],
-  county: counties[index % counties.length],
-  language: index % 4 === 1 ? 'es' : 'en',
-  accessibilityPrefs: ['read_aloud', 'keyboard_navigation'],
-  condition: 'type_2_diabetes',
-  a1c: a1cValues[index],
-}))
+const backgroundPatients: Patient[] = backgroundStatuses.map((_, index) => {
+  const county = counties[index % counties.length]
+  return {
+    id: `pat_bg_${index + 1}`,
+    name: names[index],
+    county,
+    language: index % 4 === 1 ? 'es' : 'en',
+    accessibilityPrefs: ['read_aloud', 'keyboard_navigation'],
+    condition: 'type_2_diabetes',
+    a1c: a1cValues[index],
+    zip: countyZips[county],
+  }
+})
 
 const backgroundGaps: ScreeningGap[] = backgroundStatuses.map((status, index) => ({
   id: `gap_bg_${index + 1}`,
@@ -143,6 +155,7 @@ const hero: Patient = {
   accessibilityPrefs: ['read_aloud', 'large_text', 'screen_reader', 'high_contrast', 'keyboard_navigation'],
   condition: 'type_2_diabetes',
   a1c: '8.4',
+  zip: '41701',
 }
 
 const heroGap: ScreeningGap = {
@@ -286,6 +299,8 @@ const HERO_PROTOCOL_EVENTS: ProtocolEvent[] = [
   },
 ]
 
+// distanceMiles below are seeded fallbacks for the Hazard (41701) hero context;
+// FindScreeningScreen recomputes them from the entered ZIP via withDistances().
 const sites: ScreeningSite[] = [
   {
     id: 'site_fqhc_mobile',
@@ -296,6 +311,10 @@ const sites: ScreeningSite[] = [
     nextAvailableHours: 30,
     rideSupport: true,
     lowCost: true,
+    zip: '41701',
+    city: 'Perry County',
+    lat: 37.37,
+    lng: -83.3,
   },
   {
     id: 'site_fqhc',
@@ -306,16 +325,24 @@ const sites: ScreeningSite[] = [
     nextAvailableHours: 60,
     rideSupport: false,
     lowCost: true,
+    zip: '41701',
+    city: 'Hazard',
+    lat: 37.1,
+    lng: -83.42,
   },
   {
     id: 'site_kroger',
     name: 'Community Camera at Kroger',
-    type: 'community_camera',
+    type: 'kroger',
     distanceMiles: 12,
     nextAvailable: 'Friday 4:00 PM',
     nextAvailableHours: 26,
     rideSupport: false,
     lowCost: true,
+    zip: '41701',
+    city: 'Hazard',
+    lat: 37.25,
+    lng: -83.18,
   },
   {
     id: 'site_eye',
@@ -326,6 +353,136 @@ const sites: ScreeningSite[] = [
     nextAvailableHours: 20,
     rideSupport: false,
     lowCost: false,
+    zip: '40741',
+    city: 'London',
+    lat: 37.1015,
+    lng: -84.0913,
+  },
+  {
+    id: 'site_pharmacy_hazard',
+    name: 'Hometown Pharmacy Camera - Hazard',
+    type: 'pharmacy',
+    distanceMiles: 3,
+    nextAvailable: 'Thursday 1:00 PM',
+    nextAvailableHours: 22,
+    rideSupport: false,
+    lowCost: true,
+    zip: '41701',
+    city: 'Hazard',
+    lat: 37.26,
+    lng: -83.23,
+  },
+  {
+    id: 'site_pcp_hazard',
+    name: 'Perry County Primary Care',
+    type: 'primary_care',
+    distanceMiles: 4,
+    nextAvailable: 'Wednesday 3:30 PM',
+    nextAvailableHours: 40,
+    rideSupport: false,
+    lowCost: true,
+    zip: '41701',
+    city: 'Hazard',
+    lat: 37.28,
+    lng: -83.19,
+  },
+  {
+    id: 'site_fqhc_louisville',
+    name: 'Family Health Centers - Louisville',
+    type: 'fqhc',
+    distanceMiles: 2,
+    nextAvailable: 'Tomorrow 11:00 AM',
+    nextAvailableHours: 24,
+    rideSupport: true,
+    lowCost: true,
+    zip: '40202',
+    city: 'Louisville',
+    lat: 38.247,
+    lng: -85.766,
+  },
+  {
+    id: 'site_kroger_louisville',
+    name: 'Kroger Little Clinic Camera - Louisville Highlands',
+    type: 'kroger',
+    distanceMiles: 3,
+    nextAvailable: 'Friday 5:00 PM',
+    nextAvailableHours: 28,
+    rideSupport: false,
+    lowCost: true,
+    zip: '40204',
+    city: 'Louisville',
+    lat: 38.238,
+    lng: -85.723,
+  },
+  {
+    id: 'site_eye_louisville',
+    name: 'Louisville Regional Eye Institute',
+    type: 'eye_clinic',
+    distanceMiles: 5,
+    nextAvailable: 'Next Tuesday 9:00 AM',
+    nextAvailableHours: 90,
+    rideSupport: false,
+    lowCost: false,
+    zip: '40202',
+    city: 'Louisville',
+    lat: 38.2,
+    lng: -85.82,
+  },
+  {
+    id: 'site_kroger_lexington',
+    name: 'Kroger Little Clinic Camera - Lexington Hamburg',
+    type: 'kroger',
+    distanceMiles: 4,
+    nextAvailable: 'Saturday 10:00 AM',
+    nextAvailableHours: 34,
+    rideSupport: false,
+    lowCost: true,
+    zip: '40509',
+    city: 'Lexington',
+    lat: 38.03,
+    lng: -84.42,
+  },
+  {
+    id: 'site_eye_lexington',
+    name: 'Bluegrass Eye Clinic - Lexington',
+    type: 'eye_clinic',
+    distanceMiles: 2,
+    nextAvailable: 'Monday 8:30 AM',
+    nextAvailableHours: 52,
+    rideSupport: false,
+    lowCost: false,
+    zip: '40507',
+    city: 'Lexington',
+    lat: 38.03,
+    lng: -84.505,
+  },
+  {
+    id: 'site_fqhc_bowling_green',
+    name: 'Community Health Center - Bowling Green',
+    type: 'fqhc',
+    distanceMiles: 3,
+    nextAvailable: 'Wednesday 2:00 PM',
+    nextAvailableHours: 44,
+    rideSupport: true,
+    lowCost: true,
+    zip: '42101',
+    city: 'Bowling Green',
+    lat: 36.98,
+    lng: -86.44,
+  },
+  {
+    id: 'site_pharmacy_frankfort',
+    name: 'Frankfort Pharmacy Camera',
+    type: 'pharmacy',
+    distanceMiles: 2,
+    nextAvailable: 'Thursday 4:30 PM',
+    nextAvailableHours: 30,
+    rideSupport: false,
+    lowCost: true,
+    zip: '40601',
+    city: 'Frankfort',
+    lat: 38.2,
+    lng: -84.87,
   },
 ]
 

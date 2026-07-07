@@ -17,9 +17,9 @@ describe('PlanBuilderScreen', () => {
     expect(heroGap().priorityLabel).toBe('navigator_needed')
   })
 
-  it('confirming a time schedules the screening', async () => {
+  it('requesting a time schedules the screening', async () => {
     render(<PlanBuilderScreen onDone={() => {}} />)
-    await userEvent.click(screen.getByRole('button', { name: /confirm saturday/i }))
+    await userEvent.click(screen.getByRole('button', { name: /request this time/i }))
     expect(heroGap().status).toBe('scheduled')
   })
 

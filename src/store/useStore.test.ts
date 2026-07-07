@@ -34,6 +34,29 @@ describe('askQuestion', () => {
   })
 })
 
+describe('askEducationQuestion', () => {
+  it('records a normal education question as outreach without escalating', () => {
+    s().askEducationQuestion(HERO_ID, 'What is diabetic retinopathy?')
+    expect(s().outreach.some((event) => event.surface === 'learn')).toBe(true)
+    expect(s().redFlagEvents).toHaveLength(0)
+    expect(s().navigatorQueue).toHaveLength(0)
+  })
+
+  it('escalates a typed red-flag symptom to the navigator queue', () => {
+    s().askEducationQuestion(HERO_ID, 'I have new flashes and a bunch of floaters')
+    expect(s().redFlagEvents).toHaveLength(1)
+    expect(s().navigatorQueue.at(-1)?.reason).toBe('red_flag_symptom')
+  })
+
+  it('escalates a plain-language acute symptom the crisis regex misses', () => {
+    // "losing my sight" is not in the deterministic crisis corpus; the
+    // education acute-vision guard must still route it to a human.
+    s().askEducationQuestion(HERO_ID, 'I am losing my sight')
+    expect(s().redFlagEvents).toHaveLength(1)
+    expect(s().navigatorQueue.at(-1)?.reason).toBe('red_flag_symptom')
+  })
+})
+
 describe('reportBarrier', () => {
   it('creates a barrier plus navigator task and flags navigator_needed', () => {
     s().reportBarrier(HERO_ID, 'transportation', 'No weekday ride')

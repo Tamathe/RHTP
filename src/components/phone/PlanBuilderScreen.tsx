@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { HERO_ID } from '../../data/seed'
+import { withDistances } from '../../lib/ky-geo'
 import { useStore } from '../../store/useStore'
 import type { BarrierType } from '../../types'
 import { KentuckyResourceFinder } from './KentuckyResourceFinder'
@@ -16,24 +17,40 @@ export function PlanBuilderScreen({ onDone }: { onDone: () => void }) {
   const reportBarrier = useStore((state) => state.reportBarrier)
   const reportAlreadyCompleted = useStore((state) => state.reportAlreadyCompleted)
   const scheduleScreening = useStore((state) => state.scheduleScreening)
+  const sites = useStore((state) => state.sites)
+  const selectedSiteId = useStore((state) => state.selectedSiteId)
+  const originZip = useStore((state) => state.originZip)
   const patient = useStore((state) => state.patients.find((candidate) => candidate.id === HERO_ID))
   const [flash, setFlash] = useState<string | null>(null)
+
+  const chosen =
+    sites.find((site) => site.id === selectedSiteId) ??
+    sites.find((site) => site.id === 'site_fqhc_mobile') ??
+    sites[0]
+  const site = withDistances([chosen], originZip)[0]
 
   return (
     <div className="space-y-4">
       <h1 className="text-lg font-extrabold text-slate-900">Build your plan</h1>
       <div className="rounded-lg border border-stone-200 p-4">
-        <div className="font-bold text-slate-900">Perry County FQHC Mobile Camera</div>
-        <div className="text-sm text-slate-600">Saturday 9:00 AM | 8 miles | ride support</div>
+        <div className="font-bold text-slate-900">{site.name}</div>
+        <div className="text-sm text-slate-600">
+          {site.nextAvailable} | {site.distanceMiles} miles
+          {site.city ? ` | ${site.city}` : ''}
+          {site.rideSupport ? ' | ride support' : ''}
+        </div>
         <button
           onClick={() => {
-            scheduleScreening(HERO_ID, 'site_fqhc_mobile', 'Saturday 9:00 AM')
+            scheduleScreening(HERO_ID, site.id, site.nextAvailable)
             onDone()
           }}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 font-bold text-white hover:bg-teal-800"
         >
-          <Check className="size-4" /> Confirm Saturday 9:00 AM
+          <Send className="size-4" /> Request this time
         </button>
+        <p className="mt-2 text-xs text-slate-600">
+          This sends a request. Your navigator confirms the slot and your coverage before it is final.
+        </p>
       </div>
 
       <div>
@@ -72,12 +89,6 @@ export function PlanBuilderScreen({ onDone }: { onDone: () => void }) {
           {flash}
         </div>
       )}
-
-      <textarea
-        placeholder="Add a note for a family member or caregiver (optional)"
-        className="w-full rounded-lg border border-stone-300 p-3 text-sm"
-        rows={2}
-      />
     </div>
   )
 }

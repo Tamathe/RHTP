@@ -10,7 +10,7 @@ describe('FindScreeningScreen', () => {
     render(<FindScreeningScreen onSelect={() => {}} />)
     const explanation = screen.getByText(/Best match because/i)
     expect(explanation).toBeInTheDocument()
-    expect(explanation).toHaveTextContent(/8 miles/i)
+    expect(explanation).toHaveTextContent(/\d+ miles/i)
     expect(explanation).toHaveTextContent(/ride support/i)
   })
 

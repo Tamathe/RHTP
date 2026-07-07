@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { seed, type SeedState } from '../data/seed'
+import { HERO_ID, seed, type SeedState } from '../data/seed'
 import { incrementMetric } from '../lib/metrics'
 import {
   getKentuckyResourceById,
@@ -11,6 +11,7 @@ import {
   priorityForQueueReason,
   queueReasonForBarrier,
 } from '../lib/retinopathy-protocol'
+import { isAcuteVisionConcern } from '../lib/retinopathy-education'
 import { screenPatientMessage } from '../lib/safety'
 import { outcomeToStatus, transition } from '../lib/screening-gap'
 import type {
@@ -21,7 +22,12 @@ import type {
 } from '../types'
 
 interface StoreState extends SeedState {
+  originZip: string
+  selectedSiteId: string | null
+  setOriginZip: (zip: string) => void
+  selectSite: (siteId: string) => void
   askQuestion: (patientId: string, input: string, surface: string) => void
+  askEducationQuestion: (patientId: string, text: string) => void
   reportBarrier: (patientId: string, type: BarrierType, detail: string) => void
   reportAlreadyCompleted: (patientId: string) => void
   scheduleScreening: (patientId: string, siteId: string, when: string) => void
@@ -34,6 +40,8 @@ interface StoreState extends SeedState {
 }
 
 const clone = (): SeedState => structuredClone(seed)
+
+const DEFAULT_ORIGIN_ZIP = seed.patients.find((patient) => patient.id === HERO_ID)?.zip ?? '41701'
 
 let counter = 0
 
@@ -101,6 +109,12 @@ const barrierFromReply = (text: string): BarrierType | null => {
 
 export const useStore = create<StoreState>((set) => ({
   ...clone(),
+  originZip: DEFAULT_ORIGIN_ZIP,
+  selectedSiteId: null,
+
+  setOriginZip: (zip) => set({ originZip: zip }),
+
+  selectSite: (siteId) => set({ selectedSiteId: siteId }),
 
   askQuestion: (patientId, input, surface) =>
     set((state) => {
@@ -138,6 +152,59 @@ export const useStore = create<StoreState>((set) => ({
         ],
         protocolEvents: [...state.protocolEvents, event],
       }
+    }),
+
+  askEducationQuestion: (patientId, text) =>
+    set((state) => {
+      const screened = screenPatientMessage(text)
+      const outreach = [
+        ...state.outreach,
+        { id: nextId('out'), patientId, kind: 'assistant_question' as const, detail: text, surface: 'learn' },
+      ]
+
+      if (screened.category === 'red_flag' || isAcuteVisionConcern(text)) {
+        const event = protocolEvent(
+          state,
+          patientId,
+          'red_flag_reported',
+          'Possible vision red flag reported while learning',
+          'patient',
+        )
+        return {
+          outreach,
+          protocolEvents: [...state.protocolEvents, event],
+          redFlagEvents: [
+            ...state.redFlagEvents,
+            {
+              id: nextId('red'),
+              patientId,
+              symptom: text,
+              action: 'Navigator urgent review',
+              createdAt: now(),
+              status: 'open' as const,
+            },
+          ],
+          navigatorQueue: [
+            ...state.navigatorQueue,
+            queueItem(
+              patientId,
+              'red_flag_symptom',
+              screened.navigatorSummary,
+              'Call the patient and route to urgent clinical guidance.',
+              [event.id],
+            ),
+          ],
+        }
+      }
+
+      const event = protocolEvent(
+        state,
+        patientId,
+        'question_answered',
+        'Education question answered by Sandy',
+        'sandy',
+      )
+      return { outreach, protocolEvents: [...state.protocolEvents, event] }
     }),
 
   reportBarrier: (patientId, type, detail) =>
@@ -577,6 +644,6 @@ export const useStore = create<StoreState>((set) => ({
 
   reset: () => {
     counter = 0
-    set(clone())
+    set({ ...clone(), originZip: DEFAULT_ORIGIN_ZIP, selectedSiteId: null })
   },
 }))

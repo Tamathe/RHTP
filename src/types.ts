@@ -39,17 +39,31 @@ export interface Patient {
   accessibilityPrefs: AccessibilityPreference[]
   condition: string
   a1c: string
+  zip?: string
 }
+
+export type ScreeningVenueType =
+  | 'fqhc'
+  | 'mobile_clinic'
+  | 'community_camera'
+  | 'eye_clinic'
+  | 'kroger'
+  | 'pharmacy'
+  | 'primary_care'
 
 export interface ScreeningSite {
   id: string
   name: string
-  type: 'fqhc' | 'mobile_clinic' | 'community_camera' | 'eye_clinic'
+  type: ScreeningVenueType
   distanceMiles: number
   nextAvailable: string
   nextAvailableHours: number
   rideSupport: boolean
   lowCost: boolean
+  zip?: string
+  lat?: number
+  lng?: number
+  city?: string
 }
 
 export type CoverageStatus = 'likely_covered' | 'navigator_review_required' | 'unknown'
